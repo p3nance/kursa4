@@ -9,7 +9,6 @@
     -fx-effect: dropshadow(gaussian, #2563eb22, 15, 0, 0, 12);
 }
 
-/* Заголовок */
 .auth-title {
     -fx-font-size: 28px;
     -fx-font-weight: bold;
@@ -18,7 +17,6 @@
     -fx-alignment: center;
 }
 
-/* Лейблы */
 .auth-label {
     -fx-font-size: 16px;
     -fx-text-fill: #293441;
@@ -26,7 +24,6 @@
     -fx-padding: 6 0 5 0;
 }
 
-/* Текстовые поля */
 .auth-field {
     -fx-background-color: #f4f9fb;
     -fx-background-radius: 9;
@@ -37,7 +34,6 @@
     -fx-border-width: 1.6;
 }
 
-/* Общий стиль кнопки */
 .auth-submit-btn {
     -fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
     -fx-text-fill: #fff;
@@ -45,69 +41,71 @@
     -fx-font-size: 16px;
     -fx-padding: 14 0;
     -fx-background-radius: 11;
-    -fx-pref-width: 200;        /* шире для длинных слов */
+    -fx-pref-width: 200;
     -fx-effect: dropshadow(gaussian, #2563eb33, 2, 0, 0, 2);
     -fx-cursor: hand;
     -fx-border-width: 0;
     -fx-font-family: "Segoe UI", Arial, sans-serif;
     -fx-alignment: center;
-    -fx-wrap-text: true;        /* если не умещается — переносит */
+    -fx-wrap-text: true;
 }
 
 .auth-switch-btn {
     -fx-background-color: linear-gradient(to right, #22c55e 85%, #16a34a 100%);
     -fx-text-fill: #fff;
     -fx-font-weight: bold;
-    -fx-font-size: 16px;        /* чуть меньше */
+    -fx-font-size: 16px;
     -fx-padding: 14 0;
     -fx-background-radius: 11;
-    -fx-pref-width: 200;        /* шире! */
+    -fx-pref-width: 200;
     -fx-effect: dropshadow(gaussian, #22c55e44, 2, 0, 0, 2);
     -fx-cursor: hand;
     -fx-border-width: 0;
     -fx-font-family: "Segoe UI", Arial, sans-serif;
-    -fx-wrap-text: true;
     -fx-alignment: center;
+    -fx-wrap-text: true;
 }
 
 .auth-back-btn {
-    -fx-background-color: linear-gradient(to right, #e0e7ef 90%, #cbd5e1 100%);
+    -fx-background-insets: 0;
+    -fx-background-radius: 12;
+    -fx-background-color: linear-gradient(to right, #e0e7ef 92%, #cbd5e1 100%);
+    -fx-padding: 14 0;
+    -fx-pref-width: 130;
     -fx-text-fill: #222;
     -fx-font-weight: bold;
     -fx-font-size: 16px;
-    -fx-padding: 14 0;
-    -fx-background-radius: 11;  /* скругления! */
-    -fx-pref-width: 130;
-    -fx-border-width: 1.4;
+    -fx-border-radius: 12;
     -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, #cbd5e133, 1.5, 0, 0, 1);
     -fx-font-family: "Segoe UI", Arial, sans-serif;
     -fx-alignment: center;
-    -fx-effect: dropshadow(gaussian, #cbd5e133, 1.5, 0, 0, 1);
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
-
-
-
-/* Логотип и слоган в левой части */
 .left-logo-label {
     -fx-font-size: 72px;
     -fx-padding: 10 0 0 0;
 }
+
 .left-title-label {
     -fx-font-size: 36px;
     -fx-font-weight: bold;
     -fx-text-fill: #2563eb;
-    -fx-padding: 18 0 0 0;
+    -fx-padding: 10 0 0 0;
 }
+
 .left-slogan-label {
     -fx-font-size: 20px;
     -fx-text-fill: #3867d6;
     -fx-font-weight: bold;
-    -fx-alignment: center;
-    -fx-padding: 15 0 0 0;
+    -fx-alignment: center-left;
+    -fx-padding: 6 0 0 10;
 }
 
-/* Обработка текста и ошибок */
 .label, .text {
     -fx-wrap-text: true;
 }

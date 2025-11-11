@@ -11,8 +11,8 @@
 
     <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
         <HBox alignment="CENTER" spacing="0" style="-fx-pref-width: 1200;">
-            <!-- Левая часть: логотип по центру ОСНОВНОЙ формы -->
-            <VBox alignment="CENTER" spacing="22" style="-fx-background-color: transparent; -fx-pref-width: 520;">
+            <!-- Левая часть: логотип по центру основной формы -->
+            <VBox alignment="CENTER" spacing="12" style="-fx-background-color: transparent; -fx-pref-width: 520; -fx-padding: -80 80 0 0;">
                 <Label text="💻" styleClass="left-logo-label"/>
                 <Label text="TechStore" styleClass="left-title-label"/>
                 <Label text="Технологии, доступные каждому! Быстро. Удобно. Надежно."

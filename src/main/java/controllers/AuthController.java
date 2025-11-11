@@ -35,8 +35,8 @@ public class AuthController {
     private void setLoginMode() {
         registerMode = false;
         authSubTitle.setText("Пожалуйста, авторизуйтесь или создайте аккаунт");
-        authSubmitBtn.setText("Войти");
-        authSwitchBtn.setText("Зарегистрироваться");
+        authSubmitBtn.setText("Вход");
+        authSwitchBtn.setText("Регистрация");
         authConfirmPassword.setVisible(false);
         authErrorLabel.setVisible(false);
         authEmail.clear();

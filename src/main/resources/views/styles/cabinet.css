@@ -34,33 +34,50 @@
 }
 
 .save-btn {
-    -fx-background-color: linear-gradient(to right, #22c55e, #16a34a);
+    -fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
     -fx-text-fill: #fff;
     -fx-font-weight: bold;
-    -fx-background-radius: 11;
-    -fx-padding: 10 28 10 28;
     -fx-font-size: 16px;
+    -fx-padding: 13 0;
+    -fx-background-radius: 11;
+    -fx-pref-width: 160;
+    -fx-effect: dropshadow(gaussian, #2563eb33, 2, 0, 0, 2);
+    -fx-cursor: hand;
     -fx-border-width: 0;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .logout-btn {
-    -fx-background-color: linear-gradient(to right, #e66d32, #f6422e);
+    -fx-background-color: linear-gradient(to right, #e57373 85%, #ef4444 100%);
     -fx-text-fill: #fff;
     -fx-font-weight: bold;
-    -fx-background-radius: 11;
-    -fx-padding: 10 28 10 28;
     -fx-font-size: 16px;
+    -fx-padding: 13 0;
+    -fx-background-radius: 11;
+    -fx-pref-width: 130;
+    -fx-effect: dropshadow(gaussian, #ef444433, 2, 0, 0, 2);
+    -fx-cursor: hand;
     -fx-border-width: 0;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .back-btn {
-    -fx-background-color: linear-gradient(to right, #2563eb, #5898f3);
-    -fx-text-fill: #fff;
-    -fx-font-weight: bold;
+    -fx-background-insets: 0;
     -fx-background-radius: 11;
-    -fx-padding: 10 28 10 28;
+    -fx-background-color: linear-gradient(to right, #e0e7ef 92%, #cbd5e1 100%);
+    -fx-text-fill: #222;
+    -fx-font-weight: bold;
     -fx-font-size: 16px;
-    -fx-border-width: 0;
+    -fx-padding: 13 0;
+    -fx-pref-width: 110;
+    -fx-border-radius: 11;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, #cbd5e133, 1.5, 0, 0, 1);
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .button:hover {

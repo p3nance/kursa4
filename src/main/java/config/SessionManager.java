@@ -41,13 +41,20 @@ public class SessionManager {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject json = new JSONObject(response.body());
+            System.out.println(json.toString(2)); // debug!
+
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
                 userEmail = email;
-                userId = json.optString("user_id", null);
+                // Корректно выдергиваем userId из ответа Supabase!
+                if (json.has("user")) {
+                    userId = json.getJSONObject("user").optString("id", null);
+                } else {
+                    userId = json.optString("user_id", null);
+                }
                 return true;
             }
-        } catch (Exception e) {}
+        } catch (Exception e) { e.printStackTrace(); }
         clearSession();
         return false;
     }
@@ -71,13 +78,19 @@ public class SessionManager {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject json = new JSONObject(response.body());
+            System.out.println(json.toString(2)); // debug!
+
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
                 userEmail = email;
-                userId = json.optString("user_id", null);
+                if (json.has("user")) {
+                    userId = json.getJSONObject("user").optString("id", null);
+                } else {
+                    userId = json.optString("user_id", null);
+                }
                 return true;
             }
-        } catch (Exception e) {}
+        } catch (Exception e) { e.printStackTrace(); }
         clearSession();
         return false;
     }

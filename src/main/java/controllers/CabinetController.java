@@ -136,11 +136,10 @@ public class CabinetController {
 
     private void handleLogout() {
         SessionManager.clearSession();
-        // здесь можно добавить возврат на авторизацию по твоей логике, если нужно
+        if (mainController != null) mainController.showMainContent();
     }
 
     private void handleBack() {
-        // Новый вариант! Не открываем main.fxml как окно, а возвращаемся на главное содержимое в MainController
         if (mainController != null) mainController.showMainContent();
     }
 }
