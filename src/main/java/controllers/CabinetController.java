@@ -1,10 +1,10 @@
 package controllers;
-
 import config.Config;
 import config.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -17,13 +17,15 @@ public class CabinetController {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @FXML private TextField nameField, surnameField, emailField, phoneField, cityField, addressField;
-    @FXML private Button saveBtn, cancelBtn, logoutBtn, backBtn;
+    @FXML private Button saveBtn, logoutBtn, backBtn;
 
     @FXML
     public void initialize() {
+        // email нельзя редактировать!
+        emailField.setEditable(false);
+
         loadUserProfile();
         saveBtn.setOnAction(e -> handleSave());
-        cancelBtn.setOnAction(e -> loadUserProfile());
         logoutBtn.setOnAction(e -> handleLogout());
         // backBtn: переход назад по твоей логике
     }
@@ -63,9 +65,12 @@ public class CabinetController {
     }
 
     private void clearFields() {
-        nameField.setText(""); surnameField.setText("");
+        nameField.setText("");
+        surnameField.setText("");
         emailField.setText(SessionManager.getUserEmail());
-        phoneField.setText(""); cityField.setText(""); addressField.setText("");
+        phoneField.setText("");
+        cityField.setText("");
+        addressField.setText("");
     }
 
     private void createNewProfile(String userId, String email) {
@@ -99,12 +104,11 @@ public class CabinetController {
         JSONObject profileData = new JSONObject();
         profileData.put("name", nameField.getText());
         profileData.put("surname", surnameField.getText());
-        profileData.put("email", emailField.getText());
+        // email НЕ меняется (берётся из SessionManager)!
         profileData.put("phone", phoneField.getText());
         profileData.put("city", cityField.getText());
         profileData.put("address", addressField.getText());
-
-        saveBtn.setDisable(true); // Блокируем на время запроса
+        saveBtn.setDisable(true); // Блокируем кнопку на время запроса
         new Thread(() -> {
             try {
                 HttpRequest patchRequest = HttpRequest.newBuilder()
@@ -131,6 +135,10 @@ public class CabinetController {
 
     private void handleLogout() {
         SessionManager.clearSession();
-        // Здесь закрытие окна личного кабинета + возврат к окну логина
+        Platform.runLater(() -> {
+            // Здесь закрытие окна личного кабинета + возврат к окну логина
+            saveBtn.getScene().getWindow().hide();
+            // (допиши вызов открытия окна логина если делалось через отдельный Stage)
+        });
     }
 }
