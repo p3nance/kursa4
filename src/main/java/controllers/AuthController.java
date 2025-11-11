@@ -1,13 +1,14 @@
 package controllers;
 
 import config.Config;
+import config.SessionManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-
+import org.json.JSONObject;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -15,18 +16,15 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 public class AuthController {
-
     @FXML private TextField loginEmail;
     @FXML private PasswordField loginPassword;
     @FXML private Button loginButton;
     @FXML private Button switchToRegisterButton;
-
     @FXML private TextField registerEmail;
     @FXML private PasswordField registerPassword;
     @FXML private PasswordField registerConfirmPassword;
     @FXML private Button registerButton;
     @FXML private Button switchToLoginButton;
-
     @FXML private TabPane authTabPane;
     @FXML private ProgressIndicator loginProgress;
     @FXML private ProgressIndicator registerProgress;
@@ -83,6 +81,9 @@ public class AuthController {
                     Thread.sleep(1500);
                     javafx.application.Platform.runLater(() -> {
                         showAlert("Демо-режим", "Supabase не настроен. Используйте демо-режим.");
+                        // Для демо сохраняем фиксированные значения
+                        SessionManager.saveAccessToken("demo_token_" + System.currentTimeMillis());
+                        SessionManager.saveUserId("demo_user_123");
                         showMainForm();
                         loginProgress.setVisible(false);
                         loginButton.setDisable(false);
@@ -91,7 +92,7 @@ public class AuthController {
                 }
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.SUPABASE_URL + "/auth/v1/token?grant_type=password"))
+                        .uri(new URI(Config.SUPABASE_URL + "/auth/v1/token?grant_type=password"))
                         .header("apikey", Config.SUPABASE_ANON_KEY)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(
@@ -99,20 +100,39 @@ public class AuthController {
                                 StandardCharsets.UTF_8))
                         .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request,
+                        HttpResponse.BodyHandlers.ofString());
 
                 javafx.application.Platform.runLater(() -> {
                     loginProgress.setVisible(false);
                     loginButton.setDisable(false);
 
                     if (response.statusCode() == 200) {
+                        try {
+                            JSONObject authResponse = new JSONObject(response.body());
+                            String accessToken = authResponse.optString("access_token", "");
+                            JSONObject user = authResponse.optJSONObject("user");
+
+                            if (user != null && !accessToken.isEmpty()) {
+                                String userId = user.getString("id");
+
+                                // Сохраняем токен и ID в сессию
+                                SessionManager.saveAccessToken(accessToken);
+                                SessionManager.saveUserId(userId);
+
+                                System.out.println("✅ Сессия создана для пользователя: " + userId);
+                            }
+                        } catch (Exception parseException) {
+                            System.err.println("⚠️ Ошибка парсинга ответа: " + parseException.getMessage());
+                        }
+
                         showAlert("Успешный вход", "Вы успешно вошли в систему!");
                         showMainForm();
                     } else {
-                        showAlert("Ошибка входа", "Не удалось войти. Проверьте Email и пароль.");
+                        showAlert("Ошибка входа",
+                                "Не удалось войти. Проверьте Email и пароль.\nКод ошибки: " + response.statusCode());
                     }
                 });
-
             } catch (Exception e) {
                 e.printStackTrace();
                 javafx.application.Platform.runLater(() -> {
@@ -149,7 +169,7 @@ public class AuthController {
                 }
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.SUPABASE_URL + "/auth/v1/signup"))
+                        .uri(new URI(Config.SUPABASE_URL + "/auth/v1/signup"))
                         .header("apikey", Config.SUPABASE_ANON_KEY)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(
@@ -157,21 +177,36 @@ public class AuthController {
                                 StandardCharsets.UTF_8))
                         .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request,
+                        HttpResponse.BodyHandlers.ofString());
 
                 javafx.application.Platform.runLater(() -> {
                     registerProgress.setVisible(false);
                     registerButton.setDisable(false);
 
                     if (response.statusCode() == 200) {
-                        showAlert("Регистрация успешна", "Пользователь зарегистрирован. Проверьте email для подтверждения.");
+                        try {
+                            JSONObject authResponse = new JSONObject(response.body());
+                            JSONObject user = authResponse.optJSONObject("user");
+
+                            if (user != null) {
+                                String userId = user.getString("id");
+                                SessionManager.saveUserId(userId);
+                                System.out.println("✅ Пользователь зарегистрирован: " + userId);
+                            }
+                        } catch (Exception parseException) {
+                            System.err.println("⚠️ Ошибка парсинга ответа: " + parseException.getMessage());
+                        }
+
+                        showAlert("Регистрация успешна",
+                                "Пользователь зарегистрирован. Проверьте email для подтверждения.");
                         clearRegisterForm();
                         switchToLogin();
                     } else {
-                        showAlert("Ошибка регистрации", "Не удалось зарегистрировать пользователя.");
+                        showAlert("Ошибка регистрации",
+                                "Не удалось зарегистрировать пользователя.\nКод ошибки: " + response.statusCode());
                     }
                 });
-
             } catch (Exception e) {
                 e.printStackTrace();
                 javafx.application.Platform.runLater(() -> {
@@ -194,12 +229,10 @@ public class AuthController {
             showAlert("Ошибка", "Заполните все поля");
             return false;
         }
-
         if (!isValidEmail(email)) {
             showAlert("Ошибка", "Введите корректный email");
             return false;
         }
-
         return true;
     }
 
@@ -208,22 +241,18 @@ public class AuthController {
             showAlert("Ошибка", "Заполните все поля");
             return false;
         }
-
         if (!isValidEmail(email)) {
             showAlert("Ошибка", "Введите корректный email");
             return false;
         }
-
         if (!password.equals(confirmPassword)) {
             showAlert("Ошибка", "Пароли не совпадают");
             return false;
         }
-
         if (password.length() < 6) {
             showAlert("Ошибка", "Пароль должен содержать минимум 6 символов");
             return false;
         }
-
         return true;
     }
 
@@ -248,17 +277,13 @@ public class AuthController {
     private void showMainForm() {
         try {
             Stage currentStage = (Stage) loginButton.getScene().getWindow();
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/main.fxml"));
             Parent root = loader.load();
-
             Stage mainStage = new Stage();
             mainStage.setTitle("Главное окно");
             mainStage.setScene(new Scene(root, 1280, 720));
             mainStage.show();
-
             currentStage.close();
-
         } catch (Exception e) {
             showAlert("Ошибка", "Не удалось загрузить главное окно: " + e.getMessage());
             e.printStackTrace();
@@ -273,3 +298,4 @@ public class AuthController {
         alert.showAndWait();
     }
 }
+
