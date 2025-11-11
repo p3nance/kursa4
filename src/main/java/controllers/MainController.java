@@ -44,6 +44,7 @@ public class MainController implements Initializable {
         setupCategoryListCellFactory();
         setupProfileButton();
         loadProductsFromSupabase();
+        lastCenter = contentScroll;
     }
 
     private void loadCategories() {
@@ -139,6 +140,7 @@ public class MainController implements Initializable {
             productPane.getChildren().add(card);
             System.out.println("Карточка: " + product.getName());
         }
+        lastCenter = contentScroll;
     }
 
     private VBox createProductCard(Product product) {
@@ -370,7 +372,7 @@ public class MainController implements Initializable {
         categoryPane.setVisible(true);
         mainPane.setTop(headerPane);
         mainPane.setLeft(categoryPane);
-        mainPane.setCenter(lastCenter != null ? lastCenter : contentScroll);
+        mainPane.setCenter(lastCenter);
     }
 
 

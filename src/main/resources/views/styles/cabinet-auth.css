@@ -1,57 +1,81 @@
 .auth-bg {
     -fx-background-color: #f5f6fa;
 }
-.auth-pane {
-    -fx-background-radius: 18;
+.auth-card {
     -fx-background-color: white;
-    -fx-effect: dropshadow(gaussian, #2563eb22, 12, 0, 0, 4);
-    -fx-border-radius: 18;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-padding: 38 38 38 38;
+    -fx-effect: dropshadow(gaussian, #2563eb22, 15, 0, 0, 12);
 }
 .auth-title {
-    -fx-font-size: 23px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: #2563eb;
-    -fx-padding: 0 0 12 0;
+    -fx-padding: 18 0 14 0;
+    -fx-alignment: center;
 }
 .auth-label {
-    -fx-font-size: 14px;
-    -fx-text-fill: #212e44;
+    -fx-font-size: 16px;
+    -fx-text-fill: #293441;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 5 0;
 }
 .auth-field {
-    -fx-background-radius: 8;
+    -fx-background-radius: 9;
     -fx-background-color: #f4f9fb;
     -fx-border-color: #a5b6dc;
-    -fx-border-radius: 8;
+    -fx-border-radius: 9;
     -fx-font-size: 15px;
-    -fx-padding: 7 13 7 13;
+    -fx-padding: 12 16 12 16;
+    -fx-border-width: 1.7;
 }
 .auth-btn {
-    -fx-background-radius: 7;
+    -fx-background-radius: 9;
     -fx-font-weight: bold;
-    -fx-font-size: 15px;
-    -fx-padding: 9 0;
-    -fx-pref-width: 210;
+    -fx-font-size: 17px;
+    -fx-padding: 14 0;
+    -fx-pref-width: 165;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, #2563eb22, 2, 0, 0, 1);
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
 }
 .auth-btn-blue {
-    -fx-background-color: #2563eb;
+    -fx-background-color: linear-gradient(to bottom, #2563eb 85%, #143d93 100%);
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, #3b82f655, 2, 0, 0, 1);
 }
 .auth-btn-green {
-    -fx-background-color: #22c55e;
+    -fx-background-color: linear-gradient(to bottom, #10b981 90%, #0b735a 100%);
     -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, #22c55e44, 2, 0, 0, 1);
 }
 .auth-btn-back {
-    -fx-background-color: #f3f4f6;
+    -fx-background-color: #e0e7ef;
     -fx-text-fill: #222;
     -fx-border-color: #cbd5e1;
-    -fx-border-width: 1;
-    -fx-padding: 7 0;
-    -fx-font-size: 14px;
+    -fx-border-width: 1.4;
+    -fx-padding: 10 0;
+    -fx-pref-width: 90;
 }
-.auth-link {
-    -fx-background-color: transparent;
+.left-logo-label {
+    -fx-font-size: 72px;
+    -fx-padding: 10 0 0 0;
+}
+.left-title-label {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
     -fx-text-fill: #2563eb;
-    -fx-font-size: 14px;
-    -fx-underline: true;
-    -fx-padding: 0 5 0 5;
+    -fx-padding: 18 0 0 0;
+}
+.left-slogan-label {
+    -fx-font-size: 20px;
+    -fx-text-fill: #3867d6;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-padding: 15 0 0 0;
+}
+.label, .text {
+    -fx-wrap-text: true;
 }

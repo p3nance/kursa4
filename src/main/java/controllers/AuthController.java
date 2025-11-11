@@ -4,81 +4,106 @@ import config.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.Tab;
 
 public class AuthController {
     private static MainController mainController;
     public static void setMainController(MainController mc) { mainController = mc; }
 
-    @FXML private TabPane authTabPane;
-    @FXML private TextField loginEmail, registerEmail;
-    @FXML private PasswordField loginPassword, registerPassword, registerConfirmPassword;
-    @FXML private Button loginButton, registerButton, switchToLoginButton, switchToRegisterButton;
-    @FXML private ProgressIndicator loginProgress, registerProgress;
-    @FXML private Button loginBackButton, registerBackButton;
+    @FXML private Button authSubmitBtn;
+    @FXML private Button authSwitchBtn;
+    @FXML private Button authBackBtn;
+    @FXML private TextField authEmail;
+    @FXML private PasswordField authPassword;
+    @FXML private PasswordField authConfirmPassword;
+    @FXML private Label authSubTitle;
+    @FXML private Label authErrorLabel;
+
+    private boolean registerMode = false;
 
     @FXML
     public void initialize() {
-        loginButton.setOnAction(e -> handleLogin());
-        registerButton.setOnAction(e -> handleRegister());
-        loginBackButton.setOnAction(e -> { if (mainController != null) mainController.showMainContent(); });
-        registerBackButton.setOnAction(e -> { if (mainController != null) mainController.showMainContent(); });
+        setLoginMode();
 
-        switchToRegisterButton.setOnAction(e -> authTabPane.getSelectionModel().select(1));
-        switchToLoginButton.setOnAction(e -> authTabPane.getSelectionModel().select(0));
-
-        loginProgress.setVisible(false);
-        registerProgress.setVisible(false);
-
-
+        authSubmitBtn.setOnAction(e -> handleAuthSubmit());
+        authSwitchBtn.setOnAction(e -> handleAuthSwitch());
+        authBackBtn.setOnAction(e -> {
+            if (mainController != null)
+                mainController.showMainContent();
+        });
     }
 
-    private void handleLogin() {
-        String email = loginEmail.getText().trim();
-        String password = loginPassword.getText();
-
-        loginButton.setDisable(true);
-        loginProgress.setVisible(true);
-
-        new Thread(() -> {
-            boolean success = SessionManager.login(email, password);
-            Platform.runLater(() -> {
-                loginButton.setDisable(false);
-                loginProgress.setVisible(false);
-                if (success) {
-                    if (mainController != null) mainController.openCabinetInMain();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Ошибка авторизации!").showAndWait();
-                }
-            });
-        }).start();
+    private void setLoginMode() {
+        registerMode = false;
+        authSubTitle.setText("Пожалуйста, авторизуйтесь или создайте аккаунт");
+        authSubmitBtn.setText("Войти");
+        authSwitchBtn.setText("Зарегистрироваться");
+        authConfirmPassword.setVisible(false);
+        authErrorLabel.setVisible(false);
+        authEmail.clear();
+        authPassword.clear();
+        authConfirmPassword.clear();
     }
 
-    private void handleRegister() {
-        String email = registerEmail.getText().trim();
-        String password = registerPassword.getText();
-        String confirm = registerConfirmPassword.getText();
+    private void setRegisterMode() {
+        registerMode = true;
+        authSubTitle.setText("Регистрация нового пользователя");
+        authSubmitBtn.setText("Зарегистрироваться");
+        authSwitchBtn.setText("← Назад к входу");
+        authConfirmPassword.setVisible(true);
+        authErrorLabel.setVisible(false);
+        authEmail.clear();
+        authPassword.clear();
+        authConfirmPassword.clear();
+    }
 
-        if (!password.equals(confirm)) {
-            new Alert(Alert.AlertType.ERROR, "Пароли не совпадают!").showAndWait();
-            return;
+    private void handleAuthSwitch() {
+        if (!registerMode) {
+            setRegisterMode();
+        } else {
+            setLoginMode();
         }
+    }
 
-        registerButton.setDisable(true);
-        registerProgress.setVisible(true);
+    private void handleAuthSubmit() {
+        String email = authEmail.getText().trim();
+        String password = authPassword.getText();
 
-        new Thread(() -> {
-            boolean success = SessionManager.register(email, password);
-            Platform.runLater(() -> {
-                registerButton.setDisable(false);
-                registerProgress.setVisible(false);
-                if (success) {
-                    if (mainController != null) mainController.openCabinetInMain();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Ошибка регистрации!").showAndWait();
-                }
-            });
-        }).start();
+        if (registerMode) {
+            String confirm = authConfirmPassword.getText();
+            if (!password.equals(confirm)) {
+                showError("Пароли не совпадают!");
+                return;
+            }
+            authSubmitBtn.setDisable(true);
+            new Thread(() -> {
+                boolean success = SessionManager.register(email, password);
+                Platform.runLater(() -> {
+                    authSubmitBtn.setDisable(false);
+                    if (success) {
+                        if (mainController != null) mainController.showMainContent();
+                    } else {
+                        showError("Ошибка регистрации!");
+                    }
+                });
+            }).start();
+        } else {
+            authSubmitBtn.setDisable(true);
+            new Thread(() -> {
+                boolean success = SessionManager.login(email, password);
+                Platform.runLater(() -> {
+                    authSubmitBtn.setDisable(false);
+                    if (success) {
+                        if (mainController != null) mainController.showMainContent();
+                    } else {
+                        showError("Ошибка авторизации!");
+                    }
+                });
+            }).start();
+        }
+    }
+
+    private void showError(String msg) {
+        authErrorLabel.setText(msg);
+        authErrorLabel.setVisible(true);
     }
 }

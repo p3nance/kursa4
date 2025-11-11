@@ -1,65 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1"
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
             fx:controller="controllers.AuthController"
             stylesheets="@styles/cabinet-auth.css"
             styleClass="auth-bg">
 
-    <TabPane fx:id="authTabPane" prefHeight="510.0" prefWidth="400.0" tabClosingPolicy="UNAVAILABLE" styleClass="auth-pane">
-        <!-- Вкладка входа -->
-        <Tab text="Вход">
-            <VBox spacing="22" alignment="CENTER" prefWidth="400">
-                <padding>
-                    <Insets top="36" right="38" bottom="28" left="38"/>
-                </padding>
-                <Text text="Вход в систему" styleClass="auth-title" />
-                <VBox spacing="13" prefWidth="320">
-                    <Label text="Email:" styleClass="auth-label"/>
-                    <TextField fx:id="loginEmail" promptText="Введите email" styleClass="auth-field"/>
-
-                    <Label text="Пароль:" styleClass="auth-label"/>
-                    <PasswordField fx:id="loginPassword" promptText="Введите пароль" styleClass="auth-field"/>
-                </VBox>
-                <Button fx:id="loginButton" text="Войти" styleClass="auth-btn auth-btn-blue"/>
-                <ProgressIndicator fx:id="loginProgress" prefWidth="28" prefHeight="28" visible="false"/>
-                <HBox spacing="7" alignment="CENTER">
-                    <Label text="Нет аккаунта?" styleClass="auth-label"/>
-                    <Button fx:id="switchToRegisterButton" text="Зарегистрироваться" styleClass="auth-link"/>
-                </HBox>
-                <Button fx:id="loginBackButton" text="← Назад" styleClass="auth-btn auth-btn-back"/>
+    <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+        <HBox alignment="CENTER" spacing="0" style="-fx-pref-width: 1200;">
+            <!-- Левая часть: логотип по центру ОСНОВНОЙ формы -->
+            <VBox alignment="CENTER" spacing="22" style="-fx-background-color: transparent; -fx-pref-width: 520;">
+                <Label text="💻" styleClass="left-logo-label"/>
+                <Label text="TechStore" styleClass="left-title-label"/>
+                <Label text="Технологии, доступные каждому! Быстро. Удобно. Надежно."
+                       styleClass="left-slogan-label"
+                       wrapText="true"
+                       maxWidth="350"/>
             </VBox>
-        </Tab>
-
-        <!-- Вкладка регистрации -->
-        <Tab text="Регистрация">
-            <VBox spacing="22" alignment="CENTER" prefWidth="400">
-                <padding>
-                    <Insets top="36" right="38" bottom="28" left="38"/>
-                </padding>
-                <Text text="Регистрация" styleClass="auth-title" />
-                <VBox spacing="13" prefWidth="320">
+            <!-- Правая часть: форма по центру стек-карточки -->
+            <VBox alignment="CENTER" spacing="0" styleClass="auth-card" prefWidth="410" prefHeight="520">
+                <Label text="Добро пожаловать!" styleClass="auth-title" />
+                <Label fx:id="authSubTitle"
+                       styleClass="auth-label"
+                       text="Пожалуйста, авторизуйтесь или создайте аккаунт"
+                       wrapText="true"
+                       maxWidth="340"/>
+                <VBox spacing="13" prefWidth="340" style="-fx-padding: 22 0 15 0;">
                     <Label text="Email:" styleClass="auth-label"/>
-                    <TextField fx:id="registerEmail" promptText="Введите email" styleClass="auth-field"/>
-
+                    <TextField fx:id="authEmail" promptText="Введите email" styleClass="auth-field"/>
                     <Label text="Пароль:" styleClass="auth-label"/>
-                    <PasswordField fx:id="registerPassword" promptText="Введите пароль" styleClass="auth-field"/>
-
-                    <Label text="Подтвердите пароль:" styleClass="auth-label"/>
-                    <PasswordField fx:id="registerConfirmPassword" promptText="Повторите пароль" styleClass="auth-field"/>
+                    <PasswordField fx:id="authPassword" promptText="Введите пароль" styleClass="auth-field"/>
+                    <PasswordField fx:id="authConfirmPassword" visible="false" promptText="Подтвердите пароль" styleClass="auth-field"/>
                 </VBox>
-                <Button fx:id="registerButton" text="Зарегистрироваться" styleClass="auth-btn auth-btn-green"/>
-                <ProgressIndicator fx:id="registerProgress" prefWidth="28" prefHeight="28" visible="false"/>
-                <HBox spacing="7" alignment="CENTER">
-                    <Label text="Уже есть аккаунт?" styleClass="auth-label"/>
-                    <Button fx:id="switchToLoginButton" text="Войти" styleClass="auth-link"/>
+                <HBox alignment="CENTER" spacing="16" style="-fx-padding: 11 0 13 0;">
+                    <Button fx:id="authSubmitBtn" text="Войти" styleClass="auth-btn auth-btn-blue"/>
+                    <Button fx:id="authSwitchBtn" text="Зарегистрироваться" styleClass="auth-btn auth-btn-green"/>
                 </HBox>
-                <Button fx:id="registerBackButton" text="← Назад" styleClass="auth-btn auth-btn-back"/>
+                <Button fx:id="authBackBtn" text="← Назад" styleClass="auth-btn auth-btn-back"/>
+                <Label fx:id="authErrorLabel" style="-fx-text-fill: #ef4444; -fx-font-size: 14px;" visible="false"/>
             </VBox>
-        </Tab>
-    </TabPane>
+        </HBox>
+    </StackPane>
 </AnchorPane>
