@@ -1,0 +1,74 @@
+.cart-bg {
+    -fx-background-color: #f4f6fb;
+    -fx-background-radius: 18;
+}
+
+.cart-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2563eb;
+    -fx-padding: 27 0 12 0;
+    -fx-alignment: center;
+}
+
+.cart-total {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #10b981;
+    -fx-padding: 14 0 8 0;
+    -fx-alignment: center-right;
+}
+
+.buy-btn {
+    -fx-background-color: linear-gradient(to right, #22c55e 85%, #16a34a 100%);
+    -fx-text-fill: #fff;
+    -fx-background-radius: 12;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 14 0;
+    -fx-pref-width: 135;
+    -fx-effect: dropshadow(gaussian, #22c55e33, 2, 0, 0, 2);
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.clear-btn {
+    -fx-background-color: linear-gradient(to right, #e0e7ef 92%, #cbd5e1 100%);
+    -fx-text-fill: #222;
+    -fx-background-radius: 12;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 14 0;
+    -fx-pref-width: 122;
+    -fx-border-radius: 12;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, #cbd5e133, 1.5, 0, 0, 1);
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.back-btn {
+    -fx-background-insets: 0;
+    -fx-background-radius: 12;
+    -fx-background-color: linear-gradient(to right, #276abe 85%, #3b82f6 100%);
+    -fx-text-fill: #fff;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 14 0;
+    -fx-pref-width: 122;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #2563eb33, 2, 0, 0, 2);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.cart-item-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #293441;
+    -fx-padding: 5 0 0 0;
+}

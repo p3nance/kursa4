@@ -106,3 +106,29 @@
     -fx-border-color: #dbe3ed;
 }
 
+.cart-btn {
+    -fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
+    -fx-text-fill: #fff;
+    -fx-background-radius: 11;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+}
+.buy-btn {
+    -fx-background-color: linear-gradient(to right, #22c55e 85%, #16a34a 100%);
+    -fx-text-fill: #fff;
+    -fx-background-radius: 11;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+}
+.clear-btn {
+    -fx-background-color: linear-gradient(to right, #e0e7ef 90%, #cbd5e1 100%);
+    -fx-text-fill: #222;
+    -fx-background-radius: 11;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+}
+
+

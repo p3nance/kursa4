@@ -39,7 +39,8 @@ public class ProductDetailController {
                     new java.net.URL(img);
                     isValidImageUrl = true;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         if (isValidImageUrl) {
             try {
@@ -51,9 +52,5 @@ public class ProductDetailController {
             detailImage.setImage(new Image("default-image.png"));
         }
 
-        addToCartBtn.setOnAction(e -> {
-            System.out.println("Добавлено в корзину: " + product.getName());
-            stage.close();
-        });
     }
 }

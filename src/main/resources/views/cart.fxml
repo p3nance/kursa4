@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controllers.CartController"
+      spacing="28"
+      alignment="TOP_CENTER"
+      stylesheets="/views/styles/cart.css"
+      styleClass="cart-bg"
+      prefWidth="450"
+      prefHeight="540">
+
+    <Label text="🛒 Ваша корзина" styleClass="cart-title"/>
+    <Separator style="-fx-background-color: #2563eb44;"/>
+    <VBox fx:id="cartItemsBox" spacing="13" prefWidth="380"/>
+    <Label fx:id="totalLabel" styleClass="cart-total"/>
+
+    <HBox spacing="18" alignment="CENTER" style="-fx-padding: 18 0 0 0;">
+        <Button fx:id="buyBtn" text="Купить" styleClass="buy-btn"/>
+        <Button fx:id="clearBtn" text="Очистить" styleClass="clear-btn"/>
+        <Button fx:id="backBtn" text="← Назад" styleClass="back-btn"/>
+    </HBox>
+</VBox>
