@@ -1,5 +1,7 @@
 package controllers;
 
+import config.SessionManager;
+import controllers.CabinetController;
 import com.example.authapp.models.Product;
 import com.example.authapp.repositories.ProductRepository;
 import javafx.fxml.FXML;
@@ -7,6 +9,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -45,6 +49,7 @@ public class MainController implements Initializable {
     private void loadCategories() {
         categoryList.getItems().setAll(
                 "Все",
+                "Популярное",
                 "Процессоры",
                 "Видеокарты",
                 "Материнские платы",
@@ -57,8 +62,7 @@ public class MainController implements Initializable {
                 "Мониторы",
                 "Клавиатуры",
                 "Мыши",
-                "Аксессуары",
-                "Популярное"
+                "Аксессуары"
         );
         categoryList.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldVal, newVal) -> filterByCategory(newVal)
@@ -177,7 +181,7 @@ public class MainController implements Initializable {
         Label manufacturer = new Label(product.getManufacturer() == null ? "" : product.getManufacturer());
         manufacturer.setStyle("-fx-font-size: 10px; -fx-text-fill: #9ca3af;");
 
-        Label price = new Label(product.getPrice() + " ₽");
+        Label price = new Label(String.format("%,.0f ₽", product.getPrice()));
         price.setStyle("-fx-text-fill: #10b981; -fx-font-size: 14px; -fx-font-weight: bold;");
 
         Button btn = new Button("Подробнее →");
@@ -245,7 +249,7 @@ public class MainController implements Initializable {
         descriptionLabel.setWrapText(true);
         descriptionLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
 
-        Label priceLabel = new Label(product.getPrice() + " ₽");
+        Label priceLabel = new Label(String.format("%,.0f ₽", product.getPrice()));
         priceLabel.setStyle("-fx-font-size: 26px; -fx-text-fill: #10b981; -fx-font-weight: bold;");
 
         HBox buttonBox = new HBox(10);
@@ -310,28 +314,69 @@ public class MainController implements Initializable {
     }
 
     private void setupProfileButton() {
-        profileBtn.setOnAction(e -> openCabinet());
+        profileBtn.setOnAction(e -> openCabinetInMain());
     }
 
-    private void openCabinet() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
-            BorderPane cabinetRoot = loader.load();
+    @FXML private HBox headerPane;
+    @FXML private VBox categoryPane;
+    @FXML private ScrollPane contentScroll;
+    @FXML private BorderPane mainPane;
+    private Node lastCenter;
 
-            Stage cabinetStage = new Stage();
-            cabinetStage.setTitle("Мой кабинет");
-            cabinetStage.setScene(new javafx.scene.Scene(cabinetRoot, 900, 700));
-            cabinetStage.show();
 
-            System.out.println("Кабинет открыт!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Ошибка");
-            alert.setHeaderText(null);
-            alert.setContentText("Не удалось открыть кабинет!");
-            alert.showAndWait();
+    private boolean isAuthorized() {
+        return SessionManager.getAccessToken() != null && SessionManager.getUserEmail() != null;
+    }
+
+
+
+    public void tryOpenCabinet() {
+        if (isAuthorized()) {
+            openCabinetInMain();
+        } else {
+            showAuthForm();
         }
     }
+
+    private void showAuthForm() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/auth.fxml"));
+            Node authNode = loader.load();
+            mainPane.setCenter(authNode);
+            AuthController.setMainController(this); // Связь для обратного вызова после входа
+            headerPane.setVisible(false);
+            categoryPane.setVisible(false);
+            mainPane.setTop(null);
+            mainPane.setLeft(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void openCabinetInMain() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
+            Node cabinetNode = loader.load();
+            lastCenter = mainPane.getCenter();
+            mainPane.setCenter(cabinetNode);
+            headerPane.setVisible(false);
+            categoryPane.setVisible(false);
+            mainPane.setTop(null);
+            mainPane.setLeft(null);
+            CabinetController.setHostMainController(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showMainContent() {
+        headerPane.setVisible(true);
+        categoryPane.setVisible(true);
+        mainPane.setTop(headerPane);
+        mainPane.setLeft(categoryPane);
+        mainPane.setCenter(lastCenter != null ? lastCenter : contentScroll);
+    }
+
+
 
 }

@@ -11,19 +11,19 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Проверяем конфигурацию при запуске
         System.out.println("🚀 Запуск приложения...");
         System.out.println(Config.getConfigInfo());
         Config.validateConfig();
 
         try {
-            // Загружаем FXML файл с правильным путем
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/auth.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/main.fxml"));
             Parent root = loader.load();
 
-            primaryStage.setTitle("Авторизация");
-            primaryStage.setScene(new Scene(root, 400, 500));
-            primaryStage.setResizable(false);
+            primaryStage.setTitle("TechStore");
+            primaryStage.setScene(new Scene(root, 1200, 800));
+            primaryStage.setMinWidth(900);
+            primaryStage.setMinHeight(600);
+            primaryStage.setResizable(true);
             primaryStage.show();
 
         } catch (Exception e) {
@@ -32,6 +32,7 @@ public class Main extends Application {
             showErrorDialog();
         }
     }
+
 
     private void showErrorDialog() {
         // Простое текстовое сообщение если FXML не загружается

@@ -5,13 +5,13 @@ public class Product {
     private String description;
     private String imageUrl;
     private String category;
-    private double price;
+    private int price;
     private String manufacturer;
 
     public Product() {}
 
     // Важно — правильный порядок аргументов для парсинга из Supabase!
-    public Product(String name, String description, double price, String category, String manufacturer, String imageUrl) {
+    public Product(String name, String description, int price, String category, String manufacturer, String imageUrl) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -21,7 +21,7 @@ public class Product {
     }
 
     // Для совместимости
-    public Product(String name, String description, String imageUrl, String category, double price) {
+    public Product(String name, String description, String imageUrl, String category, int price) {
         this(name, description, price, category, "", imageUrl);
     }
 
@@ -38,7 +38,7 @@ public class Product {
     public void setCategory(String category) { this.category = category; }
 
     public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public void setPrice(int price) { this.price = price; }
 
     public String getManufacturer() { return manufacturer; }
     public void setManufacturer(String manufacturer) { this.manufacturer = manufacturer; }

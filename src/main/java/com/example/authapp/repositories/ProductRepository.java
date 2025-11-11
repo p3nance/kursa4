@@ -35,7 +35,7 @@ public class ProductRepository {
             products.add(new Product(
                     obj.getString("name"),
                     obj.optString("description", ""),
-                    obj.getDouble("price"),
+                    obj.getInt("price"),
                     obj.optString("category", ""),
                     obj.optString("manufacturer", ""),
                     obj.optString("image_url", "")

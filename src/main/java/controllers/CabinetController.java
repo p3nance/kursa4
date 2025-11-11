@@ -1,13 +1,12 @@
 package controllers;
+
 import config.Config;
 import config.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,18 +15,23 @@ import java.net.http.HttpResponse;
 public class CabinetController {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
+    private static MainController mainController;
+    public static void setHostMainController(MainController controller) {
+        mainController = controller;
+    }
+
     @FXML private TextField nameField, surnameField, emailField, phoneField, cityField, addressField;
     @FXML private Button saveBtn, logoutBtn, backBtn;
 
     @FXML
     public void initialize() {
-        // email нельзя редактировать!
-        emailField.setEditable(false);
-
         loadUserProfile();
         saveBtn.setOnAction(e -> handleSave());
         logoutBtn.setOnAction(e -> handleLogout());
-        // backBtn: переход назад по твоей логике
+        backBtn.setOnAction(e -> handleBack());
+        Platform.runLater(() -> {
+            saveBtn.requestFocus();
+        });
     }
 
     private void loadUserProfile() {
@@ -65,12 +69,9 @@ public class CabinetController {
     }
 
     private void clearFields() {
-        nameField.setText("");
-        surnameField.setText("");
+        nameField.setText(""); surnameField.setText("");
         emailField.setText(SessionManager.getUserEmail());
-        phoneField.setText("");
-        cityField.setText("");
-        addressField.setText("");
+        phoneField.setText(""); cityField.setText(""); addressField.setText("");
     }
 
     private void createNewProfile(String userId, String email) {
@@ -104,11 +105,11 @@ public class CabinetController {
         JSONObject profileData = new JSONObject();
         profileData.put("name", nameField.getText());
         profileData.put("surname", surnameField.getText());
-        // email НЕ меняется (берётся из SessionManager)!
+        profileData.put("email", emailField.getText());
         profileData.put("phone", phoneField.getText());
         profileData.put("city", cityField.getText());
         profileData.put("address", addressField.getText());
-        saveBtn.setDisable(true); // Блокируем кнопку на время запроса
+        saveBtn.setDisable(true);
         new Thread(() -> {
             try {
                 HttpRequest patchRequest = HttpRequest.newBuilder()
@@ -135,10 +136,11 @@ public class CabinetController {
 
     private void handleLogout() {
         SessionManager.clearSession();
-        Platform.runLater(() -> {
-            // Здесь закрытие окна личного кабинета + возврат к окну логина
-            saveBtn.getScene().getWindow().hide();
-            // (допиши вызов открытия окна логина если делалось через отдельный Stage)
-        });
+        // здесь можно добавить возврат на авторизацию по твоей логике, если нужно
+    }
+
+    private void handleBack() {
+        // Новый вариант! Не открываем main.fxml как окно, а возвращаемся на главное содержимое в MainController
+        if (mainController != null) mainController.showMainContent();
     }
 }
