@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.CabinetController">
+    <!-- ШАПКА -->
+    <top>
+        <HBox style="-fx-background-color: #1e40af; -fx-padding: 15 20; -fx-spacing: 15;">
+            <Button text="← Назад в магазин" style="-fx-padding: 10px 20px; -fx-font-size: 12px; -fx-background-color: white; -fx-text-fill: #1e40af; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;" fx:id="backBtn"/>
+            <Label text="💻 Мой кабинет" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white; -fx-alignment: center;" HBox.hgrow="ALWAYS"/>
+            <Button text="🚪 Выход" style="-fx-padding: 10px 20px; -fx-font-size: 12px; -fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;" fx:id="logoutBtn"/>
+        </HBox>
+    </top>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <center>
+        <TabPane style="-fx-font-size: 12px;">
+            <!-- ВКЛАДКА 1: ПРОФИЛЬ -->
+            <Tab text="👤 Профиль" closable="false">
+                <VBox style="-fx-padding: 25; -fx-background-color: white;" spacing="15">
+                    <Label text="Информация профиля" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Separator/>
+
+                    <!-- Личные данные -->
+                    <HBox spacing="30">
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Имя:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="nameField" promptText="Введите ваше имя" style="-fx-padding: 8;"/>
+                        </VBox>
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Фамилия:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="surnameField" promptText="Введите фамилию" style="-fx-padding: 8;"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="30">
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Email:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="emailField" promptText="your@email.com" style="-fx-padding: 8;"/>
+                        </VBox>
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Телефон:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="phoneField" promptText="+7 (999) 999-99-99" style="-fx-padding: 8;"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="30">
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Город:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="cityField" promptText="Ваш город" style="-fx-padding: 8;"/>
+                        </VBox>
+                        <VBox spacing="10" HBox.hgrow="ALWAYS">
+                            <Label text="Адрес доставки:" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="addressField" promptText="Ул. Имени, д. 1" style="-fx-padding: 8;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Separator/>
+                    <HBox spacing="10">
+                        <Button text="💾 Сохранить изменения" style="-fx-padding: 10px 30px; -fx-font-size: 12px; -fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;" fx:id="saveBtn"/>
+                        <Button text="🔄 Отменить" style="-fx-padding: 10px 30px; -fx-font-size: 12px; -fx-background-color: #6b7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;" fx:id="cancelBtn"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <!-- ВКЛАДКА 2: ИСТОРИЯ ЗАКАЗОВ -->
+            <Tab text="📦 Мои заказы" closable="false">
+                <VBox style="-fx-padding: 25; -fx-background-color: white;" spacing="15">
+                    <Label text="История заказов" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Separator/>
+
+                    <!-- Заказ 1 -->
+                    <VBox style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-background-color: #f9fafb; -fx-padding: 15; -fx-background-radius: 8;" spacing="8">
+                        <HBox spacing="30">
+                            <Label text="Заказ №001234" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label text="Статус: ✅ Доставлен" style="-fx-text-fill: #10b981; -fx-font-weight: bold;"/>
+                            <Label text="Дата: 15.11.2024" style="-fx-text-fill: #666;"/>
+                        </HBox>
+                        <Label text="AMD Ryzen 5 5600 × 1 шт. | 13590 ₽"/>
+                        <Label text="Сумма: 13590 ₽" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                    </VBox>
+
+                    <!-- Заказ 2 -->
+                    <VBox style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-background-color: #f9fafb; -fx-padding: 15; -fx-background-radius: 8;" spacing="8">
+                        <HBox spacing="30">
+                            <Label text="Заказ №001233" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label text="Статус: 🚚 В пути" style="-fx-text-fill: #f59e0b; -fx-font-weight: bold;"/>
+                            <Label text="Дата: 10.11.2024" style="-fx-text-fill: #666;"/>
+                        </HBox>
+                        <Label text="RTX 4070 × 1 шт. | ASUS TUF × 1 шт. | 89990 ₽"/>
+                        <Label text="Сумма: 89990 ₽" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                    </VBox>
+
+                    <!-- Заказ 3 -->
+                    <VBox style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-background-color: #f9fafb; -fx-padding: 15; -fx-background-radius: 8;" spacing="8">
+                        <HBox spacing="30">
+                            <Label text="Заказ №001232" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label text="Статус: ⏳ Обработка" style="-fx-text-fill: #3b82f6; -fx-font-weight: bold;"/>
+                            <Label text="Дата: 08.11.2024" style="-fx-text-fill: #666;"/>
+                        </HBox>
+                        <Label text="Corsair K70 RGB × 1 шт. | 11790 ₽"/>
+                        <Label text="Сумма: 11790 ₽" style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                    </VBox>
+                </VBox>
+            </Tab>
+
+            <!-- ВКЛАДКА 3: ИЗБРАННОЕ -->
+            <Tab text="❤️ Избранное" closable="false">
+                <VBox style="-fx-padding: 25; -fx-background-color: white;" spacing="15">
+                    <Label text="Сохранённые товары" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Separator/>
+
+                    <Label text="📌 AMD Ryzen 7 5700X" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label text="17990 ₽"/>
+
+                    <Separator/>
+
+                    <Label text="📌 RTX 4080 Super" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label text="129990 ₽"/>
+
+                    <Separator/>
+
+                    <Label text="📌 ASUS TUF Gaming Z790" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label text="45990 ₽"/>
+                </VBox>
+            </Tab>
+
+            <!-- ВКЛАДКА 4: НАСТРОЙКИ -->
+            <Tab text="⚙️ Настройки" closable="false">
+                <VBox style="-fx-padding: 25; -fx-background-color: white;" spacing="15">
+                    <Label text="Настройки аккаунта" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Separator/>
+
+                    <VBox spacing="10" style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-padding: 15; -fx-background-radius: 8;">
+                        <Label text="Безопасность" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                        <Button text="🔐 Изменить пароль" style="-fx-padding: 8px 20px; -fx-font-size: 12px; -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;" fx:id="changePasswordBtn"/>
+                    </VBox>
+
+                    <VBox spacing="10" style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-padding: 15; -fx-background-radius: 8;">
+                        <Label text="Уведомления" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                        <Label text="☑️ Уведомления о заказах"/>
+                        <Label text="☑️ Рассылка новостей"/>
+                        <Label text="☑️ Специальные предложения"/>
+                    </VBox>
+
+                    <VBox spacing="10" style="-fx-border-width: 1; -fx-border-color: #e5e7eb; -fx-padding: 15; -fx-background-radius: 8;">
+                        <Label text="Опасная зона" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #ef4444;"/>
+                        <Button text="🗑️ Удалить аккаунт" style="-fx-padding: 8px 20px; -fx-font-size: 12px; -fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;" fx:id="deleteAccountBtn"/>
+                    </VBox>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>

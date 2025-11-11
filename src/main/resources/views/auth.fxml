@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.AuthController" style="-fx-background-color: #f5f5f5;">
+
+    <TabPane fx:id="authTabPane" prefHeight="500.0" prefWidth="400.0" tabClosingPolicy="UNAVAILABLE">
+
+        <!-- Вкладка входа -->
+        <Tab text="Вход">
+            <VBox spacing="20" alignment="CENTER" prefWidth="400">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <Text text="Вход в систему" style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+
+                <VBox spacing="15" prefWidth="300">
+                    <Label text="Email:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="loginEmail" promptText="Введите email" prefHeight="35"/>
+
+                    <Label text="Пароль:" style="-fx-font-weight: bold;"/>
+                    <PasswordField fx:id="loginPassword" promptText="Введите пароль" prefHeight="35"/>
+                </VBox>
+
+                <VBox spacing="10" alignment="CENTER">
+                    <Button fx:id="loginButton" text="Войти" prefWidth="300" prefHeight="40"
+                            style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold;"/>
+                    <ProgressIndicator fx:id="loginProgress" prefWidth="30" prefHeight="30"/>
+                </VBox>
+
+                <HBox spacing="5" alignment="CENTER">
+                    <Label text="Нет аккаунта?"/>
+                    <Button fx:id="switchToRegisterButton" text="Зарегистрироваться"
+                            style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-underline: true;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- Вкладка регистрации -->
+        <Tab text="Регистрация">
+            <VBox spacing="20" alignment="CENTER" prefWidth="400">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <Text text="Регистрация" style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+
+                <VBox spacing="15" prefWidth="300">
+                    <Label text="Email:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="registerEmail" promptText="Введите email" prefHeight="35"/>
+
+                    <Label text="Пароль:" style="-fx-font-weight: bold;"/>
+                    <PasswordField fx:id="registerPassword" promptText="Введите пароль" prefHeight="35"/>
+
+                    <Label text="Подтвердите пароль:" style="-fx-font-weight: bold;"/>
+                    <PasswordField fx:id="registerConfirmPassword" promptText="Повторите пароль" prefHeight="35"/>
+                </VBox>
+
+                <VBox spacing="10" alignment="CENTER">
+                    <Button fx:id="registerButton" text="Зарегистрироваться" prefWidth="300" prefHeight="40"
+                            style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold;"/>
+                    <ProgressIndicator fx:id="registerProgress" prefWidth="30" prefHeight="30"/>
+                </VBox>
+
+                <HBox spacing="5" alignment="CENTER">
+                    <Label text="Уже есть аккаунт?"/>
+                    <Button fx:id="switchToLoginButton" text="Войти"
+                            style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-underline: true;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+
+</AnchorPane>
