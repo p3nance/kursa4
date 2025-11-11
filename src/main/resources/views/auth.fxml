@@ -6,7 +6,7 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="controllers.AuthController"
-            stylesheets="@styles/cabinet-auth.css"
+            stylesheets="/views/styles/cabinet-auth.css"
             styleClass="auth-bg">
 
     <StackPane AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
@@ -36,10 +36,10 @@
                     <PasswordField fx:id="authConfirmPassword" visible="false" promptText="Подтвердите пароль" styleClass="auth-field"/>
                 </VBox>
                 <HBox alignment="CENTER" spacing="16" style="-fx-padding: 11 0 13 0;">
-                    <Button fx:id="authSubmitBtn" text="Войти" styleClass="auth-btn auth-btn-blue"/>
-                    <Button fx:id="authSwitchBtn" text="Зарегистрироваться" styleClass="auth-btn auth-btn-green"/>
+                    <Button fx:id="authSubmitBtn" text="Вход" styleClass="auth-submit-btn"/>
+                    <Button fx:id="authSwitchBtn" text="Регистрация" styleClass="auth-switch-btn"/>
                 </HBox>
-                <Button fx:id="authBackBtn" text="← Назад" styleClass="auth-btn auth-btn-back"/>
+                <Button fx:id="authBackBtn" text="← Назад" styleClass="auth-back-btn"/>
                 <Label fx:id="authErrorLabel" style="-fx-text-fill: #ef4444; -fx-font-size: 14px;" visible="false"/>
             </VBox>
         </HBox>
