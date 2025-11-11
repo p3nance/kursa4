@@ -314,7 +314,13 @@ public class MainController implements Initializable {
     }
 
     private void setupProfileButton() {
-        profileBtn.setOnAction(e -> openCabinetInMain());
+        profileBtn.setOnAction(e -> {
+            if (isAuthorized()) {
+                openCabinetInMain();
+            } else {
+                showAuthForm();
+            }
+        });
     }
 
     @FXML private HBox headerPane;
@@ -326,16 +332,6 @@ public class MainController implements Initializable {
 
     private boolean isAuthorized() {
         return SessionManager.getAccessToken() != null && SessionManager.getUserEmail() != null;
-    }
-
-
-
-    public void tryOpenCabinet() {
-        if (isAuthorized()) {
-            openCabinetInMain();
-        } else {
-            showAuthForm();
-        }
     }
 
     private void showAuthForm() {

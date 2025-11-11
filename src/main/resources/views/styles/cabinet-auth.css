@@ -1,0 +1,57 @@
+.auth-bg {
+    -fx-background-color: #f5f6fa;
+}
+.auth-pane {
+    -fx-background-radius: 18;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, #2563eb22, 12, 0, 0, 4);
+    -fx-border-radius: 18;
+}
+.auth-title {
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2563eb;
+    -fx-padding: 0 0 12 0;
+}
+.auth-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #212e44;
+}
+.auth-field {
+    -fx-background-radius: 8;
+    -fx-background-color: #f4f9fb;
+    -fx-border-color: #a5b6dc;
+    -fx-border-radius: 8;
+    -fx-font-size: 15px;
+    -fx-padding: 7 13 7 13;
+}
+.auth-btn {
+    -fx-background-radius: 7;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-padding: 9 0;
+    -fx-pref-width: 210;
+}
+.auth-btn-blue {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+}
+.auth-btn-green {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+}
+.auth-btn-back {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #222;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1;
+    -fx-padding: 7 0;
+    -fx-font-size: 14px;
+}
+.auth-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2563eb;
+    -fx-font-size: 14px;
+    -fx-underline: true;
+    -fx-padding: 0 5 0 5;
+}

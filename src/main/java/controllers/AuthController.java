@@ -16,17 +16,22 @@ public class AuthController {
     @FXML private PasswordField loginPassword, registerPassword, registerConfirmPassword;
     @FXML private Button loginButton, registerButton, switchToLoginButton, switchToRegisterButton;
     @FXML private ProgressIndicator loginProgress, registerProgress;
+    @FXML private Button loginBackButton, registerBackButton;
 
     @FXML
     public void initialize() {
         loginButton.setOnAction(e -> handleLogin());
         registerButton.setOnAction(e -> handleRegister());
+        loginBackButton.setOnAction(e -> { if (mainController != null) mainController.showMainContent(); });
+        registerBackButton.setOnAction(e -> { if (mainController != null) mainController.showMainContent(); });
 
         switchToRegisterButton.setOnAction(e -> authTabPane.getSelectionModel().select(1));
         switchToLoginButton.setOnAction(e -> authTabPane.getSelectionModel().select(0));
 
         loginProgress.setVisible(false);
         registerProgress.setVisible(false);
+
+
     }
 
     private void handleLogin() {
