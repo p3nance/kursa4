@@ -65,7 +65,6 @@
                         alignment="CENTER"/>
             </HBox>
         </VBox>
-
     </left>
     <center>
         <ScrollPane fx:id="contentScroll" style="-fx-background: white;" fitToWidth="true">

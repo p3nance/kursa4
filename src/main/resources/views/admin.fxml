@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.AdminController"
+            stylesheets="@styles/styles.css">
+
+    <TabPane>
+        <Tab text="📦 Товары" closable="false">
+            <VBox spacing="15" style="-fx-padding: 15;">
+                <Label text="Управление товарами" styleClass="title"/>
+
+                <VBox spacing="10" styleClass="card">
+                    <GridPane hgap="10" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints prefWidth="150"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Название:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="productNameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                        <Label text="Цена:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <TextField fx:id="productPriceField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <Label text="Количество:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="productStockField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                        <Label text="Категория:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <ComboBox fx:id="categoryCombo" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                        <Label text="Производитель:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                        <TextField fx:id="manufacturerField" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                        <Label text="URL Изображения:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                        <TextField fx:id="productImageUrlField" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                        <Label text="Описание:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                        <TextArea fx:id="productDescriptionArea" GridPane.columnIndex="1" GridPane.rowIndex="6" prefRowCount="3"/>
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="addProductButton" text="➕ Добавить" styleClass="button-success"/>
+                        <Button fx:id="updateProductButton" text="✏️ Обновить" styleClass="button"/>
+                        <Button fx:id="deleteProductButton" text="🗑️ Удалить" styleClass="button-danger"/>
+                    </HBox>
+                </VBox>
+
+                <TableView fx:id="productsTable" prefHeight="300">
+                    <columns>
+                        <TableColumn fx:id="productNameColumn" text="Название" prefWidth="200"/>
+                        <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100"/>
+                        <TableColumn fx:id="stockColumn" text="Кол-во" prefWidth="80"/>
+                        <TableColumn fx:id="categoryColumn" text="Категория" prefWidth="120"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </Tab>
+
+        <Tab text="🎟️ Промокоды" closable="false">
+            <VBox spacing="15" style="-fx-padding: 15;">
+                <Label text="Управление промокодами" styleClass="title"/>
+
+                <VBox spacing="10" styleClass="card">
+                    <GridPane hgap="10" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints prefWidth="150"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Код:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="promoCodeField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                        <Label text="Скидка %:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <TextField fx:id="discountPercentField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <Label text="Макс. использований:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="maxUsesField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                        <Label text="Дата истечения:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <DatePicker fx:id="expiryDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                        <Label text="Активен:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                        <CheckBox fx:id="activeCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="4" selected="true"/>
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="addPromoButton" text="➕ Добавить" styleClass="button-success"/>
+                        <Button fx:id="deletePromoButton" text="🗑️ Удалить" styleClass="button-danger"/>
+                    </HBox>
+                </VBox>
+
+                <TableView fx:id="promoCodesTable" prefHeight="300">
+                    <columns>
+                        <TableColumn fx:id="codeColumn" text="Код" prefWidth="150"/>
+                        <TableColumn fx:id="discountColumn" text="Скидка %" prefWidth="100"/>
+                        <TableColumn fx:id="maxUsesColumn" text="Макс. исп." prefWidth="100"/>
+                        <TableColumn fx:id="activeColumn" text="Активен" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </Tab>
+    </TabPane>
+
+</BorderPane>

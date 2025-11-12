@@ -9,6 +9,7 @@ module com.example.authapp {
     requires com.fasterxml.jackson.annotation;
     requires java.net.http;
     requires org.json;
+    requires com.google.gson;
 
 
     opens com.example.authapp to javafx.fxml;

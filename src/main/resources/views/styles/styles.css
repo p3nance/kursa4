@@ -1,0 +1,367 @@
+/* ===== ОСНОВНЫЕ ЦВЕТА ===== */
+:root {
+    -fx-primary-color: #1e293b;
+    -fx-secondary-color: #0f766e;
+    -fx-accent-color: #f59e0b;
+    -fx-text-color: #ffffff;
+    -fx-border-color: #334155;
+    -fx-success-color: #10b981;
+    -fx-danger-color: #ef4444;
+}
+
+/* ===== ROOT ===== */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 12px;
+    -fx-base: #1e293b;
+    -fx-control-inner-background: #1e293b;
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #f5f5f5;
+}
+
+/* ===== LABELS ===== */
+.label {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 12px;
+}
+
+.title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.subtitle {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3b82f6;
+}
+
+/* ===== КНОПКИ ===== */
+.button {
+    -fx-padding: 10px 20px;
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0, 0, 2);
+    -fx-border-width: 0;
+}
+
+.button:hover {
+    -fx-background-color: #2563eb;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 6, 0, 0, 3);
+}
+
+.button:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.button-primary {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.button-primary:hover {
+    -fx-background-color: #2563eb;
+}
+
+.button-success {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.button-success:hover {
+    -fx-background-color: #059669;
+}
+
+.button-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.button-danger:hover {
+    -fx-background-color: #dc2626;
+}
+
+/* ===== ТЕКСТОВЫЕ ПОЛЯ ===== */
+.text-field, .password-field {
+    -fx-padding: 8px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 12px;
+    -fx-control-inner-background: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 2px;
+    -fx-background-color: #ffffff;
+}
+
+/* ===== TEXTAREA ===== */
+.text-area {
+    -fx-padding: 8px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 12px;
+    -fx-control-inner-background: #ffffff;
+}
+
+.text-area:focused {
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 2px;
+}
+
+.text-area .content {
+    -fx-background-color: #ffffff;
+}
+
+/* ===== ТАБЛИЦЫ ===== */
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+}
+
+.table-view:focused {
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #1f2937;
+    -fx-border-color: #e5e7eb;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #1f2937;
+    -fx-padding: 8px;
+    -fx-border-color: #f0f0f0;
+}
+
+.table-row-cell {
+    -fx-background-color: #ffffff;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1f2937;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #f9fafb;
+}
+
+/* ===== COMBO BOX ===== */
+.combo-box {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px;
+    -fx-cursor: hand;
+}
+
+.combo-box:focused {
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 2px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d5db;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-text-fill: #1f2937;
+    -fx-padding: 8px;
+    -fx-background-color: #ffffff;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1f2937;
+}
+
+/* ===== DATE PICKER ===== */
+.date-picker {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8px;
+}
+
+.date-picker:focused {
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 2px;
+}
+
+/* ===== CHECKBOX ===== */
+.check-box {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 12px;
+}
+
+.check-box .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 3px;
+    -fx-padding: 3px;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+/* ===== CONTAINERS ===== */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0, 0, 2);
+}
+
+.vbox, .hbox {
+    -fx-spacing: 10px;
+}
+
+/* ===== SCROLL BAR ===== */
+.scroll-bar {
+    -fx-base: #f3f4f6;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #d1d5db;
+    -fx-background-radius: 5px;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9ca3af;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-padding: 0;
+}
+
+/* ===== SCROLL PANE ===== */
+.scroll-pane {
+    -fx-background-color: #f5f5f5;
+    -fx-padding: 0;
+}
+
+.scroll-pane:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* ===== TAB PANE ===== */
+.tab-pane {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: #f9fafb;
+    -fx-border-color: #e5e7eb;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #f9fafb;
+    -fx-text-fill: #6b7280;
+    -fx-padding: 10px 20px;
+    -fx-border-color: #e5e7eb;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #3b82f6;
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #f3f4f6;
+}
+
+/* ===== SEPARATOR ===== */
+.separator {
+    -fx-border-color: #e5e7eb;
+    -fx-padding: 0;
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ КАБИНЕТА И КОРЗИНЫ ===== */
+.cabinet-pane, .cart-pane {
+    -fx-background-color: #f5f5f5;
+}
+
+.cabinet-content, .cart-content {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 20;
+}
+
+.cabinet-card, .cart-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 20;
+}
+
+.cabinet-title, .cart-title {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+.cart-table {
+    -fx-background-color: #fff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #3b82f6;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+.table-view .table-cell {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 13px;
+}
