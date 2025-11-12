@@ -426,6 +426,7 @@ public class MainController implements Initializable {
 
             mainPane.setCenter(cartNode);
             categoryPane.setVisible(false);
+                        mainPane.setLeft(null);
         } catch (Exception e) {
             e.printStackTrace();
             showErrorMessage("Ошибка", "Не удалось загрузить корзину");
