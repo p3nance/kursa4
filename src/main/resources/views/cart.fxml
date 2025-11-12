@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="controllers.CartController"
-            stylesheets="styles/styles.css"
+            stylesheets="@styles/styles.css"
             style="-fx-background-color: #f5f5f5;">
     <top>
         <VBox spacing="10" style="-fx-padding: 22; -fx-background-color: #fff; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">

@@ -423,9 +423,12 @@ public class MainController implements Initializable {
             Node cartNode = loader.load();
             cartController = loader.getController();
             cartController.setMainController(this);
+
             mainPane.setCenter(cartNode);
+            categoryPane.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
+            showErrorMessage("Ошибка", "Не удалось загрузить корзину");
         }
     }
 
