@@ -12,7 +12,7 @@
     </top>
 
     <center>
-        <HBox spacing="20" style="-fx-padding: 20;">
+        <HBox spacing="20" style="-fx-padding: 20 20 20 0;">
             <!-- Main content area with cart items -->
             <VBox HBox.hgrow="ALWAYS" spacing="15">
                 <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
