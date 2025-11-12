@@ -15,7 +15,7 @@
         <HBox spacing="20" style="-fx-padding: 20 20 20 0;">
             <!-- Main content area with cart items -->
             <VBox HBox.hgrow="ALWAYS" spacing="15">
-                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
                     <VBox fx:id="cartItemsContainer" spacing="15" style="-fx-padding: 15;"/>
                 </ScrollPane>
             </VBox>
@@ -38,11 +38,11 @@
                     <!-- Price breakdown -->
                     <VBox spacing="8" style="-fx-padding: 10 0;">
                         <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Скидка:" style="-fx-font-size: 13px; -fx-text-fill: #64748b; HBox.hgrow: ALWAYS;"/>
+                            <Label text="Скидка:" style="-fx-font-size: 13px; -fx-text-fill: #64748b;"/>
                             <Label fx:id="discountLabel" text="0,00 ₽" style="-fx-font-size: 13px; -fx-text-fill: #22c55e; -fx-font-weight: bold;"/>
                         </HBox>
                         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
-                            <Label text="Итого:" style="-fx-font-size: 16px; -fx-text-fill: #1e293b; -fx-font-weight: bold; HBox.hgrow: ALWAYS;"/>
+                            <Label text="Итого:" style="-fx-font-size: 16px; -fx-text-fill: #1e293b; -fx-font-weight: bold;"/>
                             <Label fx:id="totalLabel" text="0,00 ₽" style="-fx-font-size: 18px; -fx-text-fill: #2563eb; -fx-font-weight: bold;"/>
                         </HBox>
                     </VBox>
