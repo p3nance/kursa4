@@ -28,7 +28,6 @@ public class CabinetController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        System.out.println("✅ CabinetController инициализируется...");
 
         String email = SessionManager.getUserEmail();
         if (email != null) {
@@ -62,12 +61,10 @@ public class CabinetController implements Initializable {
     private void loadUserData(String email) {
         Thread loadThread = new Thread(() -> {
             try {
-                System.out.println("🔄 Загрузка профиля пользователя: " + email);
 
                 UserDTO user = UserRepository.getUserProfileByEmail(email);
 
                 if (user != null) {
-                    System.out.println("✅ Профиль загружен: " + user.name + " " + user.surname);
                     javafx.application.Platform.runLater(() -> {
                         nameField.setText(user.name != null ? user.name : "");
                         surnameField.setText(user.surname != null ? user.surname : "");
@@ -76,7 +73,6 @@ public class CabinetController implements Initializable {
                         addressField.setText(user.address != null ? user.address : "");
                     });
                 } else {
-                    System.out.println("⚠️ Профиль не найден в БД");
                 }
             } catch (Exception e) {
                 System.err.println("❌ Ошибка загрузки профиля: " + e.getMessage());
@@ -101,7 +97,6 @@ public class CabinetController implements Initializable {
         }
 
         try {
-            System.out.println("💾 Сохранение профиля: " + name + " " + surname);
             UserRepository.updateUserProfile(email, name, surname, phone, city, address);
             showAlert("Успех", "Профиль обновлен");
         } catch (Exception e) {

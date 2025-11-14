@@ -44,7 +44,6 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        System.out.println("✅ MainController инициализируется...");
 
         loadCategories();
         setupSearch();
@@ -109,12 +108,9 @@ public class MainController implements Initializable {
 
     private void loadProductsFromSupabase() {
         try {
-            System.out.println("🔄 Загрузка товаров из Supabase...");
             allProducts = ProductRepository.loadProductsFromSupabase();
-            System.out.println("✅ Загружено товаров: " + allProducts.size());
 
             if (allProducts.isEmpty()) {
-                System.out.println("⚠️ ВНИМАНИЕ: Товары не найдены в БД!");
                 // Для тестирования - добавляем тестовые товары
                 addTestProducts();
             }
@@ -125,7 +121,6 @@ public class MainController implements Initializable {
                                     p.getCategory().equalsIgnoreCase("Процессоры")))
                     .toList();
 
-            System.out.println("📦 Популярных товаров: " + popularProducts.size());
 
             // Обновляем UI в основном потоке
             javafx.application.Platform.runLater(() -> showProducts(allProducts));
@@ -144,7 +139,6 @@ public class MainController implements Initializable {
         allProducts.add(new Product(1, "RTX 4090", "Мощная видеокарта", 180000, 5, "", "Видеокарты", "NVIDIA"));
         allProducts.add(new Product(2, "Intel i9", "Процессор последнего поколения", 95000, 10, "", "Процессоры", "Intel"));
         allProducts.add(new Product(3, "DDR5 32GB", "Оперативная память", 15000, 20, "", "Оперативная память", "Kingston"));
-        System.out.println("📝 Добавлены тестовые товары");
     }
 
     private void showErrorMessage(String title, String message) {
@@ -171,7 +165,6 @@ public class MainController implements Initializable {
         productPane.getChildren().clear();
         productPane.setStyle("-fx-background-color: #f5f5f5;");
 
-        System.out.println("📊 Отображение товаров: " + products.size());
 
         if (products.isEmpty()) {
             Label emptyLabel = new Label("😔 Товары не найдены");
@@ -190,7 +183,6 @@ public class MainController implements Initializable {
             }
         }
 
-        System.out.println("✅ Карточки добавлены в FlowPane. Всего: " + productPane.getChildren().size());
         lastCenter = contentScroll;
     }
 
@@ -399,7 +391,6 @@ public class MainController implements Initializable {
 
             AuthController.setMainController(this);
 
-            System.out.println("📧 Форма авторизации открыта");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -408,7 +399,6 @@ public class MainController implements Initializable {
     public void openCabinetInMain() {
         try {
             lastCenter = contentScroll;
-            System.out.println("💾 Сохранено lastCenter как contentScroll");
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
             Node cabinetNode = loader.load();
@@ -424,14 +414,12 @@ public class MainController implements Initializable {
             mainPane.setLeft(null);
 
             CabinetController.setHostMainController(this);
-            System.out.println("👤 Кабинет открыт");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void showMainContent() {
-        System.out.println("🔄 Восстановление главного контента...");
 
         // ✅ ВОССТАНАВЛИВАЕМ ВСЕ КОМПОНЕНТЫ
         headerPane.setVisible(true);
@@ -460,7 +448,6 @@ public class MainController implements Initializable {
         // Перезагружаем товары
         filterByCategory(selectedCategory);
 
-        System.out.println("✅ Главный контент полностью восстановлен! Кнопка корзины видима!");
     }
 
     private void openCartView() {
@@ -484,20 +471,12 @@ public class MainController implements Initializable {
     }
     private void addProductToCart(Product product, int quantity) {
         try {
-            System.out.println("🛒 Добавление в корзину:");
-            System.out.println("   Товар: " + product.getName());
-            System.out.println("   Цена: " + product.getPrice());
-            System.out.println("   Количество: " + quantity);
 
             // Используем CartService для добавления в БД
             CartService cartService = new CartService();
             cartService.addProductToCart(product, quantity);
 
             Cart cart = Cart.getInstance();
-            System.out.println("📊 Состояние корзины:");
-            System.out.println("   Товаров: " + cart.getTotalQuantity());
-            System.out.println("   Сумма: " + cart.getTotal());
-            System.out.println("✅ Товар добавлен успешно!");
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Корзина");
@@ -541,7 +520,6 @@ public class MainController implements Initializable {
     public void openAdminPanel() {
         try {
             lastCenter = contentScroll;
-            System.out.println("💾 Сохранено lastCenter как contentScroll");
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
             Node adminNode = loader.load();
@@ -560,7 +538,6 @@ public class MainController implements Initializable {
             AdminController adminController = loader.getController();
             adminController.setMainController(this);
 
-            System.out.println("👑 АДМИН ПАНЕЛЬ ОТКРЫТА");
         } catch (Exception e) {
             e.printStackTrace();
             showErrorMessage("Ошибка", "Не удалось загрузить админ панель: " + e.getMessage());

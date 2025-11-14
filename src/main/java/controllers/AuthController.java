@@ -100,12 +100,10 @@ public class AuthController {
                     if (success) {
                         // ✅ ПРОВЕРЯЕМ АДМИН СТАТУС ПОСЛЕ ВХОДА
                         if (SessionManager.isAdmin()) {
-                            System.out.println("👑 Вход админа, открываем админ панель...");
                             if (mainController != null) {
                                 mainController.openAdminPanel();
                             }
                         } else {
-                            System.out.println("👤 Обычный пользователь, открываем главный контент...");
                             if (mainController != null) {
                                 mainController.showMainContent();
                             }

@@ -51,7 +51,6 @@ public class SessionManager {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject json = new JSONObject(response.body());
-            System.out.println("📡 Ответ login: " + json.toString(2));
 
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
@@ -63,10 +62,6 @@ public class SessionManager {
                 } else {
                     userId = json.optString("user_id", null);
                 }
-
-                System.out.println("✅ Вход выполнен!");
-                System.out.println("📧 Email: " + userEmail);
-                System.out.println("🆔 UserID: " + userId);
 
                 // ✅ ПРОВЕРЯЕМ АДМИН СТАТУС ПОСЛЕ ЛОГИНА
                 checkAdminStatus(email);
@@ -104,7 +99,6 @@ public class SessionManager {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject json = new JSONObject(response.body());
-            System.out.println("📡 Ответ register: " + json.toString(2));
 
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
@@ -116,13 +110,8 @@ public class SessionManager {
                     userId = json.optString("user_id", null);
                 }
 
-                System.out.println("✅ Регистрация выполнена!");
-                System.out.println("📧 Email: " + userEmail);
-                System.out.println("🆔 UserID: " + userId);
-
                 // ✅ НОВЫЙ ПОЛЬЗОВАТЕЛЬ НИКОГДА НЕ АДМИН
                 isAdmin = false;
-                System.out.println("👤 Новый пользователь не является админом");
 
                 return true;
             }
@@ -142,7 +131,6 @@ public class SessionManager {
             String encodedEmail = java.net.URLEncoder.encode(email, "UTF-8");
             String url = Config.SUPABASE_URL + "/rest/v1/profiles?email=eq." + encodedEmail + "&select=is_admin";
 
-            System.out.println("🔍 Проверяем админ статус для: " + email);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(url))
@@ -154,9 +142,6 @@ public class SessionManager {
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📡 Статус ответа: " + response.statusCode());
-            System.out.println("📄 Тело ответа: " + response.body());
-
             if (response.statusCode() == 200) {
                 String body = response.body();
                 if (!body.equals("[]")) {
@@ -166,16 +151,12 @@ public class SessionManager {
                         isAdmin = user.getBoolean("is_admin");
 
                         if (isAdmin) {
-                            System.out.println("👑 АДМИН ДОСТУП РАЗРЕШЕН!");
                         } else {
-                            System.out.println("👤 Обычный пользователь");
                         }
                     } else {
-                        System.out.println("⚠️ Профиль не найден в БД");
                         isAdmin = false;
                     }
                 } else {
-                    System.out.println("⚠️ Массив пуст");
                     isAdmin = false;
                 }
             } else {

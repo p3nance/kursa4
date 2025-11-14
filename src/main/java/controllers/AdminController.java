@@ -32,7 +32,6 @@ public class AdminController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        System.out.println("✅ AdminController инициализируется...");
         setupUI();
         loadAdminData();
     }
@@ -80,7 +79,6 @@ public class AdminController implements Initializable {
     private void loadAdminData() {
         new Thread(() -> {
             try {
-                System.out.println("🔄 Начинаем загрузку данных...");
                 loadProducts();
                 loadUsers();
             } catch (Exception e) {
@@ -94,22 +92,17 @@ public class AdminController implements Initializable {
 
     private void loadProducts() {
         try {
-            System.out.println("📦 Загружаем товары...");
             List<ProductDTO> products = AdminRepository.getAllProducts();
             ObservableList<ProductDTO> observableProducts = FXCollections.observableArrayList(products);
 
             Platform.runLater(() -> {
                 if (productsTable != null) {
-                    System.out.println("🎯 Заполняем таблицу товаров...");
                     setupProductsTable();
                     productsTable.setItems(observableProducts);
-                    System.out.println("✅ Товары загружены в таблицу: " + products.size());
                 } else {
-                    System.err.println("⚠️ productsTable null");
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -181,22 +174,17 @@ public class AdminController implements Initializable {
 
     private void loadUsers() {
         try {
-            System.out.println("👥 Загружаем пользователей...");
             List<UserDTO> users = AdminRepository.getAllUsers();
             ObservableList<UserDTO> observableUsers = FXCollections.observableArrayList(users);
 
             Platform.runLater(() -> {
                 if (usersTable != null) {
-                    System.out.println("🎯 Заполняем таблицу пользователей...");
                     setupUsersTable();
                     usersTable.setItems(observableUsers);
-                    System.out.println("✅ Пользователи загружены в таблицу: " + users.size());
                 } else {
-                    System.err.println("⚠️ usersTable null");
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки пользователей: " + e.getMessage());
             e.printStackTrace();
         }
     }
