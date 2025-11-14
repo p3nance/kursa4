@@ -40,41 +40,25 @@ public class AppStateManager {
     }
 
     public CartService getCartService() {
-        if (cartService == null) {
-            cartService = new CartService();
-        }
         return cartService;
     }
 
     public PromoCodeService getPromoCodeService() {
-        if (promoCodeService == null) {
-            promoCodeService = new PromoCodeService();
-        }
         return promoCodeService;
     }
 
     public ProductService getProductService() {
-        if (productService == null) {
-            productService = new ProductService();
-        }
         return productService;
     }
 
-    public void logout() {
-        currentUser = null;
-        if (cartService != null) {
-            try {
+    public void clearAppState() {
+        try {
+            if (cartService != null) {
                 cartService.clearCart();
-            } catch (Exception e) {
-                System.err.println("Ошибка при очистке корзины при выходе: " + e.getMessage());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    public void reset() {
         currentUser = null;
-        cartService = new CartService();
-        promoCodeService = new PromoCodeService();
-        productService = new ProductService();
     }
 }
