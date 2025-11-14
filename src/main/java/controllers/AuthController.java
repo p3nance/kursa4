@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 public class AuthController {
-
     private static MainController mainController;
 
     public static void setMainController(MainController mc) {
@@ -37,89 +36,69 @@ public class AuthController {
 
     private void setLoginMode() {
         registerMode = false;
-        authSubTitle.setText("Пожалуйста, авторизуйтесь или создайте аккаунт");
-        authSubmitBtn.setText("Вход");
-        authSwitchBtn.setText("Регистрация");
+        authSubTitle.setText("Пожалуйста, войдите в ваш аккаунт");
+        authSubmitBtn.setText("Войти");
+        authSwitchBtn.setText(Нет аккаунта? Регистрироваться");
         authConfirmPassword.setVisible(false);
-        authErrorLabel.setVisible(false);
-        authEmail.clear();
-        authPassword.clear();
-        authConfirmPassword.clear();
+        authConfirmPassword.setManaged(false);
     }
 
     private void setRegisterMode() {
         registerMode = true;
-        authSubTitle.setText("Регистрация нового пользователя");
-        authSubmitBtn.setText("Зарегистрироваться");
-        authSwitchBtn.setText("← Назад к входу");
+        authSubTitle.setText("Создайте новый аккаунт");
+        authSubmitBtn.setText(Регистрироваться");
+        authSwitchBtn.setText(Уже есть аккаунт? Войти");
         authConfirmPassword.setVisible(true);
-        authErrorLabel.setVisible(false);
-        authEmail.clear();
-        authPassword.clear();
-        authConfirmPassword.clear();
-    }
-
-    private void handleAuthSwitch() {
-        if (!registerMode) {
-            setRegisterMode();
-        } else {
-            setLoginMode();
-        }
+        authConfirmPassword.setManaged(true);
     }
 
     private void handleAuthSubmit() {
         String email = authEmail.getText().trim();
         String password = authPassword.getText();
 
-        if (registerMode) {
-            String confirm = authConfirmPassword.getText();
-            if (!password.equals(confirm)) {
-                showError("Пароли не совпадают!");
-                return;
+        if (email.isEmpty() || password.isEmpty()) {
+            authErrorLabel.setText("Пополните все поля");
+            return;
+        }
+
+        new Thread(() -> {
+            boolean success;
+            if (registerMode) {
+                String confirmPassword = authConfirmPassword.getText();
+                if (!password.equals(confirmPassword)) {
+                    Platform.runLater(() -> authErrorLabel.setText("Пароли не совпадают"));
+                    return;
+                }
+                success = SessionManager.register(email, password);
+            } else {
+                success = SessionManager.login(email, password);
             }
 
-            authSubmitBtn.setDisable(true);
-            new Thread(() -> {
-                boolean success = SessionManager.register(email, password);
-                Platform.runLater(() -> {
-                    authSubmitBtn.setDisable(false);
-                    if (success) {
-                        if (mainController != null) mainController.showMainContent();
+            Platform.runLater(() -> {
+                if (success) {
+                    if (SessionManager.isAdmin()) {
+                        if (mainController != null)
+                            mainController.openAdminPanel();
                     } else {
-                        showError("Ошибка регистрации!");
+                        if (mainController != null)
+                            mainController.showMainContent();
                     }
-                });
-            }).start();
-
-        } else {
-            authSubmitBtn.setDisable(true);
-            new Thread(() -> {
-                boolean success = SessionManager.login(email, password);
-                Platform.runLater(() -> {
-                    authSubmitBtn.setDisable(false);
-                    if (success) {
-                        // ✅ ПРОВЕРЯЕМ АДМИН СТАТУС ПОСЛЕ ВХОДА
-                        if (SessionManager.isAdmin()) {
-                            System.out.println("👑 Вход админа, открываем админ панель...");
-                            if (mainController != null) {
-                                mainController.openAdminPanel();
-                            }
-                        } else {
-                            System.out.println("👤 Обычный пользователь, открываем главный контент...");
-                            if (mainController != null) {
-                                mainController.showMainContent();
-                            }
-                        }
-                    } else {
-                        showError("Ошибка авторизации!");
-                    }
-                });
-            }).start();
-        }
+                } else {
+                    authErrorLabel.setText("Ошибка аутентификации");
+                }
+            });
+        }).start();
     }
 
-    private void showError(String msg) {
-        authErrorLabel.setText(msg);
-        authErrorLabel.setVisible(true);
+    private void handleAuthSwitch() {
+        if (registerMode) {
+            setLoginMode();
+        } else {
+            setRegisterMode();
+        }
+        authErrorLabel.setText("");
+        authEmail.clear();
+        authPassword.clear();
+        authConfirmPassword.clear();
     }
 }

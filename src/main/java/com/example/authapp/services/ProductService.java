@@ -43,39 +43,9 @@ public class ProductService {
                     return p;
                 }
             }
-            throw new Exception("Товар не найден");
+            return null;
         } catch (Exception e) {
             throw new Exception("Ошибка получения товара: " + e.getMessage());
         }
-    }
-
-    public void addProduct(String name, double price, String description, int stock, String imageUrl, String category) throws Exception {
-        if (name == null || name.isEmpty() || price <= 0 || stock < 0) {
-            throw new IllegalArgumentException("Некорректные данные товара");
-        }
-
-        Product product = new Product(0, name, description, price, stock, imageUrl, category, "");
-        productRepository.addProduct(product);
-    }
-
-    public void updateProduct(int productId, String name, double price, int stock, String description, String category, String manufacturer) throws Exception {
-        Product product = getProductById(productId);
-        product.setName(name);
-        product.setPrice(price);
-        product.setStock(stock);
-        product.setDescription(description);
-        product.setCategory(category);
-        product.setManufacturer(manufacturer);
-        productRepository.updateProduct(product);
-    }
-
-    public void deleteProduct(int productId) throws Exception {
-        productRepository.deleteProduct(productId);
-    }
-
-    public void updateProductStock(int productId, int newStock) throws Exception {
-        Product product = getProductById(productId);
-        product.setStock(newStock);
-        productRepository.updateProduct(product);
     }
 }

@@ -13,11 +13,9 @@ public class PromoCodeService {
 
     public PromoCode validateAndGetPromoCode(String code) throws Exception {
         PromoCode promo = promoCodeRepository.validatePromoCode(code);
-
         if (!promo.canUse()) {
             throw new Exception("Промокод больше не действителен");
         }
-
         return promo;
     }
 
@@ -33,28 +31,13 @@ public class PromoCodeService {
         promoCodeRepository.usePromoCode(promoId);
     }
 
-    public void createPromoCode(String code, double discountPercent, int maxUses, LocalDate expiryDate) throws Exception {
-        if (code == null || code.isEmpty() || code.length() > 50) {
-            throw new IllegalArgumentException("Некорректный формат кода");
+    public void createPromoCode(String code, double discountPercent, int maxUses, String expiryDate) throws Exception {
+        if (code == null || code.isEmpty()) {
+            throw new Exception("Код промокода не может быть ране");
         }
-
         if (discountPercent < 0 || discountPercent > 100) {
-            throw new IllegalArgumentException("Скидка должна быть от 0 до 100%");
+            throw new Exception("Некорректный процент скидки");
         }
-
-        if (expiryDate.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Дата истечения не может быть в прошлом");
-        }
-
-        PromoCode promo = new PromoCode(0, code, discountPercent, maxUses, 0, expiryDate.toString(), true);
-        promoCodeRepository.createPromoCode(promo);
-    }
-
-    public void deletePromoCode(String code) throws Exception {
-        promoCodeRepository.deletePromoCode(code);
-    }
-
-    public PromoCode getPromoCode(String code) throws Exception {
-        return promoCodeRepository.getPromoCodeByCode(code);
+        promoCodeRepository.createPromoCode(code, discountPercent, maxUses, expiryDate);
     }
 }
