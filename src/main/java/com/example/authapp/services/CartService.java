@@ -8,137 +8,91 @@ import com.example.authapp.repositories.CartRepository;
 import config.SessionManager;
 import java.util.List;
 
-/**
- * Сервис для работы с корзиной через базу данных Supabase
- */
 public class CartService {
-
-    /**
-     * Загружает корзину пользователя из БД при входе
-     */
     public void loadUserCart() throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
-            System.out.println("⚠️ Пользователь не авторизован");
             return;
         }
-
         try {
-            // Теперь передаем UUID строку напрямую
             List<CartItemDTO> cartItems = CartRepository.loadCartFromSupabase(userId);
-
-            // Очищаем текущую корзину в памяти
             Cart.getInstance().clear();
-
-            // Загружаем товары из БД в память
             for (CartItemDTO dto : cartItems) {
                 Product product = new Product(
-                        dto.productId,
-                        dto.productName,
-                        "", // description
-                        dto.price,
-                        1, // stock
-                        dto.productImage,
-                        "", // category
-                        "" // manufacturer
+                    dto.productId,
+                    dto.productName,
+                    "",
+                    dto.price,
+                    1,
+                    dto.productImage,
+                    "",
+                    ""
                 );
-
-                // Добавляем в локальную корзину с нужным количеством
                 for (int i = 0; i < dto.quantity; i++) {
                     Cart.getInstance().addProduct(product);
                 }
             }
-
-            System.out.println("✅ Корзина загружена из БД: " + cartItems.size() + " позиций");
         } catch (Exception e) {
-            System.err.println("⚠️ Ошибка загрузки корзины: " + e.getMessage());
+            throw new Exception("Ошибка загрузки корзины: " + e.getMessage());
         }
     }
 
-    /**
-     * Добавляет товар в корзину (и в БД, и в память)
-     */
     public void addProductToCart(Product product, int quantity) throws Exception {
         if (product == null) {
             throw new IllegalArgumentException("Товар не может быть null");
         }
-
         if (quantity <= 0) {
             throw new IllegalArgumentException("Количество должно быть больше 0");
         }
-
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
             throw new Exception("Пользователь не авторизован");
         }
-
-        System.out.println("➕ CartService.addProductToCart: " + product.getName() + " x" + quantity);
-
         try {
-            // Проверяем, есть ли уже такой товар в БД
             List<CartItemDTO> existingItems = CartRepository.loadCartFromSupabase(userId);
             CartItemDTO existingItem = null;
-
             for (CartItemDTO item : existingItems) {
                 if (item.productId == product.getId()) {
                     existingItem = item;
                     break;
                 }
             }
-
             if (existingItem != null) {
-                // Обновляем количество существующего товара
                 int newQuantity = existingItem.quantity + quantity;
                 CartRepository.updateCartItemInSupabase(existingItem.cartItemId, newQuantity);
             } else {
-                // Создаем новую запись в БД
                 CartItemDTO newItem = new CartItemDTO(
-                        0, // id сгенерируется автоматически
-                        product.getId(),
-                        product.getName(),
-                        product.getPrice(),
-                        quantity,
-                        product.getImageUrl()
+                    0,
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    quantity,
+                    product.getImageUrl()
                 );
                 CartRepository.addCartItemToSupabase(userId, newItem);
             }
-
-            // Добавляем в локальную корзину
             Cart cart = Cart.getInstance();
             for (int i = 0; i < quantity; i++) {
                 cart.addProduct(product);
             }
-
-            System.out.println("✅ Товар добавлен в корзину (БД + память)");
         } catch (Exception e) {
             throw new Exception("Ошибка добавления в корзину: " + e.getMessage());
         }
     }
 
-    /**
-     * Добавляет товар с количеством 1
-     */
     public void addProductToCart(Product product) throws Exception {
         addProductToCart(product, 1);
     }
 
-    /**
-     * Удаляет товар из корзины (из БД и из памяти)
-     */
     public void removeFromCart(Product product) throws Exception {
         if (product == null) {
             throw new IllegalArgumentException("Товар не может быть null");
         }
-
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
             throw new Exception("Пользователь не авторизован");
         }
-
-        System.out.println("➖ Удаление товара: " + product.getName());
-
         try {
-            // Находим товар в БД
             List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
             for (CartItemDTO item : items) {
                 if (item.productId == product.getId()) {
@@ -146,34 +100,22 @@ public class CartService {
                     break;
                 }
             }
-
-            // Удаляем из локальной корзины
             Cart.getInstance().removeProduct(product);
-
-            System.out.println("✅ Товар удален из корзины (БД + память)");
         } catch (Exception e) {
             throw new Exception("Ошибка удаления из корзины: " + e.getMessage());
         }
     }
 
-    /**
-     * Обновляет количество товара в корзине
-     */
     public void updateCartItemQuantity(Product product, int newQuantity) throws Exception {
         if (newQuantity <= 0) {
             removeFromCart(product);
             return;
         }
-
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
             throw new Exception("Пользователь не авторизован");
         }
-
-        System.out.println("🔄 Обновление количества: " + product.getName() + " -> " + newQuantity);
-
         try {
-            // Находим товар в БД и обновляем
             List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
             for (CartItemDTO item : items) {
                 if (item.productId == product.getId()) {
@@ -181,80 +123,49 @@ public class CartService {
                     break;
                 }
             }
-
-            // Обновляем локальную корзину
             Cart cart = Cart.getInstance();
             cart.removeProduct(product);
             for (int i = 0; i < newQuantity; i++) {
                 cart.addProduct(product);
             }
-
-            System.out.println("✅ Количество обновлено (БД + память)");
         } catch (Exception e) {
             throw new Exception("Ошибка обновления количества: " + e.getMessage());
         }
     }
 
-    /**
-     * Получает итоговую сумму корзины
-     */
     public double getCartTotal() {
-        double total = Cart.getInstance().getTotal();
-        System.out.println("💰 Итого в корзине: " + total + " ₽");
-        return total;
+        return Cart.getInstance().getTotal();
     }
 
-    /**
-     * Получает количество товаров в корзине
-     */
     public int getCartSize() {
-        int size = Cart.getInstance().getTotalQuantity();
-        System.out.println("📦 Товаров в корзине: " + size);
-        return size;
+        return Cart.getInstance().getTotalQuantity();
     }
 
-    /**
-     * Получает все товары в корзине
-     */
     public List<CartItem> getCartItems() {
         return Cart.getInstance().getItems();
     }
 
-    /**
-     * Очищает корзину (БД + память)
-     */
     public void clearCart() throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
             throw new Exception("Пользователь не авторизован");
         }
-
-        System.out.println("🗑️ Очистка корзины...");
-
         try {
             CartRepository.clearUserCart(userId);
             Cart.getInstance().clear();
-            System.out.println("✅ Корзина очищена (БД + память)");
         } catch (Exception e) {
             throw new Exception("Ошибка очистки корзины: " + e.getMessage());
         }
     }
 
-    /**
-     * Получает текущую корзину
-     */
     public Cart getCurrentCart() {
         return Cart.getInstance();
     }
 
-    /**
-     * Применяет скидку по промокоду
-     */
     public double applyDiscount(String promoCode) throws Exception {
         if (promoCode == null || promoCode.isEmpty()) {
             throw new IllegalArgumentException("Промокод не может быть пустым");
         }
-
         double discountPercent = 0;
         if (promoCode.equalsIgnoreCase("SALE10")) {
             discountPercent = 10;
@@ -265,16 +176,10 @@ public class CartService {
         } else {
             throw new Exception("Неверный промокод: " + promoCode);
         }
-
         double total = getCartTotal();
-        double discount = total * (discountPercent / 100.0);
-        System.out.println("🎫 Промокод '" + promoCode + "' применен. Скидка: " + discountPercent + "%");
-        return discount;
+        return total * (discountPercent / 100.0);
     }
 
-    /**
-     * Получает количество товара в корзине
-     */
     public int getProductQuantity(Product product) {
         for (CartItem item : Cart.getInstance().getItems()) {
             if (item.getProduct().getId() == product.getId()) {
@@ -284,9 +189,6 @@ public class CartService {
         return 0;
     }
 
-    /**
-     * Проверяет есть ли товар в корзине
-     */
     public boolean isProductInCart(Product product) {
         return getProductQuantity(product) > 0;
     }
