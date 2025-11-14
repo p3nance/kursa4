@@ -1,315 +1,327 @@
 package controllers;
 
-import com.example.authapp.models.Product;
-import com.example.authapp.models.PromoCode;
-import com.example.authapp.services.AppStateManager;
-import com.example.authapp.services.ProductService;
-import com.example.authapp.services.PromoCodeService;
-import com.example.authapp.utils.ValidationUtil;
+import com.example.authapp.dto.ProductDTO;
+import com.example.authapp.dto.UserDTO;
+import com.example.authapp.repositories.AdminRepository;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
 public class AdminController implements Initializable {
-    // Товары
-    @FXML private TableView<Product> productsTable;
-    @FXML private TableColumn<Product, String> productNameColumn;
-    @FXML private TableColumn<Product, Double> priceColumn;
-    @FXML private TableColumn<Product, Integer> stockColumn;
-    @FXML private TableColumn<Product, String> categoryColumn;
 
-    @FXML private TextField productNameField;
-    @FXML private TextField productPriceField;
-    @FXML private TextField productStockField;
-    @FXML private TextField productImageUrlField;
-    @FXML private TextArea productDescriptionArea;
-    @FXML private ComboBox<String> categoryCombo;
-    @FXML private TextField manufacturerField;
-    @FXML private Button addProductButton;
-    @FXML private Button updateProductButton;
-    @FXML private Button deleteProductButton;
+    @FXML private TabPane adminTabs;
+    @FXML private Button exitAdminBtn;
+    @FXML private TableView<ProductDTO> productsTable;
+    @FXML private TableView<UserDTO> usersTable;
 
-    // Промокоды
-    @FXML private TableView<PromoCode> promoCodesTable;
-    @FXML private TableColumn<PromoCode, String> codeColumn;
-    @FXML private TableColumn<PromoCode, Double> discountColumn;
-    @FXML private TableColumn<PromoCode, Integer> maxUsesColumn;
-    @FXML private TableColumn<PromoCode, Boolean> activeColumn;
-
-    @FXML private TextField promoCodeField;
-    @FXML private TextField discountPercentField;
-    @FXML private TextField maxUsesField;
-    @FXML private DatePicker expiryDatePicker;
-    @FXML private CheckBox activeCheckBox;
-    @FXML private Button addPromoButton;
-    @FXML private Button deletePromoButton;
-
-    private ProductService productService;
-    private PromoCodeService promoCodeService;
-    private Product selectedProduct;
-    private PromoCode selectedPromoCode;
+    private MainController mainController;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        AppStateManager manager = AppStateManager.getInstance();
-        this.productService = manager.getProductService();
-        this.promoCodeService = manager.getPromoCodeService();
+        System.out.println("✅ AdminController инициализируется...");
+        setupUI();
+        loadAdminData();
+    }
 
-        setupProductsTable();
-        setupPromoCodesTable();
-        setupCategoryCombo();
-        setupButtons();
-        loadData();
+    public void setMainController(MainController controller) {
+        this.mainController = controller;
+    }
+
+    private void setupUI() {
+        // Кнопка выхода
+        if (exitAdminBtn != null) {
+            exitAdminBtn.setOnAction(e -> {
+                if (mainController != null) {
+                    mainController.showMainContent();
+                }
+            });
+        }
+
+        // ✅ НАХОДИМ КНОПКУ "ДОБАВИТЬ ТОВАР" И ДАЁМ ЕЙ ДЕЙСТВИЕ
+        if (adminTabs != null && adminTabs.getTabs().size() > 0) {
+            Tab productsTab = adminTabs.getTabs().get(0);
+            Node content = productsTab.getContent();
+
+            if (content instanceof VBox) {
+                VBox productsContent = (VBox) content;
+
+                for (Node node : productsContent.getChildren()) {
+                    if (node instanceof HBox) {
+                        HBox hbox = (HBox) node;
+                        for (Node btn : hbox.getChildren()) {
+                            if (btn instanceof Button) {
+                                Button button = (Button) btn;
+                                if (button.getText().contains("Добавить")) {
+                                    button.setOnAction(e -> showAddProductDialog());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ✅ ЗАГРУЗКА ДАННЫХ ИЗ БД
+    private void loadAdminData() {
+        new Thread(() -> {
+            try {
+                System.out.println("🔄 Начинаем загрузку данных...");
+                loadProducts();
+                loadUsers();
+            } catch (Exception e) {
+                System.err.println("❌ Ошибка загрузки данных: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    // ============ ТОВАРЫ ============
+
+    private void loadProducts() {
+        try {
+            System.out.println("📦 Загружаем товары...");
+            List<ProductDTO> products = AdminRepository.getAllProducts();
+            ObservableList<ProductDTO> observableProducts = FXCollections.observableArrayList(products);
+
+            Platform.runLater(() -> {
+                if (productsTable != null) {
+                    System.out.println("🎯 Заполняем таблицу товаров...");
+                    setupProductsTable();
+                    productsTable.setItems(observableProducts);
+                    System.out.println("✅ Товары загружены в таблицу: " + products.size());
+                } else {
+                    System.err.println("⚠️ productsTable null");
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setupProductsTable() {
-        productNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
-        stockColumn.setCellValueFactory(new PropertyValueFactory<>("stock"));
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+        productsTable.getColumns().clear();
 
-        productsTable.setOnMouseClicked(event -> {
-            Product selected = productsTable.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                selectedProduct = selected;
-                populateProductFields(selected);
+        TableColumn<ProductDTO, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
+        idCol.setPrefWidth(50);
+
+        TableColumn<ProductDTO, String> nameCol = new TableColumn<>("Название");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name));
+        nameCol.setPrefWidth(200);
+
+        TableColumn<ProductDTO, String> categoryCol = new TableColumn<>("Категория");
+        categoryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().category));
+        categoryCol.setPrefWidth(130);
+
+        TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
+        priceCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().price).asObject());
+        priceCol.setPrefWidth(100);
+
+        TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
+        stockCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().stock).asObject());
+        stockCol.setPrefWidth(70);
+
+        TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
+        actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+            private final Button deleteBtn = new Button("❌ Удалить");
+
+            {
+                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 5px;");
+                deleteBtn.setOnAction(e -> {
+                    ProductDTO product = getTableView().getItems().get(getIndex());
+                    deleteProduct(product);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty ? null : deleteBtn);
             }
         });
+        actionCol.setPrefWidth(120);
+
+        productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, actionCol);
     }
 
-    private void setupPromoCodesTable() {
-        codeColumn.setCellValueFactory(new PropertyValueFactory<>("code"));
-        discountColumn.setCellValueFactory(new PropertyValueFactory<>("discountPercent"));
-        maxUsesColumn.setCellValueFactory(new PropertyValueFactory<>("maxUses"));
-        activeColumn.setCellValueFactory(new PropertyValueFactory<>("isActive"));
+    private void deleteProduct(ProductDTO product) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Подтверждение");
+        confirm.setContentText("Удалить товар '" + product.name + "'?");
 
-        promoCodesTable.setOnMouseClicked(event -> {
-            PromoCode selected = promoCodesTable.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                selectedPromoCode = selected;
-                populatePromoFields(selected);
-            }
-        });
-    }
-
-    private void setupCategoryCombo() {
-        categoryCombo.setItems(FXCollections.observableArrayList(
-                "Процессоры", "Видеокарты", "Материнские платы",
-                "Оперативная память", "Жёсткие диски", "SSD-накопители",
-                "Блоки питания", "Корпуса", "Охлаждение", "Мониторы",
-                "Клавиатуры", "Мыши", "Аксессуары"
-        ));
-    }
-
-    private void setupButtons() {
-        addProductButton.setOnAction(e -> addProduct());
-        updateProductButton.setOnAction(e -> updateProduct());
-        deleteProductButton.setOnAction(e -> deleteProduct());
-        addPromoButton.setOnAction(e -> addPromoCode());
-        deletePromoButton.setOnAction(e -> deletePromoCode());
-    }
-
-    @FXML
-    private void addProduct() {
-        try {
-            String name = productNameField.getText().trim();
-            String priceStr = productPriceField.getText().trim();
-            String stockStr = productStockField.getText().trim();
-            String imageUrl = productImageUrlField.getText().trim();
-            String description = productDescriptionArea.getText().trim();
-            String category = categoryCombo.getValue();
-            String manufacturer = manufacturerField.getText().trim();
-
-            if (!ValidationUtil.isNotEmpty(name)) {
-                showAlert("Ошибка", "Введите название товара");
-                return;
-            }
-
-            if (!ValidationUtil.isValidPrice(priceStr)) {
-                showAlert("Ошибка", "Введите корректную цену");
-                return;
-            }
-
-            if (!ValidationUtil.isValidStock(stockStr)) {
-                showAlert("Ошибка", "Введите корректное количество");
-                return;
-            }
-
-            double price = Double.parseDouble(priceStr);
-            int stock = Integer.parseInt(stockStr);
-
-            productService.addProduct(name, price, description, stock, imageUrl, category);
-            showAlert("Успех", "Товар успешно добавлен");
-            clearProductFields();
-            loadData();
-        } catch (Exception e) {
-            showAlert("Ошибка", "Ошибка добавления товара: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void updateProduct() {
-        if (selectedProduct == null) {
-            showAlert("Ошибка", "Выберите товар для обновления");
-            return;
-        }
-
-        try {
-            String name = productNameField.getText().trim();
-            String priceStr = productPriceField.getText().trim();
-            String stockStr = productStockField.getText().trim();
-            String description = productDescriptionArea.getText().trim();
-            String category = categoryCombo.getValue();
-            String manufacturer = manufacturerField.getText().trim();
-
-            if (!ValidationUtil.isNotEmpty(name) || !ValidationUtil.isValidPrice(priceStr) ||
-                    !ValidationUtil.isValidStock(stockStr)) {
-                showAlert("Ошибка", "Проверьте корректность данных");
-                return;
-            }
-
-            double price = Double.parseDouble(priceStr);
-            int stock = Integer.parseInt(stockStr);
-
-            productService.updateProduct(selectedProduct.getId(), name, price, stock, description, category, manufacturer);
-            showAlert("Успех", "Товар успешно обновлен");
-            clearProductFields();
-            loadData();
-        } catch (Exception e) {
-            showAlert("Ошибка", "Ошибка обновления товара: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void deleteProduct() {
-        if (selectedProduct == null) {
-            showAlert("Ошибка", "Выберите товар для удаления");
-            return;
-        }
-
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Подтверждение");
-        confirmAlert.setContentText("Удалить товар: " + selectedProduct.getName() + "?");
-
-        if (confirmAlert.showAndWait().get() == ButtonType.OK) {
-            try {
-                productService.deleteProduct(selectedProduct.getId());
-                showAlert("Успех", "Товар удален");
-                clearProductFields();
-                loadData();
-            } catch (Exception e) {
-                showAlert("Ошибка", "Ошибка удаления товара: " + e.getMessage());
-            }
-        }
-    }
-
-    @FXML
-    private void addPromoCode() {
-        try {
-            String code = promoCodeField.getText().trim().toUpperCase();
-            String discountStr = discountPercentField.getText().trim();
-            String maxUsesStr = maxUsesField.getText().trim();
-            LocalDate expiryDate = expiryDatePicker.getValue();
-
-            if (!ValidationUtil.isValidPromoCode(code)) {
-                showAlert("Ошибка", "Неверный формат кода (только латиница и цифры)");
-                return;
-            }
-
-            try {
-                double discount = Double.parseDouble(discountStr);
-                int maxUses = Integer.parseInt(maxUsesStr);
-
-                if (discount < 0 || discount > 100 || maxUses <= 0 || expiryDate == null) {
-                    showAlert("Ошибка", "Проверьте корректность данных");
-                    return;
+        if (confirm.showAndWait().get() == ButtonType.OK) {
+            new Thread(() -> {
+                try {
+                    AdminRepository.deleteProduct(product.id);
+                    Platform.runLater(this::loadProducts);
+                } catch (Exception e) {
+                    System.err.println("❌ Ошибка удаления: " + e.getMessage());
                 }
-
-                promoCodeService.createPromoCode(code, discount, maxUses, expiryDate);
-                showAlert("Успех", "Промокод успешно создан");
-                clearPromoFields();
-                loadData();
-            } catch (NumberFormatException e) {
-                showAlert("Ошибка", "Некорректный формат скидки или максимального использования");
-            }
-        } catch (Exception e) {
-            showAlert("Ошибка", "Ошибка создания промокода: " + e.getMessage());
+            }).start();
         }
     }
 
-    @FXML
-    private void deletePromoCode() {
-        if (selectedPromoCode == null) {
-            showAlert("Ошибка", "Выберите промокод для удаления");
-            return;
-        }
+    // ============ ПОЛЬЗОВАТЕЛИ ============
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Подтверждение");
-        confirmAlert.setContentText("Удалить промокод: " + selectedPromoCode.getCode() + "?");
-
-        if (confirmAlert.showAndWait().get() == ButtonType.OK) {
-            try {
-                promoCodeService.deletePromoCode(selectedPromoCode.getCode());
-                showAlert("Успех", "Промокод удален");
-                clearPromoFields();
-                loadData();
-            } catch (Exception e) {
-                showAlert("Ошибка", "Ошибка удаления промокода: " + e.getMessage());
-            }
-        }
-    }
-
-    private void populateProductFields(Product product) {
-        productNameField.setText(product.getName());
-        productPriceField.setText(String.valueOf(product.getPrice()));
-        productStockField.setText(String.valueOf(product.getStock()));
-        productImageUrlField.setText(product.getImageUrl());
-        productDescriptionArea.setText(product.getDescription());
-        categoryCombo.setValue(product.getCategory());
-        manufacturerField.setText(product.getManufacturer());
-    }
-
-    private void populatePromoFields(PromoCode promo) {
-        promoCodeField.setText(promo.getCode());
-        discountPercentField.setText(String.valueOf(promo.getDiscountPercent()));
-        maxUsesField.setText(String.valueOf(promo.getMaxUses()));
-        expiryDatePicker.setValue(LocalDate.parse(promo.getExpiryDate()));
-        activeCheckBox.setSelected(promo.getIsActive());
-    }
-
-    private void loadData() {
+    private void loadUsers() {
         try {
-            List<Product> products = productService.getAllProducts();
-            productsTable.setItems(FXCollections.observableArrayList(products));
+            System.out.println("👥 Загружаем пользователей...");
+            List<UserDTO> users = AdminRepository.getAllUsers();
+            ObservableList<UserDTO> observableUsers = FXCollections.observableArrayList(users);
+
+            Platform.runLater(() -> {
+                if (usersTable != null) {
+                    System.out.println("🎯 Заполняем таблицу пользователей...");
+                    setupUsersTable();
+                    usersTable.setItems(observableUsers);
+                    System.out.println("✅ Пользователи загружены в таблицу: " + users.size());
+                } else {
+                    System.err.println("⚠️ usersTable null");
+                }
+            });
         } catch (Exception e) {
-            System.err.println("Ошибка загрузки товаров: " + e.getMessage());
+            System.err.println("❌ Ошибка загрузки пользователей: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private void clearProductFields() {
-        productNameField.clear();
-        productPriceField.clear();
-        productStockField.clear();
-        productImageUrlField.clear();
-        productDescriptionArea.clear();
-        manufacturerField.clear();
-        selectedProduct = null;
+    private void setupUsersTable() {
+        usersTable.getColumns().clear();
+
+        TableColumn<UserDTO, String> emailCol = new TableColumn<>("Email");
+        emailCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().email));
+        emailCol.setPrefWidth(250);
+
+        TableColumn<UserDTO, String> nameCol = new TableColumn<>("Имя");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name));
+        nameCol.setPrefWidth(150);
+
+        TableColumn<UserDTO, String> surnameCol = new TableColumn<>("Фамилия");
+        surnameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().surname));
+        surnameCol.setPrefWidth(150);
+
+        TableColumn<UserDTO, String> cityCol = new TableColumn<>("Город");
+        cityCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().city));
+        cityCol.setPrefWidth(150);
+
+        usersTable.getColumns().addAll(emailCol, nameCol, surnameCol, cityCol);
     }
 
-    private void clearPromoFields() {
-        promoCodeField.clear();
-        discountPercentField.clear();
-        maxUsesField.clear();
-        expiryDatePicker.setValue(null);
-        activeCheckBox.setSelected(false);
-        selectedPromoCode = null;
+    // ============ ДОБАВЛЕНИЕ ТОВАРА ============
+
+    private void showAddProductDialog() {
+        Dialog<ProductDTO> dialog = new Dialog<>();
+        dialog.setTitle("Добавить товар");
+        dialog.setHeaderText("Введите данные нового товара");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Название товара");
+
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Описание");
+        descriptionArea.setPrefRowCount(4);
+        descriptionArea.setWrapText(true);
+
+        TextField priceField = new TextField();
+        priceField.setPromptText("Цена");
+
+        TextField stockField = new TextField();
+        stockField.setPromptText("Количество на складе");
+
+        TextField categoryField = new TextField();
+        categoryField.setPromptText("Категория");
+
+        TextField manufacturerField = new TextField();
+        manufacturerField.setPromptText("Производитель");
+
+        grid.add(new Label("Название:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Описание:"), 0, 1);
+        grid.add(descriptionArea, 1, 1);
+        grid.add(new Label("Цена (₽):"), 0, 2);
+        grid.add(priceField, 1, 2);
+        grid.add(new Label("Склад:"), 0, 3);
+        grid.add(stockField, 1, 3);
+        grid.add(new Label("Категория:"), 0, 4);
+        grid.add(categoryField, 1, 4);
+        grid.add(new Label("Производитель:"), 0, 5);
+        grid.add(manufacturerField, 1, 5);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                try {
+                    String name = nameField.getText();
+                    String description = descriptionArea.getText();
+                    double price = Double.parseDouble(priceField.getText());
+                    int stock = Integer.parseInt(stockField.getText());
+                    String category = categoryField.getText();
+                    String manufacturer = manufacturerField.getText();
+
+                    if (name.isEmpty() || category.isEmpty() || manufacturer.isEmpty()) {
+                        showAlert("Ошибка", "Заполните все поля!");
+                        return null;
+                    }
+
+                    return new ProductDTO(0, name, description, price, stock, "", category, manufacturer);
+                } catch (NumberFormatException e) {
+                    showAlert("Ошибка", "Проверьте формат цены и количества!");
+                }
+            }
+            return null;
+        });
+
+        var result = dialog.showAndWait();
+        if (result.isPresent() && result.get() != null) {
+            ProductDTO product = result.get();
+            saveProduct(product);
+        }
+    }
+
+    private void saveProduct(ProductDTO product) {
+        new Thread(() -> {
+            try {
+                AdminRepository.addProduct(
+                        product.name,
+                        product.description,
+                        product.price,
+                        product.stock,
+                        product.category,
+                        product.manufacturer
+                );
+
+                Platform.runLater(() -> {
+                    showAlert("Успех", "Товар добавлен успешно!");
+                    loadProducts();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("Ошибка", "Ошибка добавления: " + e.getMessage()));
+                System.err.println("❌ Ошибка: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void showAlert(String title, String message) {

@@ -6,8 +6,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 public class AuthController {
+
     private static MainController mainController;
-    public static void setMainController(MainController mc) { mainController = mc; }
+
+    public static void setMainController(MainController mc) {
+        mainController = mc;
+    }
 
     @FXML private Button authSubmitBtn;
     @FXML private Button authSwitchBtn;
@@ -23,7 +27,6 @@ public class AuthController {
     @FXML
     public void initialize() {
         setLoginMode();
-
         authSubmitBtn.setOnAction(e -> handleAuthSubmit());
         authSwitchBtn.setOnAction(e -> handleAuthSwitch());
         authBackBtn.setOnAction(e -> {
@@ -74,6 +77,7 @@ public class AuthController {
                 showError("Пароли не совпадают!");
                 return;
             }
+
             authSubmitBtn.setDisable(true);
             new Thread(() -> {
                 boolean success = SessionManager.register(email, password);
@@ -86,6 +90,7 @@ public class AuthController {
                     }
                 });
             }).start();
+
         } else {
             authSubmitBtn.setDisable(true);
             new Thread(() -> {
@@ -93,7 +98,18 @@ public class AuthController {
                 Platform.runLater(() -> {
                     authSubmitBtn.setDisable(false);
                     if (success) {
-                        if (mainController != null) mainController.showMainContent();
+                        // ✅ ПРОВЕРЯЕМ АДМИН СТАТУС ПОСЛЕ ВХОДА
+                        if (SessionManager.isAdmin()) {
+                            System.out.println("👑 Вход админа, открываем админ панель...");
+                            if (mainController != null) {
+                                mainController.openAdminPanel();
+                            }
+                        } else {
+                            System.out.println("👤 Обычный пользователь, открываем главный контент...");
+                            if (mainController != null) {
+                                mainController.showMainContent();
+                            }
+                        }
                     } else {
                         showError("Ошибка авторизации!");
                     }

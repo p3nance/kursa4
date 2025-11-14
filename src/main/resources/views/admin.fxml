@@ -1,107 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+<?import java.net.URL?>
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="controllers.AdminController"
-            stylesheets="@styles/styles.css">
+            style="-fx-background-color: #f5f5f5;">
 
-    <TabPane>
-        <Tab text="📦 Товары" closable="false">
-            <VBox spacing="15" style="-fx-padding: 15;">
-                <Label text="Управление товарами" styleClass="title"/>
+    <!-- ✅ ПРАВИЛЬНОЕ ПОДКЛЮЧЕНИЕ CSS СТИЛЕЙ -->
+    <stylesheets>
+        <URL value="@styles/styles.css"/>
+    </stylesheets>
 
-                <VBox spacing="10" styleClass="card">
-                    <GridPane hgap="10" vgap="10">
-                        <columnConstraints>
-                            <ColumnConstraints prefWidth="150"/>
-                            <ColumnConstraints hgrow="ALWAYS"/>
-                        </columnConstraints>
+    <!-- HEADER -->
+    <top>
+        <VBox style="-fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Label text="👑 АДМИН ПАНЕЛЬ" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="exitAdminBtn" text="← Выход из админки" styleClass="button-danger"/>
+            </HBox>
+        </VBox>
+    </top>
 
-                        <Label text="Название:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <TextField fx:id="productNameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    <!-- MAIN CONTENT -->
+    <center>
+        <TabPane fx:id="adminTabs" tabClosingPolicy="UNAVAILABLE"
+                 style="-fx-background-color: #ffffff;">
 
-                        <Label text="Цена:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <TextField fx:id="productPriceField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <!-- ============ ВКЛ. ТОВАРЫ ============ -->
+            <Tab text="📦 Товары" closable="false">
+                <VBox spacing="15" style="-fx-background-color: #ffffff;">
+                    <padding>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
+                    </padding>
 
-                        <Label text="Количество:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <TextField fx:id="productStockField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-
-                        <Label text="Категория:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                        <ComboBox fx:id="categoryCombo" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-
-                        <Label text="Производитель:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-                        <TextField fx:id="manufacturerField" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-
-                        <Label text="URL Изображения:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-                        <TextField fx:id="productImageUrlField" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-
-                        <Label text="Описание:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-                        <TextArea fx:id="productDescriptionArea" GridPane.columnIndex="1" GridPane.rowIndex="6" prefRowCount="3"/>
-                    </GridPane>
-
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button fx:id="addProductButton" text="➕ Добавить" styleClass="button-success"/>
-                        <Button fx:id="updateProductButton" text="✏️ Обновить" styleClass="button"/>
-                        <Button fx:id="deleteProductButton" text="🗑️ Удалить" styleClass="button-danger"/>
+                    <!-- Заголовок и кнопки -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Управление товарами" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="➕ Добавить товар" styleClass="button-success"/>
+                        <Button text="🔄 Обновить" styleClass="button-primary"/>
                     </HBox>
+
+                    <Separator/>
+
+                    <!-- Таблица товаров -->
+                    <TableView fx:id="productsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn text="ID" prefWidth="60"/>
+                            <TableColumn text="Название" prefWidth="250"/>
+                            <TableColumn text="Категория" prefWidth="150"/>
+                            <TableColumn text="Цена (₽)" prefWidth="100"/>
+                            <TableColumn text="Склад" prefWidth="80"/>
+                            <TableColumn text="Действия" prefWidth="150"/>
+                        </columns>
+                    </TableView>
                 </VBox>
+            </Tab>
 
-                <TableView fx:id="productsTable" prefHeight="300">
-                    <columns>
-                        <TableColumn fx:id="productNameColumn" text="Название" prefWidth="200"/>
-                        <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100"/>
-                        <TableColumn fx:id="stockColumn" text="Кол-во" prefWidth="80"/>
-                        <TableColumn fx:id="categoryColumn" text="Категория" prefWidth="120"/>
-                    </columns>
-                </TableView>
-            </VBox>
-        </Tab>
+            <!-- ============ ВКЛ. ПОЛЬЗОВАТЕЛИ ============ -->
+            <Tab text="👥 Пользователи" closable="false">
+                <VBox spacing="15" style="-fx-background-color: #ffffff;">
+                    <padding>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
+                    </padding>
 
-        <Tab text="🎟️ Промокоды" closable="false">
-            <VBox spacing="15" style="-fx-padding: 15;">
-                <Label text="Управление промокодами" styleClass="title"/>
-
-                <VBox spacing="10" styleClass="card">
-                    <GridPane hgap="10" vgap="10">
-                        <columnConstraints>
-                            <ColumnConstraints prefWidth="150"/>
-                            <ColumnConstraints hgrow="ALWAYS"/>
-                        </columnConstraints>
-
-                        <Label text="Код:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <TextField fx:id="promoCodeField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-
-                        <Label text="Скидка %:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <TextField fx:id="discountPercentField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                        <Label text="Макс. использований:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <TextField fx:id="maxUsesField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-
-                        <Label text="Дата истечения:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                        <DatePicker fx:id="expiryDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-
-                        <Label text="Активен:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-                        <CheckBox fx:id="activeCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="4" selected="true"/>
-                    </GridPane>
-
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Button fx:id="addPromoButton" text="➕ Добавить" styleClass="button-success"/>
-                        <Button fx:id="deletePromoButton" text="🗑️ Удалить" styleClass="button-danger"/>
+                    <!-- Заголовок и поиск -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Управление пользователями" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <TextField promptText="Поиск по email..." prefWidth="250"/>
+                        <Button text="🔄 Обновить" styleClass="button-primary"/>
                     </HBox>
+
+                    <Separator/>
+
+                    <!-- Таблица пользователей -->
+                    <TableView fx:id="usersTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn text="Email" prefWidth="250"/>
+                            <TableColumn text="Имя" prefWidth="150"/>
+                            <TableColumn text="Город" prefWidth="150"/>
+                            <TableColumn text="Присоединился" prefWidth="150"/>
+                            <TableColumn text="Тип" prefWidth="100"/>
+                            <TableColumn text="Действия" prefWidth="150"/>
+                        </columns>
+                    </TableView>
                 </VBox>
+            </Tab>
 
-                <TableView fx:id="promoCodesTable" prefHeight="300">
-                    <columns>
-                        <TableColumn fx:id="codeColumn" text="Код" prefWidth="150"/>
-                        <TableColumn fx:id="discountColumn" text="Скидка %" prefWidth="100"/>
-                        <TableColumn fx:id="maxUsesColumn" text="Макс. исп." prefWidth="100"/>
-                        <TableColumn fx:id="activeColumn" text="Активен" prefWidth="80"/>
-                    </columns>
-                </TableView>
-            </VBox>
-        </Tab>
-    </TabPane>
+            <!-- ============ ВКЛ. ЗАКАЗЫ ============ -->
+            <Tab text="🛒 Заказы" closable="false">
+                <VBox spacing="15" style="-fx-background-color: #ffffff;">
+                    <padding>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
+                    </padding>
 
+                    <!-- Фильтры -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="История заказов" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ComboBox promptText="Фильтр по статусу" prefWidth="150"/>
+                        <Button text="🔄 Обновить" styleClass="button-primary"/>
+                    </HBox>
+
+                    <Separator/>
+
+                    <!-- Таблица заказов -->
+                    <TableView fx:id="ordersTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn text="ID" prefWidth="80"/>
+                            <TableColumn text="Клиент" prefWidth="200"/>
+                            <TableColumn text="Дата" prefWidth="150"/>
+                            <TableColumn text="Сумма (₽)" prefWidth="120"/>
+                            <TableColumn text="Статус" prefWidth="120"/>
+                            <TableColumn text="Действия" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
 </BorderPane>

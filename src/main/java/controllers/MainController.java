@@ -3,7 +3,7 @@ package controllers;
 import com.example.authapp.models.Cart;
 import config.SessionManager;
 import controllers.CabinetController;
-import controllers.CartController;
+import com.example.authapp.services.CartService;
 import com.example.authapp.models.Product;
 import com.example.authapp.repositories.ProductRepository;
 import javafx.fxml.FXML;
@@ -380,14 +380,26 @@ public class MainController implements Initializable {
 
     private void showAuthForm() {
         try {
+            // Сохраняем текущее содержимое ПЕРЕД заменой
+            lastCenter = productPane; // или contentScroll
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/auth.fxml"));
             Node authNode = loader.load();
-            mainPane.setCenter(authNode);
-            AuthController.setMainController(this);
+
+            // Скрываем компоненты но НЕ устанавливаем их в null
             headerPane.setVisible(false);
+            headerPane.setManaged(false);
             categoryPane.setVisible(false);
+            categoryPane.setManaged(false);
+
+            // Заменяем только контент
+            mainPane.setCenter(authNode);
             mainPane.setTop(null);
             mainPane.setLeft(null);
+
+            AuthController.setMainController(this);
+
+            System.out.println("📧 Форма авторизации открыта");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -395,26 +407,60 @@ public class MainController implements Initializable {
 
     public void openCabinetInMain() {
         try {
+            lastCenter = contentScroll;
+            System.out.println("💾 Сохранено lastCenter как contentScroll");
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
             Node cabinetNode = loader.load();
-            lastCenter = mainPane.getCenter();
-            mainPane.setCenter(cabinetNode);
+
             headerPane.setVisible(false);
+            headerPane.setManaged(false);  // ✅ Это важно!
+
             categoryPane.setVisible(false);
+            categoryPane.setManaged(false);
+
+            mainPane.setCenter(cabinetNode);
             mainPane.setTop(null);
             mainPane.setLeft(null);
+
             CabinetController.setHostMainController(this);
+            System.out.println("👤 Кабинет открыт");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void showMainContent() {
+        System.out.println("🔄 Восстановление главного контента...");
+
+        // ✅ ВОССТАНАВЛИВАЕМ ВСЕ КОМПОНЕНТЫ
         headerPane.setVisible(true);
+        headerPane.setManaged(true);  // ✅ Это важно!
+
         categoryPane.setVisible(true);
+        categoryPane.setManaged(true);
+
+        searchField.setVisible(true);
+        searchField.setManaged(true);
+
+        profileBtn.setVisible(true);
+        profileBtn.setManaged(true);
+
+        cartBtn.setVisible(true);  // ✅ ВОССТАНАВЛИВАЕМ КНОПКУ КОРЗИНЫ
+        cartBtn.setManaged(true);
+
+        // Восстанавливаем структуру BorderPane
         mainPane.setTop(headerPane);
         mainPane.setLeft(categoryPane);
-        mainPane.setCenter(lastCenter);
+        mainPane.setCenter(contentScroll);
+
+        // Очищаем CSS если был добавлен
+        mainPane.getStylesheets().clear();
+
+        // Перезагружаем товары
+        filterByCategory(selectedCategory);
+
+        System.out.println("✅ Главный контент полностью восстановлен! Кнопка корзины видима!");
     }
 
     private void openCartView() {
@@ -438,37 +484,35 @@ public class MainController implements Initializable {
     }
     private void addProductToCart(Product product, int quantity) {
         try {
-            System.out.println("\n🛒 === ДОБАВЛЕНИЕ В КОРЗИНУ ===");
-            System.out.println("📝 Товар: " + product.getName());
-            System.out.println("💰 Цена: " + product.getPrice());
-            System.out.println("📦 Количество: " + quantity);
+            System.out.println("🛒 Добавление в корзину:");
+            System.out.println("   Товар: " + product.getName());
+            System.out.println("   Цена: " + product.getPrice());
+            System.out.println("   Количество: " + quantity);
 
-            // Используем глобальную корзину
-            com.example.authapp.models.Cart cart = com.example.authapp.models.Cart.getInstance();
-            cart.addProduct(product);
+            // Используем CartService для добавления в БД
+            CartService cartService = new CartService();
+            cartService.addProductToCart(product, quantity);
 
-            System.out.println("✅ Товар добавлен в корзину!");
-            System.out.println("📊 Всего товаров в корзине: " + cart.getTotalQuantity());
-            System.out.println("💵 Сумма: " + cart.getTotal());
-            System.out.println("=========================\n");
+            Cart cart = Cart.getInstance();
+            System.out.println("📊 Состояние корзины:");
+            System.out.println("   Товаров: " + cart.getTotalQuantity());
+            System.out.println("   Сумма: " + cart.getTotal());
+            System.out.println("✅ Товар добавлен успешно!");
 
-            // Показываем уведомление
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("✅ Успех");
+            alert.setTitle("Корзина");
             alert.setHeaderText(null);
-            alert.setContentText(product.getName() + " добавлен в корзину!\n\n" +
-                    "Товаров в корзине: " + cart.getTotalQuantity() + "\n" +
-                    "Сумма: " + String.format("%.2f ₽", cart.getTotal()));
+            alert.setContentText(product.getName() + " добавлен в корзину!\nТоваров в корзине: " +
+                    cart.getTotalQuantity() + "\nИтого: " + String.format("%.2f ₽", cart.getTotal()));
             alert.showAndWait();
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка добавления в корзину: " + e.getMessage());
             e.printStackTrace();
 
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("❌ Ошибка");
+            alert.setTitle("Ошибка");
             alert.setHeaderText(null);
-            alert.setContentText("Не удалось добавить товар в корзину");
+            alert.setContentText("Не удалось добавить товар: " + e.getMessage());
             alert.showAndWait();
         }
     }
@@ -493,6 +537,39 @@ public class MainController implements Initializable {
             searchField.setManaged(true);
         }
     }
+    // ✅ НОВЫЙ ПУБЛИЧНЫЙ МЕТОД
+    public void openAdminPanel() {
+        try {
+            lastCenter = contentScroll;
+            System.out.println("💾 Сохранено lastCenter как contentScroll");
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
+            Node adminNode = loader.load();
+
+            // НЕ скрываем headerPane полностью, только меняем видимость кнопок
+            headerPane.setVisible(false);
+            headerPane.setManaged(false);  // ✅ Это важно!
+
+            categoryPane.setVisible(false);
+            categoryPane.setManaged(false);
+
+            mainPane.setCenter(adminNode);
+            mainPane.setTop(null);
+            mainPane.setLeft(null);
+
+            AdminController adminController = loader.getController();
+            adminController.setMainController(this);
+
+            System.out.println("👑 АДМИН ПАНЕЛЬ ОТКРЫТА");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorMessage("Ошибка", "Не удалось загрузить админ панель: " + e.getMessage());
+        }
+    }
+
+
+
+
 
 
 }

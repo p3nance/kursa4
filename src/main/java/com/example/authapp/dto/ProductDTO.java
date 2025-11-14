@@ -1,18 +1,36 @@
 package com.example.authapp.dto;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Data Transfer Object для Product
  * Используется ТОЛЬКО для работы с Gson и Supabase
  * Содержит простые типы (int, String, double), БЕЗ JavaFX Property!
  */
 public class ProductDTO {
+
+    @SerializedName("id")
     public int id;
+
+    @SerializedName("name")
     public String name;
+
+    @SerializedName("description")
     public String description;
+
+    @SerializedName("price")
     public double price;
+
+    @SerializedName("stock")
     public int stock;
+
+    @SerializedName("image_url")  // ✅ Маппим на правильное имя из БД
     public String imageUrl;
+
+    @SerializedName("category")
     public String category;
+
+    @SerializedName("manufacturer")
     public String manufacturer;
 
     // Пустой конструктор для Gson
