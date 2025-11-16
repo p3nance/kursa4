@@ -158,6 +158,66 @@ public class ProductRepository {
         }
     }
 
+    public static void decreaseProductStock(int productId, int quantity) throws Exception {
+        try {
+            // Сначала получаем текущий stock
+            String getUrl = String.format("%s/rest/v1/%s?id=eq.%d&select=stock",
+                    SUPABASE_URL, "products", productId);
+
+            HttpRequest getRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(getUrl))
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("apikey", SUPABASE_KEY)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> getResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (getResponse.statusCode() != 200) {
+                throw new Exception("Ошибка получения stock товара: " + getResponse.statusCode());
+            }
+
+            JsonArray jsonArray = JsonParser.parseString(getResponse.body()).getAsJsonArray();
+            if (jsonArray.size() == 0) {
+                throw new Exception("Товар не найден");
+            }
+
+            int currentStock = jsonArray.get(0).getAsJsonObject().get("stock").getAsInt();
+            int newStock = currentStock - quantity;
+
+            if (newStock < 0) {
+                newStock = 0; // Не допускаем отрицательный stock
+            }
+
+            // Обновляем stock
+            String updateUrl = String.format("%s/rest/v1/%s?id=eq.%d",
+                    SUPABASE_URL, "products", productId);
+
+            String jsonBody = "{\"stock\":" + newStock + "}";
+
+            System.out.println("   📊 Stock: " + currentStock + " -> " + newStock);
+
+            HttpRequest updateRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(updateUrl))
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> updateResponse = httpClient.send(updateRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (updateResponse.statusCode() != 200 && updateResponse.statusCode() != 204) {
+                throw new Exception("Ошибка обновления stock: " + updateResponse.statusCode());
+            }
+
+            System.out.println("   ✅ Stock обновлен успешно (новый stock: " + newStock + ")");
+
+        } catch (Exception e) {
+            throw new Exception("Ошибка уменьшения stock товара: " + e.getMessage());
+        }
+    }
+
     public List<Product> getAllProducts() throws Exception {
         return loadProductsFromSupabase();
     }

@@ -6,6 +6,7 @@ import com.example.authapp.models.Product;
 import com.example.authapp.dto.CartItemDTO;
 import com.example.authapp.repositories.CartRepository;
 import config.SessionManager;
+
 import java.util.List;
 
 /**
@@ -14,7 +15,8 @@ import java.util.List;
 public class CartService {
 
     /**
-     * Загружает корзину пользователя из БД при входе
+     * ✅ ИСПРАВЛЕНО: Загружает корзину пользователя из БД при входе
+     * Теперь корректно добавляет товары с их количеством
      */
     public void loadUserCart() throws Exception {
         String userId = SessionManager.getUserId();
@@ -24,13 +26,12 @@ public class CartService {
         }
 
         try {
-            // Теперь передаем UUID строку напрямую
             List<CartItemDTO> cartItems = CartRepository.loadCartFromSupabase(userId);
 
             // Очищаем текущую корзину в памяти
             Cart.getInstance().clear();
 
-            // Загружаем товары из БД в память
+            // Загружаем товары из БД в память ОДНИМ ВЫЗОВОМ
             for (CartItemDTO dto : cartItems) {
                 Product product = new Product(
                         dto.productId,
@@ -43,10 +44,8 @@ public class CartService {
                         "" // manufacturer
                 );
 
-                // Добавляем в локальную корзину с нужным количеством
-                for (int i = 0; i < dto.quantity; i++) {
-                    Cart.getInstance().addProduct(product);
-                }
+                // ✅ ИСПРАВЛЕНО: Добавляем товар с его количеством, а не циклом!
+                Cart.getInstance().addProduct(product, dto.quantity);
             }
 
             System.out.println("✅ Корзина загружена из БД: " + cartItems.size() + " позиций");
@@ -56,7 +55,8 @@ public class CartService {
     }
 
     /**
-     * Добавляет товар в корзину (и в БД, и в память)
+     * ✅ ИСПРАВЛЕНО: Добавляет товар в корзину (и в БД, и в память)
+     * Теперь работает правильно с количеством > 1
      */
     public void addProductToCart(Product product, int quantity) throws Exception {
         if (product == null) {
@@ -90,6 +90,7 @@ public class CartService {
                 // Обновляем количество существующего товара
                 int newQuantity = existingItem.quantity + quantity;
                 CartRepository.updateCartItemInSupabase(existingItem.cartItemId, newQuantity);
+                System.out.println("🔄 Товар обновлен в БД: " + existingItem.productName + " -> " + newQuantity);
             } else {
                 // Создаем новую запись в БД
                 CartItemDTO newItem = new CartItemDTO(
@@ -101,15 +102,14 @@ public class CartService {
                         product.getImageUrl()
                 );
                 CartRepository.addCartItemToSupabase(userId, newItem);
+                System.out.println("✅ Новый товар добавлен в БД: " + product.getName());
             }
 
-            // Добавляем в локальную корзину
-            Cart cart = Cart.getInstance();
-            for (int i = 0; i < quantity; i++) {
-                cart.addProduct(product);
-            }
+            // ✅ ИСПРАВЛЕНО: Добавляем в локальную корзину одним вызовом!
+            Cart.getInstance().addProduct(product, quantity);
 
             System.out.println("✅ Товар добавлен в корзину (БД + память)");
+
         } catch (Exception e) {
             throw new Exception("Ошибка добавления в корзину: " + e.getMessage());
         }
@@ -123,7 +123,7 @@ public class CartService {
     }
 
     /**
-     * Удаляет товар из корзины (из БД и из памяти)
+     * ✅ ИСПРАВЛЕНО: Удаляет товар из корзины (из БД и из памяти)
      */
     public void removeFromCart(Product product) throws Exception {
         if (product == null) {
@@ -138,7 +138,7 @@ public class CartService {
         System.out.println("➖ Удаление товара: " + product.getName());
 
         try {
-            // Находим товар в БД
+            // Находим товар в БД и удаляем его полностью
             List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
             for (CartItemDTO item : items) {
                 if (item.productId == product.getId()) {
@@ -149,15 +149,15 @@ public class CartService {
 
             // Удаляем из локальной корзины
             Cart.getInstance().removeProduct(product);
-
             System.out.println("✅ Товар удален из корзины (БД + память)");
+
         } catch (Exception e) {
             throw new Exception("Ошибка удаления из корзины: " + e.getMessage());
         }
     }
 
     /**
-     * Обновляет количество товара в корзине
+     * ✅ ИСПРАВЛЕНО: Обновляет количество товара в корзине
      */
     public void updateCartItemQuantity(Product product, int newQuantity) throws Exception {
         if (newQuantity <= 0) {
@@ -173,7 +173,7 @@ public class CartService {
         System.out.println("🔄 Обновление количества: " + product.getName() + " -> " + newQuantity);
 
         try {
-            // Находим товар в БД и обновляем
+            // Находим товар в БД и обновляем его количество
             List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
             for (CartItemDTO item : items) {
                 if (item.productId == product.getId()) {
@@ -185,11 +185,10 @@ public class CartService {
             // Обновляем локальную корзину
             Cart cart = Cart.getInstance();
             cart.removeProduct(product);
-            for (int i = 0; i < newQuantity; i++) {
-                cart.addProduct(product);
-            }
+            cart.addProduct(product, newQuantity);
 
             System.out.println("✅ Количество обновлено (БД + память)");
+
         } catch (Exception e) {
             throw new Exception("Ошибка обновления количества: " + e.getMessage());
         }
@@ -205,12 +204,21 @@ public class CartService {
     }
 
     /**
-     * Получает количество товаров в корзине
+     * Получает количество товаров в корзине (с учетом количества)
      */
     public int getCartSize() {
         int size = Cart.getInstance().getTotalQuantity();
         System.out.println("📦 Товаров в корзине: " + size);
         return size;
+    }
+
+    /**
+     * Получает количество уникальных товаров в корзине
+     */
+    public int getCartItemsCount() {
+        int count = Cart.getInstance().getUniqueItemsCount();
+        System.out.println("🎁 Уникальных товаров: " + count);
+        return count;
     }
 
     /**
@@ -235,6 +243,7 @@ public class CartService {
             CartRepository.clearUserCart(userId);
             Cart.getInstance().clear();
             System.out.println("✅ Корзина очищена (БД + память)");
+
         } catch (Exception e) {
             throw new Exception("Ошибка очистки корзины: " + e.getMessage());
         }
@@ -256,6 +265,7 @@ public class CartService {
         }
 
         double discountPercent = 0;
+
         if (promoCode.equalsIgnoreCase("SALE10")) {
             discountPercent = 10;
         } else if (promoCode.equalsIgnoreCase("SALE20")) {
@@ -268,12 +278,13 @@ public class CartService {
 
         double total = getCartTotal();
         double discount = total * (discountPercent / 100.0);
-        System.out.println("🎫 Промокод '" + promoCode + "' применен. Скидка: " + discountPercent + "%");
+
+        System.out.println("🎫 Промокод '" + promoCode + "' применен. Скидка: " + discountPercent + "% = " + discount + " ₽");
         return discount;
     }
 
     /**
-     * Получает количество товара в корзине
+     * Получает количество конкретного товара в корзине
      */
     public int getProductQuantity(Product product) {
         for (CartItem item : Cart.getInstance().getItems()) {

@@ -34,6 +34,9 @@ public class UserDTO {
     @SerializedName("is_admin")
     public boolean is_admin;
 
+    @SerializedName("role")
+    public String role;
+
     public UserDTO() {}
 
     @Override

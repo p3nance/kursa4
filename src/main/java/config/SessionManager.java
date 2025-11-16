@@ -110,7 +110,6 @@ public class SessionManager {
                     userId = json.optString("user_id", null);
                 }
 
-                // ✅ НОВЫЙ ПОЛЬЗОВАТЕЛЬ НИКОГДА НЕ АДМИН
                 isAdmin = false;
 
                 return true;
@@ -125,7 +124,6 @@ public class SessionManager {
         return false;
     }
 
-    // ✅ НОВЫЙ МЕТОД: ПРОВЕРКА АДМИН СТАТУСА
     private static void checkAdminStatus(String email) {
         try {
             String encodedEmail = java.net.URLEncoder.encode(email, "UTF-8");
