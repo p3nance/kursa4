@@ -3,6 +3,8 @@ package controllers;
 import com.example.authapp.dto.ProductDTO;
 import com.example.authapp.dto.UserDTO;
 import com.example.authapp.repositories.AdminRepository;
+import com.example.authapp.services.SupabaseStorageService;
+import com.example.authapp.services.AdminRefreshService;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -14,9 +16,14 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -30,9 +37,27 @@ public class AdminController implements Initializable {
 
     private MainController mainController;
 
+    // ✅ REFRESH SERVICE
+    private AdminRefreshService refreshService;
+
+    private File selectedImageFile = null;
+
+    // ✅ OBSERVABLE LISTS - для автоматического обновления UI
+    private ObservableList<ProductDTO> productsData = FXCollections.observableArrayList();
+    private ObservableList<UserDTO> usersData = FXCollections.observableArrayList();
+
+    // ✅ FLAGS - чтобы таблицы не переинициализировались каждый раз
+    private boolean productsTableSetup = false;
+    private boolean usersTableSetup = false;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        System.out.println("📋 Инициализация AdminController...");
         setupUI();
+
+        // ✅ ИНИЦИАЛИЗИРУЕМ СЕРВИС СИНХРОНИЗАЦИИ
+        refreshService = new AdminRefreshService(this);
+
         loadAdminData();
     }
 
@@ -41,23 +66,24 @@ public class AdminController implements Initializable {
     }
 
     private void setupUI() {
-        // Кнопка выхода
         if (exitAdminBtn != null) {
             exitAdminBtn.setOnAction(e -> {
+                System.out.println("🚪 Выход из админ-панели");
+                // ✅ ОСТАНАВЛИВАЕМ СЕРВИС ПЕРЕД ВЫХОДОМ
+                if (refreshService != null) {
+                    refreshService.stop();
+                }
                 if (mainController != null) {
                     mainController.showMainContent();
                 }
             });
         }
 
-        // ✅ НАХОДИМ КНОПКУ "ДОБАВИТЬ ТОВАР" И ДАЁМ ЕЙ ДЕЙСТВИЕ
         if (adminTabs != null && adminTabs.getTabs().size() > 0) {
             Tab productsTab = adminTabs.getTabs().get(0);
             Node content = productsTab.getContent();
-
             if (content instanceof VBox) {
                 VBox productsContent = (VBox) content;
-
                 for (Node node : productsContent.getChildren()) {
                     if (node instanceof HBox) {
                         HBox hbox = (HBox) node;
@@ -75,12 +101,21 @@ public class AdminController implements Initializable {
         }
     }
 
-    // ✅ ЗАГРУЗКА ДАННЫХ ИЗ БД
+    // ============ ЗАГРУЗКА ДАННЫХ ============
+
     private void loadAdminData() {
         new Thread(() -> {
             try {
+                System.out.println("📦 Инициальная загрузка данных...");
                 loadProducts();
                 loadUsers();
+
+                // ✅ ЗАПУСКАЕМ АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ
+                Platform.runLater(() -> {
+                    if (refreshService != null) {
+                        refreshService.start();
+                    }
+                });
             } catch (Exception e) {
                 System.err.println("❌ Ошибка загрузки данных: " + e.getMessage());
                 e.printStackTrace();
@@ -88,26 +123,42 @@ public class AdminController implements Initializable {
         }).start();
     }
 
-    // ============ ТОВАРЫ ============
+    // ============ ЗАГРУЗКА ТОВАРОВ ============
 
     private void loadProducts() {
         try {
+            System.out.println("📦 Загрузка товаров из БД...");
             List<ProductDTO> products = AdminRepository.getAllProducts();
-            ObservableList<ProductDTO> observableProducts = FXCollections.observableArrayList(products);
 
             Platform.runLater(() -> {
                 if (productsTable != null) {
-                    setupProductsTable();
-                    productsTable.setItems(observableProducts);
+                    // ✅ НАСТРАИВАЕМ ТАБЛИЦУ ТОЛЬКО ОДИН РАЗ
+                    if (!productsTableSetup) {
+                        setupProductsTable();
+                        productsTableSetup = true;
+                    }
+
+                    // ✅ ОБНОВЛЯЕМ ДАННЫЕ БЕЗ ПЕРЕИНИЦИАЛИЗАЦИИ
+                    productsData.clear();
+                    productsData.addAll(products);
+                    productsTable.setItems(productsData);
+
+                    System.out.println("✅ Таблица товаров обновлена: " + products.size() + " товаров");
                 } else {
+                    System.err.println("⚠️ productsTable is null");
                 }
             });
+
         } catch (Exception e) {
+            System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private void setupProductsTable() {
+        System.out.println("⚙️ Настройка таблицы товаров...");
+
+        // ✅ ОЧИЩАЕМ ТОЛЬКО ПРИ ПЕРВОЙ НАСТРОЙКЕ
         productsTable.getColumns().clear();
 
         TableColumn<ProductDTO, Integer> idCol = new TableColumn<>("ID");
@@ -130,6 +181,48 @@ public class AdminController implements Initializable {
         stockCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().stock).asObject());
         stockCol.setPrefWidth(70);
 
+        // ✅ КОЛОНКА С ИЗОБРАЖЕНИЕМ И КНОПКОЙ ЗАГРУЗКИ
+        TableColumn<ProductDTO, Void> imageCol = new TableColumn<>("Фото");
+        imageCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+            private final Button uploadBtn = new Button("📷 Загрузить");
+
+            {
+                uploadBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 5px;");
+                uploadBtn.setOnAction(e -> {
+                    if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
+                        ProductDTO product = getTableView().getItems().get(getIndex());
+                        uploadProductImage(product);
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getIndex() < 0 || getIndex() >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                } else {
+                    ProductDTO product = getTableView().getItems().get(getIndex());
+                    if (product != null && product.imageUrl != null && !product.imageUrl.isEmpty()) {
+                        try {
+                            ImageView imageView = new ImageView();
+                            Image image = new Image(product.imageUrl, 40, 40, true, true, true);
+                            imageView.setImage(image);
+                            imageView.setFitWidth(40);
+                            imageView.setFitHeight(40);
+                            HBox box = new HBox(5, imageView, uploadBtn);
+                            setGraphic(box);
+                        } catch (Exception ex) {
+                            setGraphic(uploadBtn);
+                        }
+                    } else {
+                        setGraphic(uploadBtn);
+                    }
+                }
+            }
+        });
+        imageCol.setPrefWidth(140);
+
         TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
         actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
             private final Button deleteBtn = new Button("❌ Удалить");
@@ -137,8 +230,10 @@ public class AdminController implements Initializable {
             {
                 deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 5px;");
                 deleteBtn.setOnAction(e -> {
-                    ProductDTO product = getTableView().getItems().get(getIndex());
-                    deleteProduct(product);
+                    if (getIndex() >= 0 && getIndex() < getTableView().getItems().size()) {
+                        ProductDTO product = getTableView().getItems().get(getIndex());
+                        deleteProduct(product);
+                    }
                 });
             }
 
@@ -150,8 +245,73 @@ public class AdminController implements Initializable {
         });
         actionCol.setPrefWidth(120);
 
-        productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, actionCol);
+        productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, imageCol, actionCol);
+        System.out.println("✅ Таблица товаров настроена");
     }
+
+    // ============ ЗАГРУЗКА ИЗОБРАЖЕНИЯ ============
+
+    private void uploadProductImage(ProductDTO product) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Выберите изображение товара");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Все изображения", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp"),
+                new FileChooser.ExtensionFilter("JPEG", "*.jpg", "*.jpeg"),
+                new FileChooser.ExtensionFilter("PNG", "*.png"),
+                new FileChooser.ExtensionFilter("GIF", "*.gif"),
+                new FileChooser.ExtensionFilter("WebP", "*.webp")
+        );
+
+        File selectedFile = fileChooser.showOpenDialog(productsTable.getScene().getWindow());
+
+        if (selectedFile != null) {
+            System.out.println("📤 Загрузка изображения для товара: " + product.name + " (ID: " + product.id + ")");
+
+            Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION);
+            loadingAlert.setTitle("Загрузка");
+            loadingAlert.setHeaderText("Загрузка изображения...");
+            loadingAlert.setContentText("Пожалуйста, подождите");
+            loadingAlert.show();
+
+            new Thread(() -> {
+                try {
+                    String fileName = SupabaseStorageService.generateFileName(product.id, selectedFile.getName());
+                    String imageUrl = SupabaseStorageService.uploadImage(selectedFile, fileName);
+
+                    AdminRepository.updateProductImage(product.id, imageUrl);
+
+                    Platform.runLater(() -> {
+                        loadingAlert.close();
+                        showAlert("Успех", "Изображение загружено успешно!");
+
+                        // ✅ СИНХРОННО ОБНОВЛЯЕМ ТОВАР В ПАМЯТИ
+                        product.imageUrl = imageUrl;
+
+                        // ✅ ЗАНОВО ЗАГРУЖАЕМ ТОВАРЫ ИЗ БД
+                        loadProducts();
+                        if (mainController != null) {
+                            mainController.reloadProducts();  // <<< теперь главная витрина обновится!
+                        }
+                        // ✅ ВКЛЮЧАЕМ СЕРВИС СИНХРОНИЗАЦИИ
+                        if (refreshService != null) {
+                            refreshService.start();
+                        }
+                    });
+
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        loadingAlert.close();
+                        showAlert("Ошибка", "Ошибка загрузки изображения: " + e.getMessage());
+                    });
+                    System.err.println("❌ Ошибка: " + e.getMessage());
+                }
+            }).start();
+        }
+    }
+
+    // ============ УДАЛЕНИЕ ТОВАРА ============
 
     private void deleteProduct(ProductDTO product) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -161,35 +321,57 @@ public class AdminController implements Initializable {
         if (confirm.showAndWait().get() == ButtonType.OK) {
             new Thread(() -> {
                 try {
+                    System.out.println("🗑️ Удаление товара: " + product.name);
                     AdminRepository.deleteProduct(product.id);
-                    Platform.runLater(this::loadProducts);
+
+                    Platform.runLater(() -> {
+                        productsData.remove(product);
+                        showAlert("Успех", "Товар удален!");
+                    });
                 } catch (Exception e) {
+                    Platform.runLater(() -> showAlert("Ошибка", "Ошибка удаления: " + e.getMessage()));
                     System.err.println("❌ Ошибка удаления: " + e.getMessage());
                 }
             }).start();
         }
     }
 
-    // ============ ПОЛЬЗОВАТЕЛИ ============
+    // ============ ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ ============
 
     private void loadUsers() {
         try {
+            System.out.println("👥 Загрузка пользователей из БД...");
             List<UserDTO> users = AdminRepository.getAllUsers();
-            ObservableList<UserDTO> observableUsers = FXCollections.observableArrayList(users);
 
             Platform.runLater(() -> {
                 if (usersTable != null) {
-                    setupUsersTable();
-                    usersTable.setItems(observableUsers);
+                    // ✅ НАСТРАИВАЕМ ТАБЛИЦУ ТОЛЬКО ОДИН РАЗ
+                    if (!usersTableSetup) {
+                        setupUsersTable();
+                        usersTableSetup = true;
+                    }
+
+                    // ✅ ОБНОВЛЯЕМ ДАННЫЕ БЕЗ ПЕРЕИНИЦИАЛИЗАЦИИ
+                    usersData.clear();
+                    usersData.addAll(users);
+                    usersTable.setItems(usersData);
+
+                    System.out.println("✅ Таблица пользователей обновлена: " + users.size() + " пользователей");
                 } else {
+                    System.err.println("⚠️ usersTable is null");
                 }
             });
+
         } catch (Exception e) {
+            System.err.println("❌ Ошибка загрузки пользователей: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private void setupUsersTable() {
+        System.out.println("⚙️ Настройка таблицы пользователей...");
+
+        // ✅ ОЧИЩАЕМ ТОЛЬКО ПРИ ПЕРВОЙ НАСТРОЙКЕ
         usersTable.getColumns().clear();
 
         TableColumn<UserDTO, String> emailCol = new TableColumn<>("Email");
@@ -209,6 +391,7 @@ public class AdminController implements Initializable {
         cityCol.setPrefWidth(150);
 
         usersTable.getColumns().addAll(emailCol, nameCol, surnameCol, cityCol);
+        System.out.println("✅ Таблица пользователей настроена");
     }
 
     // ============ ДОБАВЛЕНИЕ ТОВАРА ============
@@ -243,6 +426,36 @@ public class AdminController implements Initializable {
         TextField manufacturerField = new TextField();
         manufacturerField.setPromptText("Производитель");
 
+        Button selectImageBtn = new Button("📷 Выбрать изображение");
+        Label imageLabel = new Label("Изображение не выбрано");
+        ImageView previewImageView = new ImageView();
+        previewImageView.setFitWidth(100);
+        previewImageView.setFitHeight(100);
+        previewImageView.setPreserveRatio(true);
+
+        selectImageBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Выберите изображение");
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Изображения", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp")
+            );
+
+            File file = fileChooser.showOpenDialog(dialog.getOwner());
+            if (file != null) {
+                selectedImageFile = file;
+                imageLabel.setText(file.getName());
+                try {
+                    Image image = new Image(file.toURI().toString());
+                    previewImageView.setImage(image);
+                } catch (Exception ex) {
+                    System.err.println("Ошибка загрузки превью: " + ex.getMessage());
+                }
+            }
+        });
+
+        HBox imageBox = new HBox(10, selectImageBtn, imageLabel);
+
         grid.add(new Label("Название:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Описание:"), 0, 1);
@@ -255,6 +468,9 @@ public class AdminController implements Initializable {
         grid.add(categoryField, 1, 4);
         grid.add(new Label("Производитель:"), 0, 5);
         grid.add(manufacturerField, 1, 5);
+        grid.add(new Label("Изображение:"), 0, 6);
+        grid.add(imageBox, 1, 6);
+        grid.add(previewImageView, 1, 7);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -270,11 +486,12 @@ public class AdminController implements Initializable {
                     String manufacturer = manufacturerField.getText();
 
                     if (name.isEmpty() || category.isEmpty() || manufacturer.isEmpty()) {
-                        showAlert("Ошибка", "Заполните все поля!");
+                        showAlert("Ошибка", "Заполните все обязательные поля!");
                         return null;
                     }
 
                     return new ProductDTO(0, name, description, price, stock, "", category, manufacturer);
+
                 } catch (NumberFormatException e) {
                     showAlert("Ошибка", "Проверьте формат цены и количества!");
                 }
@@ -292,25 +509,66 @@ public class AdminController implements Initializable {
     private void saveProduct(ProductDTO product) {
         new Thread(() -> {
             try {
+                System.out.println("➕ Добавление нового товара: " + product.name);
+                String imageUrl = "";
+
+                if (selectedImageFile != null) {
+                    System.out.println("📤 Загрузка изображения...");
+                    String fileName = "product_new_" + System.currentTimeMillis() + "_" + selectedImageFile.getName();
+                    imageUrl = SupabaseStorageService.uploadImage(selectedImageFile, fileName);
+                    selectedImageFile = null;
+                }
+
                 AdminRepository.addProduct(
                         product.name,
                         product.description,
                         product.price,
                         product.stock,
                         product.category,
-                        product.manufacturer
+                        product.manufacturer,
+                        imageUrl
                 );
 
                 Platform.runLater(() -> {
                     showAlert("Успех", "Товар добавлен успешно!");
+
+                    // ✅ ПЕРЕЗАГРУЖАЕМ ТАБЛИЦУ
                     loadProducts();
+
+                    // ✅ ВКЛЮЧАЕМ СЕРВИС СИНХРОНИЗАЦИИ
+                    if (refreshService != null) {
+                        refreshService.start();
+                    }
                 });
+
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Ошибка", "Ошибка добавления: " + e.getMessage()));
                 System.err.println("❌ Ошибка: " + e.getMessage());
+                e.printStackTrace();
             }
         }).start();
     }
+
+    // ============ ✅ ПУБЛИЧНЫЙ МЕТОД ДЛЯ СИНХРОНИЗАЦИИ ============
+
+    /**
+     * ✅ ПУБЛИЧНЫЙ метод для внешней синхронизации (вызывается AdminRefreshService)
+     */
+    public void refreshProductsList() {
+        System.out.println("🔄 Синхронизация списка товаров...");
+        loadProducts();
+    }
+
+    /**
+     * ✅ ОСТАНОВКА СЕРВИСА ПРИ ЗАКРЫТИИ
+     */
+    public void stopRefreshService() {
+        if (refreshService != null) {
+            refreshService.stop();
+        }
+    }
+
+    // ============ УТИЛИТЫ ============
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

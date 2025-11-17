@@ -1,7 +1,6 @@
 package config;
 
 public class Config {
-    // ВАЖНО заменить на ваши значения из Supabase Dashboard с https://
     public static final String SUPABASE_URL = "https://qsthuhzkciimucarscco.supabase.co";
     public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
 

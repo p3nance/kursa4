@@ -543,6 +543,18 @@ public class MainController implements Initializable {
             showErrorMessage("Ошибка", "Не удалось загрузить админ панель: " + e.getMessage());
         }
     }
+    public void reloadProducts() {
+        // Загружает все товары заново из Supabase и обновляет UI
+        Thread loadThread = new Thread(() -> {
+            try {
+                loadProductsFromSupabase();
+            } catch (Exception e) {
+                System.err.println("❌ Ошибка reloadProducts: " + e.getMessage());
+            }
+        });
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
 
 
 

@@ -23,7 +23,7 @@ public class OrderRepository {
     private static final Gson gson = new Gson();
 
     /**
-     * ✅ Создает заказ в таблице orders БЕЗ ID (он генерируется автоматически)
+     * Создает заказ в таблице orders БЕЗ ID (он генерируется автоматически)
      */
     public static int createOrder(OrderDTO orderDTO) throws Exception {
         try {
@@ -73,7 +73,7 @@ public class OrderRepository {
     }
 
     /**
-     * ✅ Добавляет товары в таблицу order_items БЕЗ ID (он генерируется автоматически)
+     * Добавляет товары в таблицу order_items БЕЗ ID (он генерируется автоматически)
      */
     public static void addOrderItems(int orderId, List<OrderItemDTO> items) throws Exception {
         try {
@@ -122,7 +122,7 @@ public class OrderRepository {
     }
 
     /**
-     * ✅ Получает все заказы пользователя
+     * Получает все заказы пользователя
      */
     public static List<OrderDTO> getUserOrders(String userId) throws Exception {
         try {

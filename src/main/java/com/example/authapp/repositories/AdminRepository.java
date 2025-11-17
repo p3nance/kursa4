@@ -28,7 +28,6 @@ public class AdminRepository {
     public static List<ProductDTO> getAllProducts() throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/products?select=*";
-
             System.out.println("📡 Запрос товаров: " + url);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -88,6 +87,7 @@ public class AdminRepository {
             }
 
             System.out.println("✅ Товар удален");
+
         } catch (Exception e) {
             throw new Exception("Ошибка удаления товара: " + e.getMessage());
         }
@@ -101,7 +101,6 @@ public class AdminRepository {
     public static List<UserDTO> getAllUsers() throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/profiles?select=*";
-
             System.out.println("📡 Запрос пользователей: " + url);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -140,8 +139,12 @@ public class AdminRepository {
         }
     }
 
+    /**
+     * Добавляет новый товар С ЗАГРУЗКОЙ ИЗОБРАЖЕНИЯ
+     * @param imageUrl URL изображения в Supabase Storage (или пустая строка)
+     */
     public static void addProduct(String name, String description, double price,
-                                  int stock, String category, String manufacturer) throws Exception {
+                                  int stock, String category, String manufacturer, String imageUrl) throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/products";
 
@@ -152,7 +155,7 @@ public class AdminRepository {
                     "\"stock\":" + stock + "," +
                     "\"category\":\"" + category.replace("\"", "\\\"") + "\"," +
                     "\"manufacturer\":\"" + manufacturer.replace("\"", "\\\"") + "\"," +
-                    "\"image_url\":\"\"" +
+                    "\"image_url\":\"" + (imageUrl != null ? imageUrl.replace("\"", "\\\"") : "") + "\"" +
                     "}";
 
             System.out.println("➕ Добавляем товар: " + name);
@@ -183,4 +186,37 @@ public class AdminRepository {
         }
     }
 
+    /**
+     * Обновляет URL изображения товара
+     */
+    public static void updateProductImage(int productId, String imageUrl) throws Exception {
+        try {
+            String url = SUPABASE_URL + "/rest/v1/products?id=eq." + productId;
+
+            String jsonBody = "{\"image_url\":\"" + (imageUrl != null ? imageUrl.replace("\"", "\\\"") : "") + "\"}";
+
+            System.out.println("🔄 Обновление изображения товара ID: " + productId);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 204 && response.statusCode() != 200) {
+                throw new Exception("Ошибка обновления изображения: " + response.statusCode() + " " + response.body());
+            }
+
+            System.out.println("✅ Изображение товара обновлено");
+
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка обновления изображения: " + e.getMessage());
+            throw new Exception("Ошибка обновления изображения: " + e.getMessage());
+        }
+    }
 }
