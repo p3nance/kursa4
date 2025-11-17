@@ -2,6 +2,7 @@ plugins {
     java
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
+    id("edu.sc.seis.launch4j") version "2.5.0"  // плагин для создания exe
 }
 
 repositories {
@@ -37,12 +38,6 @@ javafx {
     modules = listOf("javafx.controls", "javafx.fxml")
 }
 
-/**
- * Единая UTF-8 кодировка:
- * - компиляция Java
- * - тесты
- * - любой JavaExec (вкл. run)
- */
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
@@ -55,29 +50,33 @@ tasks.withType<JavaExec>().configureEach {
     jvmArgs("-Dconsole.encoding=UTF-8")
 }
 
-/**
- * Рекомендуется также в gradle.properties (в корне проекта или ~/.gradle):
- * org.gradle.jvmargs=-Dfile.encoding=UTF-8
- * Это задаст UTF-8 для Gradle-демона и скриптов сборки.
- */
-
-/**
- * FAT (uber) JAR с Main-Class = Launcher.
- * Если точка входа другая — поменяй имена.
- */
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "com.example.authapp.Launcher"
     }
-    // Включаем зависимости внутрь JAR
     from({
         configurations.runtimeClasspath.get()
             .filter { it.name.endsWith("jar") }
             .map { zipTree(it) }
     })
-    // Убираем дубликаты и конфликтные сигнатуры
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/*.txt")
-    // На больших проектах иногда полезно:
-    // zip64 = true
+}
+
+/**
+ * Конфигурация launch4j для создания exe
+ */
+launch4j {
+    mainClassName = "com.example.authapp.Launcher"
+    outfile = "AuthApp.exe"
+    icon = "${projectDir}/app.ico"  // если есть иконка
+    jarTask = tasks.jar.get()
+    dontWrapJar = false // оборачиваем jar в exe
+    jreMinVersion = "17"
+    // Дополнительные настройки, если нужно:
+    // classpath, headerType, jvmOptions, etc.
+}
+
+tasks.build {
+    dependsOn(tasks.launch4j)
 }

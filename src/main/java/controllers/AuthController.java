@@ -1,6 +1,7 @@
 package controllers;
 
 import config.SessionManager;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -90,7 +91,6 @@ public class AuthController {
                     }
                 });
             }).start();
-
         } else {
             authSubmitBtn.setDisable(true);
             new Thread(() -> {
@@ -98,15 +98,10 @@ public class AuthController {
                 Platform.runLater(() -> {
                     authSubmitBtn.setDisable(false);
                     if (success) {
-                        // ✅ ПРОВЕРЯЕМ АДМИН СТАТУС ПОСЛЕ ВХОДА
-                        if (SessionManager.isAdmin()) {
-                            if (mainController != null) {
-                                mainController.openAdminPanel();
-                            }
-                        } else {
-                            if (mainController != null) {
-                                mainController.showMainContent();
-                            }
+                        // ✅ ИСПРАВЛЕНО: При входе ВСЕГДА показываем личный кабинет
+                        // Кнопка админ-панели будет добавлена внутри кабинета, если пользователь администратор
+                        if (mainController != null) {
+                            mainController.showMainContent();
                         }
                     } else {
                         showError("Ошибка авторизации!");

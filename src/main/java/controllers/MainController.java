@@ -398,6 +398,7 @@ public class MainController implements Initializable {
 
     public void openCabinetInMain() {
         try {
+            System.out.println("📂 Открытие личного кабинета...");
             lastCenter = contentScroll;
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
@@ -413,13 +414,18 @@ public class MainController implements Initializable {
             mainPane.setTop(null);
             mainPane.setLeft(null);
 
-            CabinetController.setHostMainController(this);
+            CabinetController cabinetCtrl = loader.getController();
+            cabinetCtrl.setHostMainController(this);
+
+            System.out.println("✅ Кабинет открыт");
         } catch (Exception e) {
+            System.err.println("❌ Ошибка открытия кабинета: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public void showMainContent() {
+        System.out.println("🏠 Возврат на главную");
 
         // ✅ ВОССТАНАВЛИВАЕМ ВСЕ КОМПОНЕНТЫ
         headerPane.setVisible(true);
@@ -447,7 +453,6 @@ public class MainController implements Initializable {
 
         // Перезагружаем товары
         filterByCategory(selectedCategory);
-
     }
 
     private void openCartView() {
@@ -459,7 +464,7 @@ public class MainController implements Initializable {
 
             mainPane.setCenter(cartNode);
             categoryPane.setVisible(false);
-                        mainPane.setLeft(null);
+            mainPane.setLeft(null);
         } catch (Exception e) {
             e.printStackTrace();
             showErrorMessage("Ошибка", "Не удалось загрузить корзину");
@@ -469,6 +474,7 @@ public class MainController implements Initializable {
     private void setupCartButton() {
         cartBtn.setOnAction(e -> openCartView());
     }
+
     private void addProductToCart(Product product, int quantity) {
         try {
 
@@ -506,6 +512,7 @@ public class MainController implements Initializable {
             searchField.setManaged(false);
         }
     }
+
     public void showCategoriesAndSearch() {
         if (categoryPane != null) {
             categoryPane.setVisible(true);
@@ -516,49 +523,76 @@ public class MainController implements Initializable {
             searchField.setManaged(true);
         }
     }
-    // ✅ НОВЫЙ ПУБЛИЧНЫЙ МЕТОД
+
+    // ✅ ИСПРАВЛЕННЫЙ МЕТОД
     public void openAdminPanel() {
         try {
+            System.out.println("🔐 Открытие админ панели...");
             lastCenter = contentScroll;
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
             Node adminNode = loader.load();
 
-            // НЕ скрываем headerPane полностью, только меняем видимость кнопок
             headerPane.setVisible(false);
-            headerPane.setManaged(false);  // ✅ Это важно!
-
+            headerPane.setManaged(false);
             categoryPane.setVisible(false);
             categoryPane.setManaged(false);
 
-            mainPane.setCenter(adminNode);
+            mainPane.setCenter(adminNode);  // ✅ ВАЖНО!
             mainPane.setTop(null);
             mainPane.setLeft(null);
 
             AdminController adminController = loader.getController();
             adminController.setMainController(this);
+            adminController.setCabinetController(null);
 
+            System.out.println("✅ Админ панель открыта");
         } catch (Exception e) {
+            System.err.println("❌ Ошибка: " + e.getMessage());
             e.printStackTrace();
-            showErrorMessage("Ошибка", "Не удалось загрузить админ панель: " + e.getMessage());
         }
     }
+
     public void reloadProducts() {
-        // Загружает все товары заново из Supabase и обновляет UI
+        System.out.println("🔄 Перезагрузка товаров...");
+
         Thread loadThread = new Thread(() -> {
             try {
-                loadProductsFromSupabase();
+                // Загружаем свежие данные из БД
+                List<Product> freshProducts = ProductRepository.loadProductsFromSupabase();
+
+                // Обновляем allProducts
+                allProducts.clear();
+                allProducts.addAll(freshProducts);
+
+                // Пересчитываем популярные товары
+                popularProducts = allProducts.stream()
+                        .filter(p -> p.getCategory() != null &&
+                                (p.getCategory().equalsIgnoreCase("Видеокарты") ||
+                                        p.getCategory().equalsIgnoreCase("Процессоры")))
+                        .toList();
+
+                System.out.println("✅ Товары загружены: " + allProducts.size());
+
+                // ✅ ВАЖНО: Обновляем UI в основном потоке
+                javafx.application.Platform.runLater(() -> {
+                    // Если смотрим все товары - показываем все
+                    // Если смотрим категорию - показываем только её
+                    filterByCategory(selectedCategory);
+                    System.out.println("✅ UI обновлён для категории: " + selectedCategory);
+                });
+
             } catch (Exception e) {
                 System.err.println("❌ Ошибка reloadProducts: " + e.getMessage());
+                e.printStackTrace();
+
+                javafx.application.Platform.runLater(() -> {
+                    showErrorMessage("Ошибка", "Не удалось перезагрузить товары: " + e.getMessage());
+                });
             }
         });
+
         loadThread.setDaemon(true);
         loadThread.start();
     }
-
-
-
-
-
-
 }
