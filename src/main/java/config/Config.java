@@ -13,6 +13,7 @@ public class Config {
             System.err.println("4. В Authentication → Settings включите Email provider");
             System.err.println("5. Замените значения в config.Config.java");
         } else {
+            System.out.println("✅ Конфигурация Supabase инициализирована");
         }
     }
 

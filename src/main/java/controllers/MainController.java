@@ -310,30 +310,14 @@ public class MainController implements Initializable {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPadding(new Insets(20, 0, 0, 0));
 
+        // ✅ КНОПКА "ДОБАВИТЬ В КОРЗИНУ" - сохраняется
         Button addToCartBtn = new Button("🛒 Добавить в корзину");
         addToCartBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 12px 40px; -fx-font-size: 14px;");
-        addToCartBtn.setOnAction(e -> {
-            if (cartController != null) {
-                Cart.getInstance().addProduct(product);;
-            }
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Успешно");
-            alert.setHeaderText(null);
-            alert.setContentText(product.getName() + " добавлен в корзину!");
-            alert.showAndWait();
-        });
+        addToCartBtn.setOnAction(e -> addProductToCart(product, 1));
 
-        Button buyNowBtn = new Button("💳 Купить сейчас");
-        buyNowBtn.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 12px 40px; -fx-font-size: 14px;");
-        buyNowBtn.setOnAction(e -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Оформление");
-            alert.setHeaderText(null);
-            alert.setContentText("Переход к оформлению заказа для " + product.getName());
-            alert.showAndWait();
-        });
+        // ✅ КНОПКА "КУПИТЬ СЕЙЧАС" УДАЛЕНА!
 
-        buttonBox.getChildren().addAll(addToCartBtn, buyNowBtn);
+        buttonBox.getChildren().add(addToCartBtn); // Теперь только одна кнопка
         detail.getChildren().addAll(backBtn, new Separator(), largeImage, nameLabel, manufacturerLabel, categoryLabel, descriptionLabel, priceLabel, buttonBox);
         productPane.getChildren().add(detail);
     }

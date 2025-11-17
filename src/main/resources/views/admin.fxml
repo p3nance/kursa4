@@ -21,9 +21,9 @@
                 <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
             <HBox spacing="15" alignment="CENTER_LEFT">
-                <Label text="👑 АДМИН ПАНЕЛЬ" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                <Label text="👑 Панель администратора" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="exitAdminBtn" text="← Выход из админки" styleClass="button-danger"/>
+                <Button fx:id="exitAdminBtn" text="← Выход из панели" styleClass="button-danger"/>
             </HBox>
         </VBox>
     </top>
@@ -44,8 +44,7 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Управление товарами" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="➕ Добавить товар" styleClass="button-success"/>
-                        <Button text="🔄 Обновить" styleClass="button-primary"/>
+                        <Button fx:id="addProductBtn" text="➕ Добавить товар" styleClass="button-success"/>
                     </HBox>
 
                     <Separator/>
@@ -75,8 +74,7 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Управление пользователями" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <TextField promptText="Поиск по email..." prefWidth="250"/>
-                        <Button text="🔄 Обновить" styleClass="button-primary"/>
+                        <TextField fx:id="userSearchField" promptText="🔍 Поиск по Email, Имени или Фамилии..." prefWidth="300"/>
                     </HBox>
 
                     <Separator/>
@@ -86,9 +84,8 @@
                         <columns>
                             <TableColumn text="Email" prefWidth="250"/>
                             <TableColumn text="Имя" prefWidth="150"/>
-                            <TableColumn text="Город" prefWidth="150"/>
-                            <TableColumn text="Присоединился" prefWidth="150"/>
-                            <TableColumn text="Тип" prefWidth="100"/>
+                            <TableColumn text="Фамилия" prefWidth="150"/>
+                            <TableColumn text="Статус" prefWidth="150"/>
                             <TableColumn text="Действия" prefWidth="150"/>
                         </columns>
                     </TableView>
@@ -96,7 +93,7 @@
             </Tab>
 
             <!-- ============ ВКЛ. ЗАКАЗЫ ============ -->
-            <Tab text="🛒 Заказы" closable="false">
+            <Tab text="📋 Заказы" closable="false">
                 <VBox spacing="15" style="-fx-background-color: #ffffff;">
                     <padding>
                         <Insets top="20" right="20" bottom="20" left="20"/>
@@ -106,8 +103,8 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="История заказов" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <ComboBox promptText="Фильтр по статусу" prefWidth="150"/>
-                        <Button text="🔄 Обновить" styleClass="button-primary"/>
+                        <Label text="Статус:" style="-fx-font-size: 12px;"/>
+                        <ComboBox fx:id="orderStatusFilter" prefWidth="150"/>
                     </HBox>
 
                     <Separator/>
@@ -116,10 +113,10 @@
                     <TableView fx:id="ordersTable" styleClass="table-view" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn text="ID" prefWidth="80"/>
-                            <TableColumn text="Клиент" prefWidth="200"/>
-                            <TableColumn text="Дата" prefWidth="150"/>
+                            <TableColumn text="Email" prefWidth="200"/>
                             <TableColumn text="Сумма (₽)" prefWidth="120"/>
                             <TableColumn text="Статус" prefWidth="120"/>
+                            <TableColumn text="Дата" prefWidth="150"/>
                             <TableColumn text="Действия" prefWidth="150"/>
                         </columns>
                     </TableView>

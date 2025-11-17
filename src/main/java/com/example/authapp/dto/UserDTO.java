@@ -3,7 +3,6 @@ package com.example.authapp.dto;
 import com.google.gson.annotations.SerializedName;
 
 public class UserDTO {
-
     @SerializedName("id")
     public String id;
 
@@ -34,6 +33,9 @@ public class UserDTO {
     @SerializedName("is_admin")
     public boolean is_admin;
 
+    @SerializedName("is_blocked")
+    public boolean is_blocked = false;
+
     @SerializedName("role")
     public String role;
 
@@ -50,6 +52,7 @@ public class UserDTO {
                 ", city='" + city + '\'' +
                 ", address='" + address + '\'' +
                 ", is_admin=" + is_admin +
+                ", is_blocked=" + is_blocked +
                 '}';
     }
 }

@@ -80,7 +80,6 @@ public class AuthController {
         if (registerMode) {
             // ✅ РЕГИСТРАЦИЯ
             String confirm = authConfirmPassword.getText();
-
             if (!password.equals(confirm)) {
                 showError("❌ Пароли не совпадают!");
                 return;
@@ -122,7 +121,6 @@ public class AuthController {
                                     authSubmitBtn.setText("Зарегистрироваться");
                                     showSuccess("✅ Регистрация успешна!");
 
-                                    // После небольшой задержки переходим на главный экран
                                     new Thread(() -> {
                                         try {
                                             Thread.sleep(1500);
@@ -136,10 +134,10 @@ public class AuthController {
                                         }
                                     }).start();
                                 });
+
                             } catch (Exception e) {
                                 System.err.println("❌ Ошибка создания профиля: " + e.getMessage());
                                 e.printStackTrace();
-
                                 Platform.runLater(() -> {
                                     authSubmitBtn.setDisable(false);
                                     authSubmitBtn.setText("Зарегистрироваться");
@@ -153,6 +151,7 @@ public class AuthController {
                                 showError("❌ Не удалось получить ID пользователя");
                             });
                         }
+
                     } else {
                         Platform.runLater(() -> {
                             authSubmitBtn.setDisable(false);
@@ -160,6 +159,7 @@ public class AuthController {
                             showError("❌ Ошибка регистрации! Возможно, пользователь уже существует");
                         });
                     }
+
                 } catch (Exception e) {
                     System.err.println("❌ Общая ошибка регистрации: " + e.getMessage());
                     e.printStackTrace();
@@ -169,6 +169,7 @@ public class AuthController {
                         showError("❌ Ошибка: " + e.getMessage());
                     });
                 }
+
             }).start();
 
         } else {
@@ -191,9 +192,10 @@ public class AuthController {
                                 mainController.showMainContent();
                             }
                         } else {
-                            showError("❌ Ошибка авторизации! Проверьте email и пароль");
+                            showError("❌ Ошибка авторизации! Проверьте email и пароль или пользователь заблокирован");
                         }
                     });
+
                 } catch (Exception e) {
                     System.err.println("❌ Ошибка при входе: " + e.getMessage());
                     Platform.runLater(() -> {
@@ -202,6 +204,7 @@ public class AuthController {
                         showError("❌ Ошибка: " + e.getMessage());
                     });
                 }
+
             }).start();
         }
     }
