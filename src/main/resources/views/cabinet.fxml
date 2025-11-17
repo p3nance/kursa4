@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
 
-<!-- ✅ ДОБАВЛЯЕМ fx:id="rootBorderPane" ДЛЯ ПОЛНОЙ ЗАМЕНЫ СОДЕРЖИМОГО -->
+<!-- ✅ ГОТОВЫЙ FXML ДЛЯ ЛИЧНОГО КАБИНЕТА -->
 <BorderPane fx:id="rootBorderPane"
             xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -11,6 +11,7 @@
             stylesheets="@styles/styles.css"
             style="-fx-background-color: #f5f5f5;">
 
+    <!-- ✅ ВЕРХНЯЯ ПАНЕЛЬ С ЗАГОЛОВКОМ И EMAIL -->
     <top>
         <VBox spacing="10" style="-fx-padding: 20; -fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
             <HBox spacing="20" alignment="CENTER_LEFT">
@@ -23,16 +24,19 @@
         </VBox>
     </top>
 
+    <!-- ✅ ОСНОВНОЕ СОДЕРЖИМОЕ -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
             <VBox fx:id="mainContentVBox" spacing="0" style="-fx-background-color: #f5f5f5;">
 
-                <!-- ПРОФИЛЬ -->
+                <!-- ✅ СЕКЦИЯ ПРОФИЛЯ -->
                 <VBox spacing="15" style="-fx-background-color: #ffffff; -fx-padding: 20; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
-                    <Label text="👤 Мой профиль" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                    <Label text="👤 Мой профиль"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                     <Separator style="-fx-border-color: #e5e7eb;"/>
 
-                    <GridPane hgap="15" vgap="15">
+                    <!-- ✅ СЕТКА ПОЛЕЙ ПРОФИЛЯ (2 КОЛОНКИ) -->
+                    <GridPane hgap="15" vgap="15" style="-fx-hgap: 15; -fx-vgap: 15;">
                         <columnConstraints>
                             <ColumnConstraints prefWidth="120"/>
                             <ColumnConstraints hgrow="ALWAYS"/>
@@ -40,50 +44,76 @@
                             <ColumnConstraints hgrow="ALWAYS"/>
                         </columnConstraints>
 
-                        <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="emailField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="0"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <!-- ✅ СТРОКА 1: Email и Имя -->
+                        <Label text="📧 Email:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="emailField" editable="false" promptText="email@example.com"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
 
-                        <Label text="Имя:" GridPane.columnIndex="2" GridPane.rowIndex="0" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="nameField" GridPane.columnIndex="3" GridPane.rowIndex="0"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <Label text="👤 Имя:" GridPane.columnIndex="2" GridPane.rowIndex="0"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="nameField" promptText="Ваше имя"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="0"
+                                   style="-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
 
-                        <Label text="Фамилия:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="surnameField" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <!-- ✅ СТРОКА 2: Фамилия и Телефон -->
+                        <Label text="👨 Фамилия:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="surnameField" promptText="Ваша фамилия"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                   style="-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
 
-                        <Label text="Телефон:" GridPane.columnIndex="2" GridPane.rowIndex="1" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="phoneField" GridPane.columnIndex="3" GridPane.rowIndex="1"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <Label text="☎ Телефон:" GridPane.columnIndex="2" GridPane.rowIndex="1"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="phoneField" promptText="+79000000000"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="1"
+                                   style="-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
 
-                        <Label text="Город:" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="cityField" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <!-- ✅ СТРОКА 3: Город и Адрес -->
+                        <Label text="🏙 Город:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="cityField" promptText="Ваш город"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                   style="-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
 
-                        <Label text="Адрес:" GridPane.columnIndex="2" GridPane.rowIndex="2" style="-fx-text-fill: #6b7280; -fx-font-weight: bold;"/>
-                        <TextField fx:id="addressField" GridPane.columnIndex="3" GridPane.rowIndex="2"
-                                   style="-fx-padding: 8; -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; -fx-border-radius: 6;"/>
+                        <Label text="🏠 Адрес:" GridPane.columnIndex="2" GridPane.rowIndex="2"
+                               style="-fx-text-fill: #6b7280; -fx-font-weight: bold; -fx-font-size: 12;"/>
+                        <TextField fx:id="addressField" promptText="Ваш адрес"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="2"
+                                   style="-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #d1d5db; -fx-border-radius: 6; -fx-font-size: 12;"/>
                     </GridPane>
 
-                    <Button fx:id="saveButton" text="💾 Сохранить"
-                            style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"
-                            maxWidth="150"/>
-                </VBox>
-
-                <!-- БЕЗОПАСНОСТЬ -->
-                <VBox spacing="15" style="-fx-background-color: #ffffff; -fx-padding: 20;">
-                    <Label text="🔐 Безопасность" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
-                    <Separator style="-fx-border-color: #e5e7eb;"/>
-
+                    <!-- ✅ КНОПКА СОХРАНЕНИЯ -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Button fx:id="changePasswordButton" text="🔑 Изменить пароль"
-                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"/>
-                        <Button fx:id="backButton" text="← Вернуться"
-                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #6b7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"/>
-                        <Button fx:id="logoutButton" text="🚪 Выход"
-                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                        <Button fx:id="saveButton" text="💾 Сохранить"
+                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"
+                                minWidth="150"/>
                     </HBox>
                 </VBox>
+
+                <!-- ✅ СЕКЦИЯ БЕЗОПАСНОСТИ И КНОПОК -->
+                <VBox spacing="15" style="-fx-background-color: #ffffff; -fx-padding: 20; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+                    <Label text="🔐 Безопасность и действия"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                    <Separator style="-fx-border-color: #e5e7eb;"/>
+
+                    <!-- ✅ КНОПКИ ДЕЙСТВИЙ (В ОДНОЙ СТРОКЕ) -->
+                    <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
+                        <Button fx:id="changePasswordButton" text="🔑 Изменить пароль"
+                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"
+                                minWidth="180"/>
+
+                        <Button fx:id="backButton" text="← Вернуться"
+                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #6b7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"
+                                minWidth="140"/>
+
+                        <Button fx:id="logoutButton" text="🚪 Выход"
+                                style="-fx-font-size: 13; -fx-padding: 10 20; -fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;"
+                                minWidth="120"/>
+                    </HBox>
+                </VBox>
+
 
             </VBox>
         </ScrollPane>

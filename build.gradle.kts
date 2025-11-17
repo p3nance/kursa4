@@ -2,7 +2,7 @@ plugins {
     java
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
-    id("edu.sc.seis.launch4j") version "2.5.0"  // плагин для создания exe
+    id("edu.sc.seis.launch4j") version "2.5.0"
 }
 
 repositories {
@@ -18,9 +18,7 @@ dependencies {
 }
 
 application {
-    // Точка входа при запуске из IDE/Gradle
     mainClass.set("com.example.authapp.Main")
-    // Пробрасываем кодировку в JavaExec, чтобы консоль была UTF-8
     applicationDefaultJvmArgs = listOf(
         "-Dfile.encoding=UTF-8",
         "-Dconsole.encoding=UTF-8"
@@ -38,18 +36,7 @@ javafx {
     modules = listOf("javafx.controls", "javafx.fxml")
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.encoding = "UTF-8"
-}
-tasks.withType<Test>().configureEach {
-    systemProperty("file.encoding", "UTF-8")
-    jvmArgs("-Dconsole.encoding=UTF-8")
-}
-tasks.withType<JavaExec>().configureEach {
-    systemProperty("file.encoding", "UTF-8")
-    jvmArgs("-Dconsole.encoding=UTF-8")
-}
-
+// FAT (uber) JAR с Launcher как точкой входа
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "com.example.authapp.Launcher"
@@ -63,20 +50,41 @@ tasks.jar {
     exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/*.txt")
 }
 
-/**
- * Конфигурация launch4j для создания exe
- */
+// Кодировка UTF-8 для компиляции и запуска
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+}
+tasks.withType<Test>().configureEach {
+    systemProperty("file.encoding", "UTF-8")
+    jvmArgs("-Dconsole.encoding=UTF-8")
+}
+tasks.withType<JavaExec>().configureEach {
+    systemProperty("file.encoding", "UTF-8")
+    jvmArgs("-Dconsole.encoding=UTF-8")
+}
+
+// Launch4j exe build config
 launch4j {
     mainClassName = "com.example.authapp.Launcher"
     outfile = "AuthApp.exe"
-    icon = "${projectDir}/app.ico"  // если есть иконка
+        // icon = "${projectDir}/app.ico" // уберите если нет иконки
     jarTask = tasks.jar.get()
-    dontWrapJar = false // оборачиваем jar в exe
-    jreMinVersion = "17"
-    // Дополнительные настройки, если нужно:
-    // classpath, headerType, jvmOptions, etc.
+    dontWrapJar = false
+    jreMinVersion = "21"
 }
 
+// Правильный порядок задач (решение ваших ошибок)
+tasks.named("distZip") {
+    dependsOn(tasks.named("createExe"))
+}
+tasks.named("distTar") {
+    dependsOn(tasks.named("createExe"))
+}
+tasks.named("startScripts") {
+    dependsOn(tasks.named("createExe"))
+}
+
+// Можно также добавить:
 tasks.build {
     dependsOn(tasks.launch4j)
 }
