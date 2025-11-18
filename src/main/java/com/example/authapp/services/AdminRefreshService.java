@@ -28,13 +28,7 @@ public class AdminRefreshService {
      * ✅ ЗАПУСКАЕТ СЕРВИС АВТОМАТИЧЕСКОГО ОБНОВЛЕНИЯ
      */
     public void start() {
-        if (isRunning) {
-            System.out.println("⏸️ Сервис синхронизации уже запущен");
-            return;
-        }
 
-        System.out.println("▶️ Запуск сервиса синхронизации админ-панели");
-        System.out.println("⏱️ Интервал обновления: " + REFRESH_INTERVAL + "ms");
 
         isRunning = true;
         refreshTimer = new Timer("AdminRefreshService", true);
@@ -45,14 +39,11 @@ public class AdminRefreshService {
             public void run() {
                 try {
                     if (isRunning) {
-                        System.out.println("🔄 [" + System.currentTimeMillis() % 100000 + "] Проверка обновлений товаров...");
 
-                        // ✅ ИСПРАВЛЕНО: вызываем публичный метод
                         if (adminController != null) {
                             adminController.refreshProductsList();
                         }
 
-                        System.out.println("✅ Синхронизация завершена");
                     }
                 } catch (Exception e) {
                     System.err.println("⚠️ Ошибка синхронизации: " + e.getMessage());
@@ -69,7 +60,6 @@ public class AdminRefreshService {
             return;
         }
 
-        System.out.println("⏹️ Остановка сервиса синхронизации");
         isRunning = false;
 
         if (refreshTimer != null) {
@@ -78,24 +68,16 @@ public class AdminRefreshService {
         }
     }
 
-    /**
-     * ✅ ПРОВЕРЯЕТ, ЗАПУЩЕН ЛИ СЕРВИС
-     */
     public boolean isRunning() {
         return isRunning;
     }
 
-    /**
-     * ✅ ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ (независимо от интервала)
-     */
     public void refreshNow() {
-        System.out.println("🔄 Принудительное обновление...");
         try {
             if (adminController != null) {
                 // ✅ ИСПРАВЛЕНО: вызываем публичный метод
                 adminController.refreshProductsList();
             }
-            System.out.println("✅ Принудительное обновление завершено");
         } catch (Exception e) {
             System.err.println("❌ Ошибка при принудительном обновлении: " + e.getMessage());
         }

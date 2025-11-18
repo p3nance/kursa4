@@ -1,17 +1,13 @@
 package com.example.authapp.dto;
 
 import com.google.gson.annotations.SerializedName;
-
-/**
- * Data Transfer Object для CartItem - работает с UUID строками
- */
 public class CartItemDTO {
 
     @SerializedName("id")
     public int cartItemId;
 
     @SerializedName("user_id")
-    public String userId;  // ✅ Меняем на String (UUID)
+    public String userId;
 
     @SerializedName("product_id")
     public int productId;

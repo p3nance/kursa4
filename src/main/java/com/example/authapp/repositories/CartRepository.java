@@ -20,16 +20,11 @@ public class CartRepository {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static final Gson gson = new Gson();
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Загружает корзину пользователя из Supabase
-     */
     public static List<CartItemDTO> loadCartFromSupabase(String userId) throws Exception {
         try {
             String encodedUserId = java.net.URLEncoder.encode(userId, "UTF-8");
             String url = String.format("%s/rest/v1/%s?user_id=eq.%s&select=*",
                     SUPABASE_URL, TABLE_NAME, encodedUserId);
-
-            System.out.println("📡 Загрузка корзины для user_id: " + userId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -51,10 +46,7 @@ public class CartRepository {
             for (int i = 0; i < jsonArray.size(); i++) {
                 CartItemDTO dto = gson.fromJson(jsonArray.get(i), CartItemDTO.class);
                 items.add(dto);
-                System.out.println("📦 Загруженный товар: " + dto.productName + " x" + dto.quantity);
             }
-
-            System.out.println("✅ Корзина загружена: " + items.size() + " товаров");
             return items;
 
         } catch (Exception e) {
@@ -63,10 +55,6 @@ public class CartRepository {
         }
     }
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Сохраняет товар в корзину на сервер
-     * ВАЖНО: Не отправляем поле 'id' - оно сгенерируется автоматически на сервере
-     */
     public static void addCartItemToSupabase(String userId, CartItemDTO cartItemDTO) throws Exception {
         try {
             // Создаем новый объект JSON БЕЗ поля 'id'
@@ -80,9 +68,6 @@ public class CartRepository {
 
             String url = String.format("%s/rest/v1/%s", SUPABASE_URL, TABLE_NAME);
             String jsonBody = jsonObject.toString();
-
-            System.out.println("📤 Отправка товара в корзину: " + cartItemDTO.productName + " x" + cartItemDTO.quantity);
-            System.out.println("   JSON (без ID): " + jsonBody);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -100,23 +85,15 @@ public class CartRepository {
                 throw new Exception("Ошибка добавления товара: " + response.statusCode() + " " + response.body());
             }
 
-            System.out.println("✅ Товар добавлен в корзину на сервер");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка при добавлении товара: " + e.getMessage());
             throw new Exception("Ошибка при добавлении товара в корзину: " + e.getMessage());
         }
     }
-
-    /**
-     * ✅ ИСПРАВЛЕНО: Обновляет количество товара в корзине
-     */
     public static void updateCartItemInSupabase(int cartItemId, int newQuantity) throws Exception {
         try {
             String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, TABLE_NAME, cartItemId);
             String jsonBody = "{\"quantity\":" + newQuantity + "}";
-
-            System.out.println("🔄 Обновление товара в корзине: ID=" + cartItemId + ", новое количество=" + newQuantity);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -133,22 +110,15 @@ public class CartRepository {
                 throw new Exception("Ошибка обновления товара: " + response.statusCode());
             }
 
-            System.out.println("✅ Товар обновлен (новое количество: " + newQuantity + ")");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка при обновлении товара: " + e.getMessage());
             throw new Exception("Ошибка при обновлении товара: " + e.getMessage());
         }
     }
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Удаляет товар из корзины
-     */
     public static void removeCartItemFromSupabase(int cartItemId) throws Exception {
         try {
             String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, TABLE_NAME, cartItemId);
-
-            System.out.println("➖ Удаление товара из корзины: ID=" + cartItemId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -164,23 +134,16 @@ public class CartRepository {
                 throw new Exception("Ошибка удаления товара: " + response.statusCode());
             }
 
-            System.out.println("✅ Товар удален из корзины");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка при удалении товара: " + e.getMessage());
             throw new Exception("Ошибка при удалении товара: " + e.getMessage());
         }
     }
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Очищает всю корзину пользователя
-     */
     public static void clearUserCart(String userId) throws Exception {
         try {
             String encodedUserId = java.net.URLEncoder.encode(userId, "UTF-8");
             String url = String.format("%s/rest/v1/%s?user_id=eq.%s", SUPABASE_URL, TABLE_NAME, encodedUserId);
-
-            System.out.println("🗑️ Очистка корзины на сервере для user_id: " + userId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -195,8 +158,6 @@ public class CartRepository {
                 System.err.println("❌ Ошибка очистки: " + response.statusCode());
                 throw new Exception("Ошибка очистки корзины: " + response.statusCode());
             }
-
-            System.out.println("✅ Корзина очищена на сервере");
 
         } catch (Exception e) {
             System.err.println("❌ Ошибка при очистке корзины: " + e.getMessage());

@@ -42,7 +42,6 @@ public class UserRepository {
 
             String jsonBody = jsonObject.toString();
 
-            System.out.println("📤 Создание профиля: " + jsonBody);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -55,12 +54,8 @@ public class UserRepository {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📡 Статус создания профиля: " + response.statusCode());
-            System.out.println("📦 Ответ сервера: " + response.body());
-
             // ✅ Статус 201 (Created) или 200 (OK)
             if (response.statusCode() == 201 || response.statusCode() == 200) {
-                System.out.println("✅ Профиль успешно создан для пользователя: " + email);
             } else {
                 System.err.println("❌ Ошибка создания профиля!");
                 System.err.println("   Статус: " + response.statusCode());
@@ -82,9 +77,6 @@ public class UserRepository {
         try {
             String url = String.format("%s/rest/v1/%s?email=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, email);
 
-            System.out.println("🔍 Запрос профиля по email: " + email);
-            System.out.println("   URL: " + url);
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -94,21 +86,16 @@ public class UserRepository {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📡 Статус запроса профиля: " + response.statusCode());
-            System.out.println("📦 Ответ: " + response.body());
-
             if (response.statusCode() == 200) {
                 String body = response.body();
 
                 if (body.equals("[]")) {
-                    System.out.println("⚠️ Профиль не найден для email: " + email);
                     return null;
                 }
 
                 JsonArray jsonArray = JsonParser.parseString(body).getAsJsonArray();
                 if (jsonArray.size() > 0) {
                     UserDTO user = gson.fromJson(jsonArray.get(0), UserDTO.class);
-                    System.out.println("✅ Профиль загружен: " + user.name + " " + user.surname);
                     return user;
                 }
             } else {
@@ -130,8 +117,6 @@ public class UserRepository {
         try {
             String url = String.format("%s/rest/v1/%s?id=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, userId);
 
-            System.out.println("🔍 Запрос профиля по id: " + userId);
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -141,19 +126,14 @@ public class UserRepository {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📡 Статус: " + response.statusCode());
-            System.out.println("📦 Ответ: " + response.body());
-
             if (response.statusCode() == 200 && !response.body().equals("[]")) {
                 JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
                 if (jsonArray.size() > 0) {
                     UserDTO user = gson.fromJson(jsonArray.get(0), UserDTO.class);
-                    System.out.println("✅ Профиль загружен по ID: " + user.email);
                     return user;
                 }
             }
 
-            System.out.println("⚠️ Профиль не найден по ID: " + userId);
             return null;
         } catch (Exception e) {
             System.err.println("❌ Ошибка получения профиля: " + e.getMessage());
@@ -162,10 +142,6 @@ public class UserRepository {
         }
     }
 
-    /**
-     * ✅ Обновляет профиль пользователя по email
-     * Поддерживает поля: name, surname, phone, city, address
-     */
     public static void updateUserProfile(String email, String name, String surname,
                                          String phone, String city, String address) throws Exception {
         try {
@@ -180,9 +156,6 @@ public class UserRepository {
 
             String jsonBody = jsonObject.toString();
 
-            System.out.println("📤 Обновление профиля для: " + email);
-            System.out.println("   Данные: " + jsonBody);
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -193,12 +166,7 @@ public class UserRepository {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📡 Статус обновления: " + response.statusCode());
-            System.out.println("📦 Ответ: " + response.body());
-
-            // ✅ Статус 200 (OK) или 204 (No Content) - оба OK
             if (response.statusCode() == 200 || response.statusCode() == 204) {
-                System.out.println("✅ Профиль успешно обновлен");
             } else {
                 System.err.println("❌ Ошибка обновления профиля!");
                 System.err.println("   Статус: " + response.statusCode());

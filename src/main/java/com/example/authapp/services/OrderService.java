@@ -10,9 +10,6 @@ import config.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ✅ Сервис для управления заказами
- */
 public class OrderService {
     private final CartService cartService;
     private final ProductService productService;
@@ -22,9 +19,6 @@ public class OrderService {
         this.productService = productService;
     }
 
-    /**
-     * ✅ Создает заказ из текущей корзины и уменьшает stock товаров
-     */
     public int createOrderFromCart(String promoCode) throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
@@ -36,8 +30,6 @@ public class OrderService {
             throw new Exception("Корзина пуста");
         }
 
-        System.out.println("\n========== ОФОРМЛЕНИЕ ЗАКАЗА ==========");
-        System.out.println("Пользователь: " + userId);
 
         try {
             // Вычисляем суммы
@@ -48,22 +40,17 @@ public class OrderService {
                 try {
                     discountAmount = cartService.applyDiscount(promoCode);
                 } catch (Exception e) {
-                    System.out.println("⚠️ Ошибка применения промокода: " + e.getMessage());
                 }
             }
 
             double finalAmount = totalAmount - discountAmount;
 
-            System.out.println("Всего: " + totalAmount + " ₽");
-            System.out.println("Скидка: " + discountAmount + " ₽");
-            System.out.println("Итого к оплате: " + finalAmount + " ₽");
-
             // Создаем DTO заказа
             OrderDTO orderDTO = new OrderDTO(userId, totalAmount, discountAmount, finalAmount, promoCode);
 
-            // ✅ Создаем заказ в БД
+            // Создаем заказ в БД
             int orderId = OrderRepository.createOrder(orderDTO);
-            System.out.println("✅ Заказ #" + orderId + " создан в БД");
+
 
             // Создаем список товаров заказа
             List<OrderItemDTO> orderItems = new ArrayList<>();
@@ -79,35 +66,28 @@ public class OrderService {
                 );
                 orderItems.add(itemDTO);
 
-                System.out.println("  📦 " + item.getProduct().getName() + " x" + item.getQuantity() + " = " + subtotal + " ₽");
             }
 
-            // ✅ Добавляем товары в заказ
+            // Добавляем товары в заказ
             OrderRepository.addOrderItems(orderId, orderItems);
-            System.out.println("✅ Товары добавлены в заказ #" + orderId);
 
-            // ✅ ВАЖНО: Уменьшаем stock для каждого товара
-            System.out.println("\n--- Обновление остатков (stock) ---");
+            // Уменьшаем stock для каждого товара
             for (Cart.CartItem item : cart.getItems()) {
                 int productId = item.getProduct().getId();
                 int quantity = item.getQuantity();
 
-                System.out.println("📉 Уменьшаем stock товара #" + productId + " на " + quantity);
-
                 try {
                     ProductRepository.decreaseProductStock(productId, quantity);
-                    System.out.println("   ✅ Stock товара #" + productId + " успешно уменьшен");
+
                 } catch (Exception e) {
                     System.err.println("   ❌ Ошибка уменьшения stock: " + e.getMessage());
                     // Не прерываем процесс, продолжаем для остальных товаров
                 }
             }
 
-            // ✅ Очищаем корзину
+            // Очищаем корзину
             cartService.clearCart();
-            System.out.println("\n✅ Корзина очищена");
 
-            System.out.println("========== ЗАКАЗ #" + orderId + " УСПЕШНО ОФОРМЛЕН ==========\n");
             return orderId;
 
         } catch (Exception e) {
@@ -117,9 +97,6 @@ public class OrderService {
         }
     }
 
-    /**
-     * ✅ Получает историю заказов пользователя
-     */
     public List<OrderDTO> getUserOrderHistory() throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
@@ -128,7 +105,6 @@ public class OrderService {
 
         try {
             List<OrderDTO> orders = OrderRepository.getUserOrders(userId);
-            System.out.println("✅ Загружено " + orders.size() + " заказов");
             return orders;
         } catch (Exception e) {
             System.err.println("❌ Ошибка загрузки истории заказов: " + e.getMessage());
@@ -136,9 +112,6 @@ public class OrderService {
         }
     }
 
-    /**
-     * ✅ Получает детали конкретного заказа
-     */
     public OrderDTO getOrderById(int orderId) throws Exception {
         List<OrderDTO> orders = getUserOrderHistory();
         for (OrderDTO order : orders) {

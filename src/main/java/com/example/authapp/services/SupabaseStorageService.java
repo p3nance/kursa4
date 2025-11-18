@@ -10,20 +10,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 
-/**
- * Сервис для работы с Supabase Storage
- */
 public class SupabaseStorageService {
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static final String BUCKET_NAME = "product-images"; // Название вашего bucket в Supabase
 
-    /**
-     * Загружает изображение в Supabase Storage
-     * @param file Файл изображения для загрузки
-     * @param fileName Имя файла в хранилище (например, "product_123.jpg")
-     * @return URL загруженного изображения или null в случае ошибки
-     */
     public static String uploadImage(File file, String fileName) throws Exception {
         try {
             // Читаем файл в байты
@@ -35,8 +26,6 @@ public class SupabaseStorageService {
             // URL для загрузки: /storage/v1/object/{bucket_name}/{file_path}
             String uploadUrl = Config.SUPABASE_URL + "/storage/v1/object/" + BUCKET_NAME + "/" + fileName;
 
-            System.out.println("📤 Загрузка изображения: " + fileName);
-            System.out.println("📍 URL: " + uploadUrl);
 
             // Создаем запрос
             HttpRequest request = HttpRequest.newBuilder()
@@ -50,13 +39,9 @@ public class SupabaseStorageService {
             // Отправляем запрос
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("📊 Статус ответа: " + response.statusCode());
-            System.out.println("📄 Ответ: " + response.body());
-
             if (response.statusCode() == 200 || response.statusCode() == 201) {
                 // Формируем публичный URL изображения
                 String publicUrl = Config.SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
-                System.out.println("✅ Изображение загружено: " + publicUrl);
                 return publicUrl;
             } else {
                 throw new Exception("Ошибка загрузки изображения: " + response.statusCode() + " - " + response.body());
@@ -79,7 +64,6 @@ public class SupabaseStorageService {
         try {
             String deleteUrl = Config.SUPABASE_URL + "/storage/v1/object/" + BUCKET_NAME + "/" + fileName;
 
-            System.out.println("🗑️ Удаление изображения: " + fileName);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(deleteUrl))

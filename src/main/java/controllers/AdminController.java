@@ -28,10 +28,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-/**
- * ✅ AdminController - FINAL VERSION
- * ✅ Товары + Пользователи (поиск) + Заказы (фильтр)
- */
 public class AdminController implements Initializable {
 
     @FXML private TabPane adminTabs;
@@ -57,12 +53,10 @@ public class AdminController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        System.out.println("📋 Инициализация AdminController...");
         try {
             setupUI();
             loadAdminData();
             refreshService = new AdminRefreshService(this);
-            System.out.println("✅ AdminController инициализирован");
         } catch (Exception e) {
             System.err.println("❌ Ошибка: " + e.getMessage());
             e.printStackTrace();
@@ -78,7 +72,7 @@ public class AdminController implements Initializable {
     }
 
     private void setupUI() {
-        // ✅ ВЫХОД
+        // ВЫХОД
         if (exitAdminBtn != null) {
             exitAdminBtn.setOnAction(e -> {
                 if (refreshService != null) refreshService.stop();
@@ -86,12 +80,12 @@ public class AdminController implements Initializable {
             });
         }
 
-        // ✅ КНОПКА ДОБАВИТЬ ТОВАР
+        // КНОПКА ДОБАВИТЬ ТОВАР
         if (addProductBtn != null) {
             addProductBtn.setOnAction(e -> showAddProductDialog());
         }
 
-        // ✅ ПОИСК ПОЛЬЗОВАТЕЛЕЙ
+        // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
         if (userSearchField != null) {
             userSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal == null || newVal.isEmpty()) {
@@ -146,7 +140,7 @@ public class AdminController implements Initializable {
         }).start();
     }
 
-    // ============ ТОВАРЫ ============
+    // ТОВАРЫ
 
     private void loadProducts() {
         try {
@@ -251,7 +245,7 @@ public class AdminController implements Initializable {
     }
 
     /**
-     * ✅ Обновляет товар в БД
+     * Обновляет товар в БД
      */
     private void updateProduct(ProductDTO product) {
         new Thread(() -> {
@@ -283,7 +277,7 @@ public class AdminController implements Initializable {
     }
 
     /**
-     * ✅ Обновляем setupProductsTable для добавления кнопки редактирования
+     * Обновляем setupProductsTable для добавления кнопки редактирования
      */
     private void setupProductsTable() {
         productsTable.getColumns().clear();
@@ -325,7 +319,7 @@ public class AdminController implements Initializable {
         });
         imageCol.setPrefWidth(60);
 
-        // ✅ КОЛОНКА ДЕЙСТВИЙ (редактирование + удаление)
+        // КОЛОНКА ДЕЙСТВИЙ (редактирование + удаление)
         TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
         actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
             @Override
@@ -340,14 +334,14 @@ public class AdminController implements Initializable {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
-                // ✅ КНОПКА РЕДАКТИРОВАНИЯ
+                // КНОПКА РЕДАКТИРОВАНИЯ
                 Button editBtn = new Button("Редактировать");
                 editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
                 editBtn.setOnAction(e -> {
                     if (getIndex() >= 0) showEditProductDialog(getTableView().getItems().get(getIndex()));
                 });
 
-                // ✅ КНОПКА УДАЛЕНИЯ
+                // КНОПКА УДАЛЕНИЯ
                 Button deleteBtn = new Button("🗑");
                 deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
                 deleteBtn.setOnAction(e -> {

@@ -4,19 +4,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.DefaultStringConverter;
 
-/**
- * ✅ Утилита для валидации и форматирования русских номеров телефонов
- * Формат: +7 и 10 цифр = 12 символов (+79878073394)
- * ✅ ИСПРАВЛЕНО: Теперь позволяет вводить данные пошагово
- */
+
 public class PhoneFormatter {
 
     private static final int MAX_LENGTH = 12; // +7 (2) + 10 цифр = 12
 
-    /**
-     * ✅ ИСПРАВЛЕННЫЙ МЕТОД - позволяет вводить данные пошагово
-     * Пользователь может вводить только +7 и цифры, максимум 12 символов
-     */
     public static void setupPhoneField(TextField phoneField) {
         TextFormatter<String> formatter = new TextFormatter<>(new DefaultStringConverter(), "", change -> {
             String newText = change.getControlNewText();
@@ -79,9 +71,6 @@ public class PhoneFormatter {
         });
     }
 
-    /**
-     * ✅ Проверяет, является ли номер ПОЛНЫМ и валидным
-     */
     public static boolean isCompletePhone(String phone) {
         if (phone == null) {
             return false;
@@ -102,9 +91,6 @@ public class PhoneFormatter {
         return digits.matches("\\d{10}");
     }
 
-    /**
-     * ✅ Проверяет, может ли быть введено значение (для промежуточной валидации)
-     */
     public static boolean isValidPhoneInput(String phone) {
         if (phone == null || phone.isEmpty()) {
             return true;
@@ -136,16 +122,10 @@ public class PhoneFormatter {
         return true;
     }
 
-    /**
-     * ✅ Возвращает подсказку формата
-     */
     public static String getPhoneHint() {
         return "Формат: +79878073394 (12 символов)";
     }
 
-    /**
-     * ✅ Очищает номер телефона от всех символов кроме +7 и цифр
-     */
     public static String sanitizePhone(String phone) {
         if (phone == null) {
             return "";

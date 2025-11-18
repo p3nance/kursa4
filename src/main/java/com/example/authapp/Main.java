@@ -11,7 +11,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        System.out.println("🚀 Запуск приложения...");
         System.out.println(Config.getConfigInfo());
         Config.validateConfig();
 

@@ -36,7 +36,7 @@ public class AdminRepository {
     public static List<ProductDTO> getAllProducts() throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/products?select=*";
-            System.out.println("📡 Запрос товаров");
+
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -60,7 +60,6 @@ public class AdminRepository {
                 products.add(dto);
             }
 
-            System.out.println("✅ Загружено товаров: " + products.size());
             return products;
 
         } catch (Exception e) {
@@ -86,8 +85,6 @@ public class AdminRepository {
                 throw new Exception("Ошибка удаления: " + response.statusCode());
             }
 
-            System.out.println("✅ Товар удален");
-
         } catch (Exception e) {
             throw new Exception("Ошибка удаления товара: " + e.getMessage());
         }
@@ -107,7 +104,6 @@ public class AdminRepository {
             jsonBody.addProperty("manufacturer", manufacturer);
             jsonBody.addProperty("image_url", imageUrl != null ? imageUrl : "");
 
-            System.out.println("➕ Добавляем товар: " + name);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -123,15 +119,13 @@ public class AdminRepository {
                 throw new Exception("Ошибка добавления товара: " + response.statusCode() + " " + response.body());
             }
 
-            System.out.println("✅ Товар добавлен успешно!");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка добавления товара: " + e.getMessage());
             throw new Exception("Ошибка добавления товара: " + e.getMessage());
         }
     }
 
-    // ✅ НОВЫЙ МЕТОД: Обновление товара
+    // Обновление товара
     public static void updateProduct(int productId, String name, String description, double price,
                                      int stock, String category, String manufacturer) throws Exception {
         try {
@@ -144,8 +138,6 @@ public class AdminRepository {
             jsonBody.addProperty("stock", stock);
             jsonBody.addProperty("category", category);
             jsonBody.addProperty("manufacturer", manufacturer);
-
-            System.out.println("✏️ Обновление товара: " + name);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -161,8 +153,6 @@ public class AdminRepository {
                 throw new Exception("Ошибка обновления товара: " + response.statusCode() + " " + response.body());
             }
 
-            System.out.println("✅ Товар обновлен успешно!");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка обновления товара: " + e.getMessage());
             throw new Exception("Ошибка обновления товара: " + e.getMessage());
@@ -175,8 +165,6 @@ public class AdminRepository {
 
             JsonObject jsonBody = new JsonObject();
             jsonBody.addProperty("image_url", imageUrl != null ? imageUrl : "");
-
-            System.out.println("🔄 Обновление изображения товара ID: " + productId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -193,21 +181,17 @@ public class AdminRepository {
                 throw new Exception("Ошибка обновления изображения: " + response.statusCode());
             }
 
-            System.out.println("✅ Изображение товара обновлено");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка обновления изображения: " + e.getMessage());
             throw new Exception("Ошибка обновления изображения: " + e.getMessage());
         }
     }
 
-    // ============ ПОЛЬЗОВАТЕЛИ ============
+    // ПОЛЬЗОВАТЕЛИ
 
     public static List<UserDTO> getAllUsers() throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/profiles?select=*";
-            System.out.println("📡 Запрос пользователей");
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -229,22 +213,18 @@ public class AdminRepository {
                 UserDTO dto = gson.fromJson(jsonArray.get(i), UserDTO.class);
                 users.add(dto);
             }
-
-            System.out.println("✅ Загружено пользователей: " + users.size());
             return users;
 
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки пользователей: " + e.getMessage());
             throw new Exception("Ошибка загрузки пользователей: " + e.getMessage());
         }
     }
 
-    // ============ ЗАКАЗЫ ============
+    // ЗАКАЗЫ
 
     public static List<OrderDTO> getAllOrders() throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/orders?order=order_date.desc";
-            System.out.println("📡 Запрос заказов");
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -268,8 +248,6 @@ public class AdminRepository {
                 dto.items = getOrderItemsAdmin(dto.orderId);
                 orders.add(dto);
             }
-
-            System.out.println("✅ Загружено заказов: " + orders.size());
             return orders;
 
         } catch (Exception e) {
@@ -332,33 +310,14 @@ public class AdminRepository {
                 throw new Exception("Ошибка обновления статуса: " + response.statusCode());
             }
 
-            System.out.println("✅ Статус заказа обновлен на: " + newStatus);
-
         } catch (Exception e) {
             throw new Exception("Ошибка при обновлении статуса заказа: " + e.getMessage());
         }
     }
 
-    // ============ БЛОКИРОВКА ПОЛЬЗОВАТЕЛЕЙ (ПРАВИЛЬНЫЙ ФОРМАТ) ============
-
-    /**
-     * ✅ ИСПРАВЛЕНО: Блокирует пользователя через Supabase Admin Authentication API
-     * ban_duration должен быть в миллисекундах!
-     * 2592000000ms = 30 дней
-     */
     public static void blockUser(String userId) throws Exception {
         try {
             String url = SUPABASE_URL + "/auth/v1/admin/users/" + userId;
-
-            System.out.println("════════════════════════════════════════");
-            System.out.println("🔒 БЛОКИРОВКА ПОЛЬЗОВАТЕЛЯ");
-            System.out.println("════════════════════════════════════════");
-            System.out.println("📌 User ID: " + userId);
-            System.out.println("📡 URL: " + url);
-
-            // ✅ ПРАВИЛЬНЫЙ ФОРМАТ: миллисекунды, а не дни!
-            // 2592000000ms = 30 дней
-            // Используем PUT запрос с правильным форматом
             JsonObject jsonBody = new JsonObject();
             jsonBody.addProperty("ban_duration", "1000000h");
 
@@ -399,10 +358,6 @@ public class AdminRepository {
         }
     }
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Разблокирует пользователя через Supabase Admin Authentication API
-     * ban_duration: "0ms" = снять блокировку
-     */
     public static void unblockUser(String userId) throws Exception {
         try {
             String url = SUPABASE_URL + "/auth/v1/admin/users/" + userId;
@@ -410,7 +365,6 @@ public class AdminRepository {
             jsonBody.addProperty("ban_duration", "0ms");
 
             String jsonString = jsonBody.toString();
-            System.out.println("📝 JSON Body: " + jsonString);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -448,8 +402,6 @@ public class AdminRepository {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println("✅ Флаг is_blocked обновлен: " + isBlocked);
         } catch (Exception e) {
             throw e;
         }

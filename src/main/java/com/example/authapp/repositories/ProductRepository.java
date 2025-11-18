@@ -19,10 +19,6 @@ public class ProductRepository {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     static final Gson gson = new Gson();
 
-    /**
-     * Загружает товары из Supabase
-     * ВАЖНО: Используем ProductDTO для Gson, потом конвертируем в Product для UI
-     */
     public static List<Product> loadProductsFromSupabase() throws Exception {
         try {
             String url = String.format("%s/rest/v1/%s?select=*", SUPABASE_URL, TABLE_NAME);
@@ -195,8 +191,6 @@ public class ProductRepository {
 
             String jsonBody = "{\"stock\":" + newStock + "}";
 
-            System.out.println("   📊 Stock: " + currentStock + " -> " + newStock);
-
             HttpRequest updateRequest = HttpRequest.newBuilder()
                     .uri(URI.create(updateUrl))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -210,8 +204,6 @@ public class ProductRepository {
             if (updateResponse.statusCode() != 200 && updateResponse.statusCode() != 204) {
                 throw new Exception("Ошибка обновления stock: " + updateResponse.statusCode());
             }
-
-            System.out.println("   ✅ Stock обновлен успешно (новый stock: " + newStock + ")");
 
         } catch (Exception e) {
             throw new Exception("Ошибка уменьшения stock товара: " + e.getMessage());

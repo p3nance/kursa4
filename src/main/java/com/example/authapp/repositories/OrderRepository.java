@@ -39,7 +39,6 @@ public class OrderRepository {
             jsonObject.addProperty("status", "pending");
 
             String jsonBody = jsonObject.toString();
-            System.out.println("📤 Создание заказа: " + jsonBody);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -62,8 +61,6 @@ public class OrderRepository {
             JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
             JsonObject createdOrder = jsonArray.get(0).getAsJsonObject();
             int orderId = createdOrder.get("id").getAsInt();
-
-            System.out.println("✅ Заказ создан с ID: " + orderId);
             return orderId;
 
         } catch (Exception e) {
@@ -95,7 +92,6 @@ public class OrderRepository {
             }
 
             String jsonBody = jsonArray.toString();
-            System.out.println("📤 Добавление товаров в заказ: " + jsonBody);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -113,8 +109,6 @@ public class OrderRepository {
                 throw new Exception("Ошибка добавления товаров: " + response.statusCode() + " " + response.body());
             }
 
-            System.out.println("✅ Товары добавлены в заказ");
-
         } catch (Exception e) {
             System.err.println("❌ Ошибка при добавлении товаров: " + e.getMessage());
             throw new Exception("Ошибка при добавлении товаров: " + e.getMessage());
@@ -129,8 +123,6 @@ public class OrderRepository {
             String encodedUserId = java.net.URLEncoder.encode(userId, "UTF-8");
             String url = String.format("%s/rest/v1/%s?user_id=eq.%s&order=order_date.desc",
                     SUPABASE_URL, ORDERS_TABLE, encodedUserId);
-
-            System.out.println("📡 Загрузка заказов для user_id: " + userId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -155,7 +147,6 @@ public class OrderRepository {
                 orders.add(order);
             }
 
-            System.out.println("✅ Загружено заказов: " + orders.size());
             return orders;
 
         } catch (Exception e) {
@@ -164,9 +155,6 @@ public class OrderRepository {
         }
     }
 
-    /**
-     * ✅ Получает товары заказа
-     */
     public static List<OrderItemDTO> getOrderItems(int orderId) throws Exception {
         try {
             String url = String.format("%s/rest/v1/%s?order_id=eq.%d",
@@ -202,9 +190,6 @@ public class OrderRepository {
         }
     }
 
-    /**
-     * ✅ Обновляет статус заказа
-     */
     public static void updateOrderStatus(int orderId, String newStatus) throws Exception {
         try {
             String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, ORDERS_TABLE, orderId);
@@ -223,8 +208,6 @@ public class OrderRepository {
             if (response.statusCode() != 200 && response.statusCode() != 204) {
                 throw new Exception("Ошибка обновления статуса: " + response.statusCode());
             }
-
-            System.out.println("✅ Статус заказа обновлен: " + newStatus);
 
         } catch (Exception e) {
             throw new Exception("Ошибка при обновлении статуса заказа: " + e.getMessage());
