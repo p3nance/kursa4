@@ -1,13 +1,13 @@
 package com.example.authapp.services;
 
 import com.example.authapp.dto.OrderDTO;
-import com.example.authapp.dto.OrderItemDTO;
 import com.example.authapp.models.Cart;
+import com.example.authapp.models.Cart.CartItem;
+import com.example.authapp.models.PromoCode;
 import com.example.authapp.repositories.OrderRepository;
-import com.example.authapp.repositories.ProductRepository;
+import com.example.authapp.repositories.PromoCodeRepository;
 import config.SessionManager;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class OrderService {
@@ -19,106 +19,98 @@ public class OrderService {
         this.productService = productService;
     }
 
-    public int createOrderFromCart(String promoCode) throws Exception {
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            throw new Exception("Пользователь не авторизован");
-        }
-
-        Cart cart = cartService.getCurrentCart();
-        if (cart.getItems().isEmpty()) {
-            throw new Exception("Корзина пуста");
-        }
-
-
-        try {
-            // Вычисляем суммы
-            double totalAmount = cartService.getCartTotal();
-            double discountAmount = 0;
-
-            if (promoCode != null && !promoCode.isEmpty()) {
-                try {
-                    discountAmount = cartService.applyDiscount(promoCode);
-                } catch (Exception e) {
-                }
-            }
-
-            double finalAmount = totalAmount - discountAmount;
-
-            // Создаем DTO заказа
-            OrderDTO orderDTO = new OrderDTO(userId, totalAmount, discountAmount, finalAmount, promoCode);
-
-            // Создаем заказ в БД
-            int orderId = OrderRepository.createOrder(orderDTO);
-
-
-            // Создаем список товаров заказа
-            List<OrderItemDTO> orderItems = new ArrayList<>();
-            for (Cart.CartItem item : cart.getItems()) {
-                double subtotal = item.getProduct().getPrice() * item.getQuantity();
-                OrderItemDTO itemDTO = new OrderItemDTO(
-                        item.getProduct().getId(),
-                        item.getProduct().getName(),
-                        item.getProduct().getImageUrl(),
-                        item.getProduct().getPrice(),
-                        item.getQuantity(),
-                        subtotal
-                );
-                orderItems.add(itemDTO);
-
-            }
-
-            // Добавляем товары в заказ
-            OrderRepository.addOrderItems(orderId, orderItems);
-
-            // Уменьшаем stock для каждого товара
-            for (Cart.CartItem item : cart.getItems()) {
-                int productId = item.getProduct().getId();
-                int quantity = item.getQuantity();
-
-                try {
-                    ProductRepository.decreaseProductStock(productId, quantity);
-
-                } catch (Exception e) {
-                    System.err.println("   ❌ Ошибка уменьшения stock: " + e.getMessage());
-                    // Не прерываем процесс, продолжаем для остальных товаров
-                }
-            }
-
-            // Очищаем корзину
-            cartService.clearCart();
-
-            return orderId;
-
-        } catch (Exception e) {
-            System.err.println("❌ ОШИБКА ПРИ ОФОРМЛЕНИИ ЗАКАЗА: " + e.getMessage());
-            e.printStackTrace();
-            throw new Exception("Ошибка при оформлении заказа: " + e.getMessage());
-        }
-    }
-
+    /**
+     * ✅ Получить историю заказов текущего пользователя
+     */
     public List<OrderDTO> getUserOrderHistory() throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
             throw new Exception("Пользователь не авторизован");
         }
-
-        try {
-            List<OrderDTO> orders = OrderRepository.getUserOrders(userId);
-            return orders;
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки истории заказов: " + e.getMessage());
-            throw new Exception("Ошибка загрузки истории заказов: " + e.getMessage());
-        }
+        return OrderRepository.getUserOrders(userId);
     }
 
-    public OrderDTO getOrderById(int orderId) throws Exception {
-        List<OrderDTO> orders = getUserOrderHistory();
-        for (OrderDTO order : orders) {
-            if (order.orderId == orderId) {
-                return order;
-            }
+    /**
+     * ✅ Создание заказа из корзины с поддержкой промокода
+     */
+    public int createOrderFromCart(String promoCode) throws Exception {
+        String userId = SessionManager.getUserId();
+        if (userId == null || userId.isEmpty()) {
+            throw new Exception("❌ Пользователь не авторизован");
         }
-        throw new Exception("Заказ #" + orderId + " не найден");
+
+        Cart cart = cartService.getCurrentCart();
+        if (cart.getItems().isEmpty()) {
+            throw new Exception("❌ Корзина пуста");
+        }
+
+        System.out.println("=== 🛒 Создание заказа ===");
+        System.out.println("User ID: " + userId);
+        System.out.println("Товаров: " + cart.getTotalQuantity());
+
+        try {
+            double totalAmount = cart.getTotal();
+            double discountAmount = 0;
+            int promoCodeId = 0;
+
+            if (promoCode != null && !promoCode.trim().isEmpty()) {
+                System.out.println("📌 Применение промокода: " + promoCode);
+
+                PromoCodeRepository promoRepo = new PromoCodeRepository();
+                PromoCode promo = promoRepo.validatePromoCode(promoCode);
+
+                discountAmount = (totalAmount * promo.getDiscountPercent()) / 100.0;
+                promoCodeId = promo.getPromoId();
+
+                System.out.println("   - ID промокода: " + promoCodeId);
+                System.out.println("   - Скидка: " + promo.getDiscountPercent() + "%");
+                System.out.println("   - Сумма скидки: " + discountAmount);
+            }
+
+            double finalAmount = totalAmount - discountAmount;
+
+            System.out.println("💰 Сумма до скидки: " + totalAmount);
+            System.out.println("💰 Скидка: " + discountAmount);
+            System.out.println("💰 Итого к оплате: " + finalAmount);
+
+            int orderId = OrderRepository.createOrder(
+                    userId,
+                    totalAmount,
+                    (promoCodeId > 0 ? promoCodeId : null),
+                    discountAmount
+            );
+
+            System.out.println("✅ Заказ создан! ID: " + orderId);
+
+            // ✅ ИСПРАВЛЕНО: передаем название и изображение товара
+            for (CartItem item : cart.getItems()) {
+                OrderRepository.addOrderItem(
+                        orderId,
+                        item.getProduct().getId(),
+                        item.getProduct().getName(),      // ✅ ДОБАВЛЕНО
+                        item.getProduct().getImageUrl(),  // ✅ ДОБАВЛЕНО
+                        item.getQuantity(),
+                        item.getProduct().getPrice()
+                );
+                System.out.println("   ✅ Добавлен товар: " + item.getProduct().getName() + " x" + item.getQuantity());
+            }
+
+            if (promoCodeId > 0) {
+                PromoCodeRepository promoRepo = new PromoCodeRepository();
+                promoRepo.usePromoCode(promoCodeId);
+                System.out.println("✅ Промокод использован");
+            }
+
+            cartService.clearCart();
+            System.out.println("✅ Корзина очищена");
+            System.out.println("=== ✅ Заказ успешно оформлен ===");
+
+            return orderId;
+
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка создания заказа: " + e.getMessage());
+            e.printStackTrace();
+            throw new Exception("Ошибка при оформлении заказа: " + e.getMessage());
+        }
     }
 }

@@ -3,6 +3,8 @@ package controllers;
 import com.example.authapp.dto.ProductDTO;
 import com.example.authapp.dto.UserDTO;
 import com.example.authapp.dto.OrderDTO;
+import com.example.authapp.dto.PromoCodeDTO;
+import com.example.authapp.models.PromoCode;
 import com.example.authapp.repositories.AdminRepository;
 import com.example.authapp.services.SupabaseStorageService;
 import com.example.authapp.services.AdminRefreshService;
@@ -30,35 +32,48 @@ import java.util.ResourceBundle;
 
 public class AdminController implements Initializable {
 
+    // ============ ОБЩИЕ ЭЛЕМЕНТЫ ============
     @FXML private TabPane adminTabs;
     @FXML private Button exitAdminBtn;
+
+    // ============ ТОВАРЫ ============
     @FXML private Button addProductBtn;
     @FXML private TableView<ProductDTO> productsTable;
+    private ObservableList<ProductDTO> productsData = FXCollections.observableArrayList();
+    private boolean productsTableSetup = false;
+
+    // ============ ПОЛЬЗОВАТЕЛИ ============
     @FXML private TableView<UserDTO> usersTable;
     @FXML private TextField userSearchField;
+    private ObservableList<UserDTO> usersData = FXCollections.observableArrayList();
+    private boolean usersTableSetup = false;
+
+    // ============ ЗАКАЗЫ ============
     @FXML private TableView<OrderDTO> ordersTable;
     @FXML private ComboBox<String> orderStatusFilter;
+    private ObservableList<OrderDTO> ordersData = FXCollections.observableArrayList();
+    private boolean ordersTableSetup = false;
 
+    // ============ ПРОМОКОДЫ ============
+    @FXML private TableView<PromoCodeDTO> promoCodesTable;
+    @FXML private Button addPromoCodeBtn;
+    private ObservableList<PromoCodeDTO> promoCodesData = FXCollections.observableArrayList();
+    private boolean promoCodesTableSetup = false;
+
+    // ============ КОНТРОЛЛЕРЫ И СЕРВИСЫ ============
     private MainController mainController;
     private CabinetController cabinetController;
     private AdminRefreshService refreshService;
 
-    private ObservableList<ProductDTO> productsData = FXCollections.observableArrayList();
-    private ObservableList<UserDTO> usersData = FXCollections.observableArrayList();
-    private ObservableList<OrderDTO> ordersData = FXCollections.observableArrayList();
-
-    private boolean productsTableSetup = false;
-    private boolean usersTableSetup = false;
-    private boolean ordersTableSetup = false;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
+            System.out.println("🎨 AdminController инициализирован");
             setupUI();
             loadAdminData();
             refreshService = new AdminRefreshService(this);
         } catch (Exception e) {
-            System.err.println("❌ Ошибка: " + e.getMessage());
+            System.err.println("❌ Ошибка инициализации: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -71,8 +86,11 @@ public class AdminController implements Initializable {
         this.cabinetController = cabinet;
     }
 
+    /**
+     * ✅ Настройка UI элементов
+     */
     private void setupUI() {
-        // ВЫХОД
+        // ВЫХОД ИЗ ПАНЕЛИ
         if (exitAdminBtn != null) {
             exitAdminBtn.setOnAction(e -> {
                 if (refreshService != null) refreshService.stop();
@@ -83,6 +101,11 @@ public class AdminController implements Initializable {
         // КНОПКА ДОБАВИТЬ ТОВАР
         if (addProductBtn != null) {
             addProductBtn.setOnAction(e -> showAddProductDialog());
+        }
+
+        // КНОПКА ДОБАВИТЬ ПРОМОКОД
+        if (addPromoCodeBtn != null) {
+            addPromoCodeBtn.setOnAction(e -> showAddPromoCodeDialog());
         }
 
         // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
@@ -125,22 +148,28 @@ public class AdminController implements Initializable {
         }
     }
 
+    /**
+     * ✅ Загрузка всех данных админ-панели
+     */
     private void loadAdminData() {
         new Thread(() -> {
             try {
                 loadProducts();
                 loadUsers();
                 loadOrders();
+                loadPromoCodes();
                 Platform.runLater(() -> {
                     if (refreshService != null) refreshService.start();
                 });
             } catch (Exception e) {
-                System.err.println("❌ Ошибка загрузки: " + e.getMessage());
+                System.err.println("❌ Ошибка загрузки данных: " + e.getMessage());
             }
         }).start();
     }
 
-    // ТОВАРЫ
+    // ============================================
+    // ✅ ТОВАРЫ
+    // ============================================
 
     private void loadProducts() {
         try {
@@ -159,6 +188,155 @@ public class AdminController implements Initializable {
         } catch (Exception e) {
             System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
         }
+    }
+
+    private void setupProductsTable() {
+        productsTable.getColumns().clear();
+
+        TableColumn<ProductDTO, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
+        idCol.setPrefWidth(50);
+
+        TableColumn<ProductDTO, String> nameCol = new TableColumn<>("Название");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name));
+        nameCol.setPrefWidth(200);
+
+        TableColumn<ProductDTO, String> categoryCol = new TableColumn<>("Категория");
+        categoryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().category));
+        categoryCol.setPrefWidth(130);
+
+        TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
+        priceCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().price).asObject());
+        priceCol.setPrefWidth(100);
+
+        TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
+        stockCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().stock).asObject());
+        stockCol.setPrefWidth(70);
+
+        TableColumn<ProductDTO, Void> imageCol = new TableColumn<>("Фото");
+        imageCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+            private final Button uploadBtn = new Button("📷");
+            {
+                uploadBtn.setStyle("-fx-font-size: 12px; -fx-padding: 4px 8px;");
+                uploadBtn.setOnAction(e -> {
+                    if (getIndex() >= 0) uploadProductImage(getTableView().getItems().get(getIndex()));
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty ? null : uploadBtn);
+            }
+        });
+        imageCol.setPrefWidth(60);
+
+        TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
+        actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                    return;
+                }
+
+                ProductDTO product = getTableView().getItems().get(getIndex());
+                HBox actions = new HBox(5);
+                actions.setAlignment(Pos.CENTER);
+
+                Button editBtn = new Button("Редактировать");
+                editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                editBtn.setOnAction(e -> {
+                    if (getIndex() >= 0) showEditProductDialog(getTableView().getItems().get(getIndex()));
+                });
+
+                Button deleteBtn = new Button("🗑");
+                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                deleteBtn.setOnAction(e -> {
+                    if (getIndex() >= 0) deleteProduct(getTableView().getItems().get(getIndex()));
+                });
+
+                actions.getChildren().addAll(editBtn, deleteBtn);
+                setGraphic(actions);
+            }
+        });
+        actionCol.setPrefWidth(80);
+
+        productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, imageCol, actionCol);
+        System.out.println("✅ Таблица товаров настроена");
+    }
+
+    private void showAddProductDialog() {
+        Dialog<ProductDTO> dialog = new Dialog<>();
+        dialog.setTitle("Добавить товар");
+        dialog.setHeaderText("📦 Введите данные товара");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Название");
+        TextField priceField = new TextField();
+        priceField.setPromptText("Цена (₽)");
+        TextField stockField = new TextField();
+        stockField.setPromptText("Количество");
+        TextField categoryField = new TextField();
+        categoryField.setPromptText("Категория");
+
+        grid.add(new Label("Название:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Цена (₽):"), 0, 1);
+        grid.add(priceField, 1, 1);
+        grid.add(new Label("Склад:"), 0, 2);
+        grid.add(stockField, 1, 2);
+        grid.add(new Label("Категория:"), 0, 3);
+        grid.add(categoryField, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+                    String name = nameField.getText().trim();
+                    double price = Double.parseDouble(priceField.getText());
+                    int stock = Integer.parseInt(stockField.getText());
+                    String category = categoryField.getText().trim();
+
+                    if (name.isEmpty() || category.isEmpty()) {
+                        showAlert("Ошибка", "Заполните поля!");
+                        return null;
+                    }
+                    return new ProductDTO(0, name, "", price, stock, "", category, "");
+                } catch (Exception e) {
+                    showAlert("Ошибка", "Проверьте формат!");
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        var result = dialog.showAndWait();
+        if (result.isPresent() && result.get() != null) {
+            saveProduct(result.get());
+        }
+    }
+
+    private void saveProduct(ProductDTO product) {
+        new Thread(() -> {
+            try {
+                AdminRepository.addProduct(product.name, product.description, product.price, product.stock, product.category, product.manufacturer, "");
+                Platform.runLater(() -> {
+                    showAlert("✅ Успех", "Товар добавлен!");
+                    loadProducts();
+                    if (mainController != null) mainController.reloadProducts();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+            }
+        }).start();
     }
 
     private void showEditProductDialog(ProductDTO product) {
@@ -244,9 +422,6 @@ public class AdminController implements Initializable {
         }
     }
 
-    /**
-     * Обновляет товар в БД
-     */
     private void updateProduct(ProductDTO product) {
         new Thread(() -> {
             try {
@@ -272,161 +447,6 @@ public class AdminController implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("❌ Ошибка", "Ошибка обновления: " + e.getMessage()));
                 System.err.println("❌ Ошибка обновления: " + e.getMessage());
-            }
-        }).start();
-    }
-
-    /**
-     * Обновляем setupProductsTable для добавления кнопки редактирования
-     */
-    private void setupProductsTable() {
-        productsTable.getColumns().clear();
-
-        TableColumn<ProductDTO, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
-        idCol.setPrefWidth(50);
-
-        TableColumn<ProductDTO, String> nameCol = new TableColumn<>("Название");
-        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name));
-        nameCol.setPrefWidth(200);
-
-        TableColumn<ProductDTO, String> categoryCol = new TableColumn<>("Категория");
-        categoryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().category));
-        categoryCol.setPrefWidth(130);
-
-        TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
-        priceCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().price).asObject());
-        priceCol.setPrefWidth(100);
-
-        TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
-        stockCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().stock).asObject());
-        stockCol.setPrefWidth(70);
-
-        TableColumn<ProductDTO, Void> imageCol = new TableColumn<>("Фото");
-        imageCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
-            private final Button uploadBtn = new Button("📷");
-            {
-                uploadBtn.setStyle("-fx-font-size: 12px; -fx-padding: 4px 8px;");
-                uploadBtn.setOnAction(e -> {
-                    if (getIndex() >= 0) uploadProductImage(getTableView().getItems().get(getIndex()));
-                });
-            }
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : uploadBtn);
-            }
-        });
-        imageCol.setPrefWidth(60);
-
-        // КОЛОНКА ДЕЙСТВИЙ (редактирование + удаление)
-        TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
-        actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                    return;
-                }
-
-                ProductDTO product = getTableView().getItems().get(getIndex());
-                HBox actions = new HBox(5);
-                actions.setAlignment(Pos.CENTER);
-
-                // КНОПКА РЕДАКТИРОВАНИЯ
-                Button editBtn = new Button("Редактировать");
-                editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
-                editBtn.setOnAction(e -> {
-                    if (getIndex() >= 0) showEditProductDialog(getTableView().getItems().get(getIndex()));
-                });
-
-                // КНОПКА УДАЛЕНИЯ
-                Button deleteBtn = new Button("🗑");
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
-                deleteBtn.setOnAction(e -> {
-                    if (getIndex() >= 0) deleteProduct(getTableView().getItems().get(getIndex()));
-                });
-
-                actions.getChildren().addAll(editBtn, deleteBtn);
-                setGraphic(actions);
-            }
-        });
-        actionCol.setPrefWidth(80);
-
-        productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, imageCol, actionCol);
-        System.out.println("✅ Таблица товаров настроена с редактированием");
-    }
-
-    private void showAddProductDialog() {
-        Dialog<ProductDTO> dialog = new Dialog<>();
-        dialog.setTitle("Добавить товар");
-        dialog.setHeaderText("📦 Введите данные товара");
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-
-        TextField nameField = new TextField();
-        nameField.setPromptText("Название");
-        TextField priceField = new TextField();
-        priceField.setPromptText("Цена (₽)");
-        TextField stockField = new TextField();
-        stockField.setPromptText("Количество");
-        TextField categoryField = new TextField();
-        categoryField.setPromptText("Категория");
-
-        grid.add(new Label("Название:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Цена (₽):"), 0, 1);
-        grid.add(priceField, 1, 1);
-        grid.add(new Label("Склад:"), 0, 2);
-        grid.add(stockField, 1, 2);
-        grid.add(new Label("Категория:"), 0, 3);
-        grid.add(categoryField, 1, 3);
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                try {
-                    String name = nameField.getText().trim();
-                    double price = Double.parseDouble(priceField.getText());
-                    int stock = Integer.parseInt(stockField.getText());
-                    String category = categoryField.getText().trim();
-
-                    if (name.isEmpty() || category.isEmpty()) {
-                        showAlert("Ошибка", "Заполните поля!");
-                        return null;
-                    }
-                    return new ProductDTO(0, name, "", price, stock, "", category, "");
-                } catch (Exception e) {
-                    showAlert("Ошибка", "Проверьте формат!");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        var result = dialog.showAndWait();
-        if (result.isPresent() && result.get() != null) {
-            saveProduct(result.get());
-        }
-    }
-
-    private void saveProduct(ProductDTO product) {
-        new Thread(() -> {
-            try {
-                AdminRepository.addProduct(product.name, product.description, product.price, product.stock, product.category, product.manufacturer, "");
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Товар добавлен!");
-                    loadProducts();
-                    if (mainController != null) mainController.reloadProducts();
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
             }
         }).start();
     }
@@ -480,7 +500,9 @@ public class AdminController implements Initializable {
         }
     }
 
-    // ============ ПОЛЬЗОВАТЕЛИ ============
+    // ============================================
+    // ✅ ПОЛЬЗОВАТЕЛИ
+    // ============================================
 
     private void loadUsers() {
         try {
@@ -588,7 +610,9 @@ public class AdminController implements Initializable {
         }).start();
     }
 
-    // ============ ЗАКАЗЫ ============
+    // ============================================
+    // ✅ ЗАКАЗЫ
+    // ============================================
 
     private void loadOrders() {
         try {
@@ -703,7 +727,204 @@ public class AdminController implements Initializable {
         }
     }
 
-    // ============ ПУБЛИЧНЫЕ МЕТОДЫ ============
+    // ============================================
+    // ✅ ПРОМОКОДЫ
+    // ============================================
+
+    private void loadPromoCodes() {
+        try {
+            List<PromoCodeDTO> promoCodes = AdminRepository.getAllPromoCodes();
+            Platform.runLater(() -> {
+                if (promoCodesTable != null) {
+                    if (!promoCodesTableSetup) {
+                        setupPromoCodesTable();
+                        promoCodesTableSetup = true;
+                    }
+                    promoCodesData.clear();
+                    promoCodesData.addAll(promoCodes);
+                    promoCodesTable.setItems(promoCodesData);
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка загрузки промокодов: " + e.getMessage());
+        }
+    }
+
+    private void setupPromoCodesTable() {
+        promoCodesTable.getColumns().clear();
+
+        TableColumn<PromoCodeDTO, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
+        idCol.setPrefWidth(50);
+
+        TableColumn<PromoCodeDTO, String> codeCol = new TableColumn<>("Код");
+        codeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().code));
+        codeCol.setPrefWidth(150);
+
+        TableColumn<PromoCodeDTO, Double> discountCol = new TableColumn<>("Скидка %");
+        discountCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().discountPercent).asObject());
+        discountCol.setPrefWidth(100);
+
+        TableColumn<PromoCodeDTO, Integer> maxUsesCol = new TableColumn<>("Лимит");
+        maxUsesCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().maxUses).asObject());
+        maxUsesCol.setPrefWidth(80);
+
+        TableColumn<PromoCodeDTO, Integer> usedCol = new TableColumn<>("Использовано");
+        usedCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().usedCount).asObject());
+        usedCol.setPrefWidth(120);
+
+        TableColumn<PromoCodeDTO, String> expiryCol = new TableColumn<>("Срок действия");
+        expiryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().expiryDate));
+        expiryCol.setPrefWidth(120);
+
+        TableColumn<PromoCodeDTO, String> statusCol = new TableColumn<>("Статус");
+        statusCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive ? "✅ Активен" : "❌ Неактивен"));
+        statusCol.setPrefWidth(100);
+
+        TableColumn<PromoCodeDTO, Void> actionCol = new TableColumn<>("Действия");
+        actionCol.setCellFactory(col -> new TableCell<PromoCodeDTO, Void>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                    return;
+                }
+
+                PromoCodeDTO promo = getTableView().getItems().get(getIndex());
+                HBox actions = new HBox(5);
+                actions.setAlignment(Pos.CENTER);
+
+                Button deleteBtn = new Button("🗑");
+                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                deleteBtn.setOnAction(e -> deletePromoCode(promo.id));
+
+                actions.getChildren().add(deleteBtn);
+                setGraphic(actions);
+            }
+        });
+        actionCol.setPrefWidth(100);
+
+        promoCodesTable.getColumns().addAll(idCol, codeCol, discountCol, maxUsesCol, usedCol, expiryCol, statusCol, actionCol);
+        System.out.println("✅ Таблица промокодов настроена");
+    }
+
+    private void showAddPromoCodeDialog() {
+        Dialog<PromoCodeDTO> dialog = new Dialog<>();
+        dialog.setTitle("Создать промокод");
+        dialog.setHeaderText("➕ Новый промокод");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField codeField = new TextField();
+        codeField.setPromptText("Например: SALE2025");
+
+        TextField discountField = new TextField();
+        discountField.setPromptText("От 0 до 100");
+
+        TextField maxUsesField = new TextField();
+        maxUsesField.setPromptText("Например: 100");
+
+        DatePicker expiryPicker = new DatePicker();
+        expiryPicker.setValue(java.time.LocalDate.now().plusMonths(1));
+
+        grid.add(new Label("Код промокода:"), 0, 0);
+        grid.add(codeField, 1, 0);
+        grid.add(new Label("Скидка (%):"), 0, 1);
+        grid.add(discountField, 1, 1);
+        grid.add(new Label("Лимит использований:"), 0, 2);
+        grid.add(maxUsesField, 1, 2);
+        grid.add(new Label("Срок действия:"), 0, 3);
+        grid.add(expiryPicker, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+                    String code = codeField.getText().trim().toUpperCase();
+                    double discount = Double.parseDouble(discountField.getText());
+                    int maxUses = Integer.parseInt(maxUsesField.getText());
+                    String expiryDate = expiryPicker.getValue().toString();
+
+                    if (code.isEmpty() || code.length() > 50) {
+                        showAlert("Ошибка", "Код промокода должен быть от 1 до 50 символов!");
+                        return null;
+                    }
+
+                    if (discount < 0 || discount > 100) {
+                        showAlert("Ошибка", "Скидка должна быть от 0 до 100%!");
+                        return null;
+                    }
+
+                    if (maxUses < 1) {
+                        showAlert("Ошибка", "Лимит должен быть не меньше 1!");
+                        return null;
+                    }
+
+                    return new PromoCodeDTO(0, code, discount, maxUses, 0, expiryDate, true);
+
+                } catch (NumberFormatException e) {
+                    showAlert("Ошибка", "Проверьте формат чисел!");
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        var result = dialog.showAndWait();
+        if (result.isPresent() && result.get() != null) {
+            createPromoCode(result.get());
+        }
+    }
+
+    private void createPromoCode(PromoCodeDTO dto) {
+        new Thread(() -> {
+            try {
+                System.out.println("➕ Создание промокода: " + dto.code);
+                AdminRepository.createPromoCode(dto);
+                Platform.runLater(() -> {
+                    showAlert("✅ Успех", "Промокод создан!");
+                    loadPromoCodes();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("❌ Ошибка", "Ошибка создания промокода: " + e.getMessage()));
+                System.err.println("❌ Ошибка создания промокода: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void deletePromoCode(int promoId) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Удаление промокода");
+        confirmAlert.setHeaderText("Вы уверены?");
+        confirmAlert.setContentText("Промокод будет деактивирован.");
+
+        var result = confirmAlert.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                AdminRepository.deletePromoCode(promoId);
+                Platform.runLater(() -> {
+                    showAlert("✅ Успешно", "Промокод деактивирован!");
+                    loadPromoCodes();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+            }
+        }).start();
+    }
+
+    // ============================================
+    // ✅ ПУБЛИЧНЫЕ МЕТОДЫ ДЛЯ ОБНОВЛЕНИЯ
+    // ============================================
 
     public void refreshProductsList() {
         loadProducts();
@@ -717,11 +938,17 @@ public class AdminController implements Initializable {
         loadOrders();
     }
 
+    public void refreshPromoCodesList() {
+        loadPromoCodes();
+    }
+
     public void stopRefreshService() {
         if (refreshService != null) refreshService.stop();
     }
 
-    // ============ УТИЛИТЫ ============
+    // ============================================
+    // ✅ УТИЛИТЫ
+    // ============================================
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

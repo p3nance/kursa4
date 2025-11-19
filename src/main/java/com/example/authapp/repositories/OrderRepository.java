@@ -1,216 +1,231 @@
 package com.example.authapp.repositories;
 
+import config.Config;
 import com.example.authapp.dto.OrderDTO;
 import com.example.authapp.dto.OrderItemDTO;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class OrderRepository {
-    private static final String SUPABASE_URL = "https://qsthuhzkciimucarscco.supabase.co";
-    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
-    private static final String ORDERS_TABLE = "orders";
-    private static final String ORDER_ITEMS_TABLE = "order_items";
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
 
     /**
-     * Создает заказ в таблице orders БЕЗ ID (он генерируется автоматически)
+     * ✅ Создание заказа с промокодом и final_amount
      */
-    public static int createOrder(OrderDTO orderDTO) throws Exception {
+    public static int createOrder(String userId, double totalAmount, Integer promoCodeId, double discountAmount) throws Exception {
         try {
-            String url = String.format("%s/rest/v1/%s", SUPABASE_URL, ORDERS_TABLE);
+            String urlString = Config.SUPABASE_URL + "/rest/v1/orders";
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            // Создаем JSON БЕЗ поля ID
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("user_id", orderDTO.userId);
-            jsonObject.addProperty("total_amount", orderDTO.totalAmount);
-            jsonObject.addProperty("discount_amount", orderDTO.discountAmount);
-            jsonObject.addProperty("final_amount", orderDTO.finalAmount);
-            jsonObject.addProperty("promo_code", orderDTO.promoCode);
-            jsonObject.addProperty("status", "pending");
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("apikey", Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Prefer", "return=representation");
+            conn.setDoOutput(true);
 
-            String jsonBody = jsonObject.toString();
+            JSONObject json = new JSONObject();
+            json.put("user_id", userId);
+            json.put("total_amount", totalAmount);
+            json.put("status", "pending");
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .header("Prefer", "return=representation")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
+            // ✅ ВЫЧИСЛЯЕМ И ДОБАВЛЯЕМ ИТОГОВУЮ СУММУ
+            double finalAmount = totalAmount - discountAmount;
+            json.put("final_amount", finalAmount);
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 201) {
-                System.err.println("❌ Ошибка создания заказа: " + response.statusCode());
-                System.err.println("   Ответ: " + response.body());
-                throw new Exception("Ошибка создания заказа: " + response.statusCode() + " " + response.body());
+            // ✅ Добавляем промокод и скидку
+            if (promoCodeId != null && promoCodeId > 0) {
+                json.put("promo_code_id", promoCodeId);
+                json.put("discount_amount", discountAmount);
             }
 
-            // Парсим ответ и получаем ID заказа
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
-            JsonObject createdOrder = jsonArray.get(0).getAsJsonObject();
-            int orderId = createdOrder.get("id").getAsInt();
+            System.out.println("📤 Отправка заказа: " + json.toString());
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = json.toString().getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 201) {
+                Scanner errorScanner = new Scanner(conn.getErrorStream(), StandardCharsets.UTF_8);
+                String errorResponse = errorScanner.useDelimiter("\\A").next();
+                errorScanner.close();
+                throw new Exception("Ошибка создания заказа: " + errorResponse);
+            }
+
+            Scanner scanner = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8);
+            String response = scanner.useDelimiter("\\A").next();
+            scanner.close();
+
+            JSONArray jsonArray = new JSONArray(response);
+            JSONObject orderJson = jsonArray.getJSONObject(0);
+            int orderId = orderJson.getInt("id");
+
+            System.out.println("✅ Заказ создан с ID: " + orderId);
             return orderId;
 
         } catch (Exception e) {
-            System.err.println("❌ Ошибка при создании заказа: " + e.getMessage());
-            throw new Exception("Ошибка при создании заказа: " + e.getMessage());
+            System.err.println("❌ Ошибка создания заказа: " + e.getMessage());
+            throw e;
         }
     }
 
     /**
-     * Добавляет товары в таблицу order_items БЕЗ ID (он генерируется автоматически)
+     * ✅ Добавление товара в заказ с product_name, product_image и subtotal
      */
-    public static void addOrderItems(int orderId, List<OrderItemDTO> items) throws Exception {
+    public static void addOrderItem(int orderId, int productId, String productName,
+                                    String productImage, int quantity, double price) throws Exception {
         try {
-            String url = String.format("%s/rest/v1/%s", SUPABASE_URL, ORDER_ITEMS_TABLE);
+            String urlString = Config.SUPABASE_URL + "/rest/v1/order_items";
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            // Создаем массив JSON объектов БЕЗ ID
-            JsonArray jsonArray = new JsonArray();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("apikey", Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
 
-            for (OrderItemDTO item : items) {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("order_id", orderId);
-                jsonObject.addProperty("product_id", item.productId);
-                jsonObject.addProperty("product_name", item.productName);
-                jsonObject.addProperty("product_image", item.productImage);
-                jsonObject.addProperty("price", item.price);
-                jsonObject.addProperty("quantity", item.quantity);
-                jsonObject.addProperty("subtotal", item.subtotal);
-                jsonArray.add(jsonObject);
+            // ✅ РАССЧИТЫВАЕМ ПРОМЕЖУТОЧНЫЙ ИТОГ
+            double subtotal = price * quantity;
+
+            JSONObject json = new JSONObject();
+            json.put("order_id", orderId);
+            json.put("product_id", productId);
+            json.put("product_name", productName);
+            json.put("product_image", productImage);
+            json.put("quantity", quantity);
+            json.put("price", price);
+            json.put("subtotal", subtotal);
+
+            System.out.println("📤 Отправка товара в заказ: " + json.toString());
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = json.toString().getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
 
-            String jsonBody = jsonArray.toString();
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 201) {
-                System.err.println("❌ Ошибка добавления товаров: " + response.statusCode());
-                System.err.println("   Ответ: " + response.body());
-                throw new Exception("Ошибка добавления товаров: " + response.statusCode() + " " + response.body());
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 201) {
+                Scanner errorScanner = new Scanner(conn.getErrorStream(), StandardCharsets.UTF_8);
+                String errorResponse = errorScanner.useDelimiter("\\A").next();
+                errorScanner.close();
+                throw new Exception("Не удалось добавить товар в заказ: " + errorResponse);
             }
+
+            System.out.println("✅ Товар добавлен в заказ (subtotal: " + subtotal + ")");
 
         } catch (Exception e) {
-            System.err.println("❌ Ошибка при добавлении товаров: " + e.getMessage());
-            throw new Exception("Ошибка при добавлении товаров: " + e.getMessage());
+            System.err.println("❌ Ошибка добавления товара: " + e.getMessage());
+            throw new Exception("Ошибка добавления товара: " + e.getMessage());
         }
     }
 
     /**
-     * Получает все заказы пользователя
+     * ✅ Получение заказов пользователя
      */
     public static List<OrderDTO> getUserOrders(String userId) throws Exception {
         try {
-            String encodedUserId = java.net.URLEncoder.encode(userId, "UTF-8");
-            String url = String.format("%s/rest/v1/%s?user_id=eq.%s&order=order_date.desc",
-                    SUPABASE_URL, ORDERS_TABLE, encodedUserId);
+            String urlString = Config.SUPABASE_URL + "/rest/v1/orders?user_id=eq." + userId + "&order=created_at.desc&select=*";
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .GET()
-                    .build();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("apikey", Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY);
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                System.err.println("❌ Ошибка получения заказов: " + response.statusCode());
-                return new ArrayList<>();
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                throw new Exception("Ошибка загрузки заказов");
             }
 
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            Scanner scanner = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8);
+            String response = scanner.useDelimiter("\\A").next();
+            scanner.close();
+
+            JSONArray jsonArray = new JSONArray(response);
             List<OrderDTO> orders = new ArrayList<>();
 
-            for (int i = 0; i < jsonArray.size(); i++) {
-                OrderDTO order = gson.fromJson(jsonArray.get(i), OrderDTO.class);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+
+                OrderDTO order = new OrderDTO();
+                order.orderId = obj.getInt("id");
+                order.userId = obj.getString("user_id");
+                order.totalAmount = obj.getDouble("total_amount");
+                order.status = obj.getString("status");
+                order.orderDate = obj.getString("created_at");
+
+                // Промокод данные
+                order.promoCodeId = obj.has("promo_code_id") && !obj.isNull("promo_code_id")
+                        ? obj.getInt("promo_code_id") : null;
+                order.discountAmount = obj.has("discount_amount") && !obj.isNull("discount_amount")
+                        ? obj.getDouble("discount_amount") : 0.0;
+                order.finalAmount = obj.has("final_amount")
+                        ? obj.getDouble("final_amount") : order.totalAmount;
+
+                // Загружаем товары заказа
                 order.items = getOrderItems(order.orderId);
+
                 orders.add(order);
             }
 
             return orders;
 
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки заказов: " + e.getMessage());
-            throw new Exception("Ошибка загрузки заказов: " + e.getMessage());
+            throw new Exception("Ошибка при загрузке заказов: " + e.getMessage());
         }
     }
 
+    /**
+     * ✅ Получение товаров заказа
+     */
     public static List<OrderItemDTO> getOrderItems(int orderId) throws Exception {
         try {
-            String url = String.format("%s/rest/v1/%s?order_id=eq.%d",
-                    SUPABASE_URL, ORDER_ITEMS_TABLE, orderId);
+            String urlString = Config.SUPABASE_URL + "/rest/v1/order_items?order_id=eq." + orderId + "&select=*";
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .GET()
-                    .build();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("apikey", Config.SUPABASE_ANON_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY);
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            Scanner scanner = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8);
+            String response = scanner.useDelimiter("\\A").next();
+            scanner.close();
 
-            if (response.statusCode() != 200) {
-                System.err.println("❌ Ошибка получения товаров заказа: " + response.statusCode());
-                return new ArrayList<>();
-            }
-
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JSONArray jsonArray = new JSONArray(response);
             List<OrderItemDTO> items = new ArrayList<>();
 
-            for (int i = 0; i < jsonArray.size(); i++) {
-                OrderItemDTO item = gson.fromJson(jsonArray.get(i), OrderItemDTO.class);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+
+                OrderItemDTO item = new OrderItemDTO();
+                item.id = obj.getInt("id");
+                item.orderId = obj.getInt("order_id");
+                item.productId = obj.getInt("product_id");
+                item.productName = obj.getString("product_name");
+                item.productImage = obj.getString("product_image");
+                item.price = obj.getDouble("price");
+                item.quantity = obj.getInt("quantity");
+                item.subtotal = obj.getDouble("subtotal");
+
                 items.add(item);
             }
 
             return items;
 
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки товаров заказа: " + e.getMessage());
-            throw new Exception("Ошибка загрузки товаров заказа: " + e.getMessage());
-        }
-    }
-
-    public static void updateOrderStatus(int orderId, String newStatus) throws Exception {
-        try {
-            String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, ORDERS_TABLE, orderId);
-            String jsonBody = "{\"status\":\"" + newStatus + "\"}";
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка обновления статуса: " + response.statusCode());
-            }
-
-        } catch (Exception e) {
-            throw new Exception("Ошибка при обновлении статуса заказа: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 }

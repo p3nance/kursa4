@@ -1,9 +1,7 @@
 package com.example.authapp.repositories;
 
-import com.example.authapp.dto.ProductDTO;
-import com.example.authapp.dto.UserDTO;
-import com.example.authapp.dto.OrderDTO;
-import com.example.authapp.dto.OrderItemDTO;
+import com.example.authapp.dto.*;
+import com.example.authapp.models.PromoCode;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -224,35 +222,64 @@ public class AdminRepository {
 
     public static List<OrderDTO> getAllOrders() throws Exception {
         try {
-            String url = SUPABASE_URL + "/rest/v1/orders?order=order_date.desc";
+            String url = SUPABASE_URL + "/rest/v1/orders?select=*&order=created_at.desc";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
                     .header("apikey", SUPABASE_KEY)
-                    .header("Accept", "application/json")
                     .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new Exception("Ошибка получения заказов: " + response.statusCode());
+                throw new Exception("Ошибка загрузки заказов: " + response.statusCode());
             }
 
-            List<OrderDTO> orders = new ArrayList<>();
+            Gson gson = new Gson();
             JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
 
+            List<OrderDTO> orders = new ArrayList<>();
             for (int i = 0; i < jsonArray.size(); i++) {
-                OrderDTO dto = gson.fromJson(jsonArray.get(i), OrderDTO.class);
+                JsonObject orderJson = jsonArray.get(i).getAsJsonObject();
+
+                OrderDTO dto = new OrderDTO();
+
+                // ✅ КРИТИЧЕСКИ ВАЖНО: правильно парсим orderId из поля "id"
+                dto.orderId = orderJson.get("id").getAsInt();
+                dto.userId = orderJson.has("user_id") && !orderJson.get("user_id").isJsonNull()
+                        ? orderJson.get("user_id").getAsString() : null;
+                dto.totalAmount = orderJson.has("total_amount")
+                        ? orderJson.get("total_amount").getAsDouble() : 0.0;
+                dto.status = orderJson.has("status") && !orderJson.get("status").isJsonNull()
+                        ? orderJson.get("status").getAsString() : "unknown";
+                dto.orderDate = orderJson.has("created_at") && !orderJson.get("created_at").isJsonNull()
+                        ? orderJson.get("created_at").getAsString() : null;
+
+                // Промокод данные (если есть)
+                dto.promoCodeId = orderJson.has("promo_code_id") && !orderJson.get("promo_code_id").isJsonNull()
+                        ? orderJson.get("promo_code_id").getAsInt() : null;
+                dto.discountAmount = orderJson.has("discount_amount") && !orderJson.get("discount_amount").isJsonNull()
+                        ? orderJson.get("discount_amount").getAsDouble() : 0.0;
+                dto.finalAmount = orderJson.has("final_amount")
+                        ? orderJson.get("final_amount").getAsDouble() : dto.totalAmount;
+
+                // Загружаем товары заказа
                 dto.items = getOrderItemsAdmin(dto.orderId);
+
                 orders.add(dto);
+
+                System.out.println("✅ Заказ загружен: ID=" + dto.orderId + ", статус=" + dto.status);
             }
+
+            System.out.println("✅ Загружено заказов: " + orders.size());
             return orders;
 
         } catch (Exception e) {
             System.err.println("❌ Ошибка загрузки заказов: " + e.getMessage());
-            throw new Exception("Ошибка загрузки заказов: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -291,26 +318,39 @@ public class AdminRepository {
 
     public static void updateOrderStatusAdmin(int orderId, String newStatus) throws Exception {
         try {
+            System.out.println("📝 Обновление статуса заказа ID=" + orderId + " → " + newStatus);
+
             String url = SUPABASE_URL + "/rest/v1/orders?id=eq." + orderId;
 
             JsonObject jsonBody = new JsonObject();
             jsonBody.addProperty("status", newStatus);
+
+            System.out.println("📤 URL: " + url);
+            System.out.println("📤 Body: " + jsonBody.toString());
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
+                    .header("Prefer", "return=minimal")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            System.out.println("📥 Статус ответа: " + response.statusCode());
+            System.out.println("📥 Тело ответа: " + response.body());
+
             if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка обновления статуса: " + response.statusCode());
+                throw new Exception("Ошибка обновления статуса: HTTP " + response.statusCode() + " - " + response.body());
             }
 
+            System.out.println("✅ Статус заказа успешно обновлен!");
+
         } catch (Exception e) {
+            System.err.println("❌ Ошибка при обновлении статуса заказа: " + e.getMessage());
+            e.printStackTrace();
             throw new Exception("Ошибка при обновлении статуса заказа: " + e.getMessage());
         }
     }
@@ -405,5 +445,38 @@ public class AdminRepository {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    /**
+     * ✅ Получение всех промокодов
+     */
+    public static List<PromoCodeDTO> getAllPromoCodes() throws Exception {
+        PromoCodeRepository repo = new PromoCodeRepository();
+        return repo.getAllPromoCodes();
+    }
+
+    /**
+     * ✅ Создание промокода
+     */
+    public static void createPromoCode(PromoCodeDTO dto) throws Exception {
+        PromoCode promo = new PromoCode(
+                dto.id,
+                dto.code,
+                dto.discountPercent,
+                dto.maxUses,
+                dto.usedCount,
+                dto.expiryDate,
+                dto.isActive
+        );
+        PromoCodeRepository repo = new PromoCodeRepository();
+        repo.createPromoCode(promo);
+    }
+
+    /**
+     * ✅ Удаление промокода
+     */
+    public static void deletePromoCode(int promoId) throws Exception {
+        PromoCodeRepository repo = new PromoCodeRepository();
+        repo.deletePromoCode(promoId);
     }
 }

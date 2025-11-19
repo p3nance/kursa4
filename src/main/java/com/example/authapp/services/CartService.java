@@ -3,27 +3,27 @@ package com.example.authapp.services;
 import com.example.authapp.models.Cart;
 import com.example.authapp.models.Cart.CartItem;
 import com.example.authapp.models.Product;
+import com.example.authapp.models.PromoCode;
 import com.example.authapp.dto.CartItemDTO;
 import com.example.authapp.repositories.CartRepository;
 import config.SessionManager;
-
 import java.util.List;
 
 public class CartService {
 
+    // ✅ ДОБАВЛЕНО: Хранение примененного промокода
+    private PromoCode appliedPromoCode = null;
+
     public void loadUserCart() throws Exception {
         String userId = SessionManager.getUserId();
         if (userId == null || userId.isEmpty()) {
-
             return;
         }
 
         try {
             List<CartItemDTO> cartItems = CartRepository.loadCartFromSupabase(userId);
-
             // Очищаем текущую корзину в памяти
             Cart.getInstance().clear();
-
             // Загружаем товары из БД в память ОДНИМ ВЫЗОВОМ
             for (CartItemDTO dto : cartItems) {
                 Product product = new Product(
@@ -36,15 +36,13 @@ public class CartService {
                         "", // category
                         "" // manufacturer
                 );
-
                 Cart.getInstance().addProduct(product, dto.quantity);
             }
-
-
         } catch (Exception e) {
             System.err.println("⚠️ Ошибка загрузки корзины: " + e.getMessage());
         }
     }
+
     public void addProductToCart(Product product, int quantity) throws Exception {
         if (product == null) {
             throw new IllegalArgumentException("Товар не может быть null");
@@ -63,7 +61,6 @@ public class CartService {
             // Проверяем, есть ли уже такой товар в БД
             List<CartItemDTO> existingItems = CartRepository.loadCartFromSupabase(userId);
             CartItemDTO existingItem = null;
-
             for (CartItemDTO item : existingItems) {
                 if (item.productId == product.getId()) {
                     existingItem = item;
@@ -89,7 +86,6 @@ public class CartService {
             }
 
             Cart.getInstance().addProduct(product, quantity);
-
         } catch (Exception e) {
             throw new Exception("Ошибка добавления в корзину: " + e.getMessage());
         }
@@ -121,7 +117,6 @@ public class CartService {
 
             // Удаляем из локальной корзины
             Cart.getInstance().removeProduct(product);
-
         } catch (Exception e) {
             throw new Exception("Ошибка удаления из корзины: " + e.getMessage());
         }
@@ -152,25 +147,21 @@ public class CartService {
             Cart cart = Cart.getInstance();
             cart.removeProduct(product);
             cart.addProduct(product, newQuantity);
-
         } catch (Exception e) {
             throw new Exception("Ошибка обновления количества: " + e.getMessage());
         }
     }
 
     public double getCartTotal() {
-        double total = Cart.getInstance().getTotal();
-        return total;
+        return Cart.getInstance().getTotal();
     }
 
     public int getCartSize() {
-        int size = Cart.getInstance().getTotalQuantity();
-        return size;
+        return Cart.getInstance().getTotalQuantity();
     }
 
     public int getCartItemsCount() {
-        int count = Cart.getInstance().getUniqueItemsCount();
-        return count;
+        return Cart.getInstance().getUniqueItemsCount();
     }
 
     public List<CartItem> getCartItems() {
@@ -186,7 +177,7 @@ public class CartService {
         try {
             CartRepository.clearUserCart(userId);
             Cart.getInstance().clear();
-
+            appliedPromoCode = null; // ✅ Сбрасываем промокод
         } catch (Exception e) {
             throw new Exception("Ошибка очистки корзины: " + e.getMessage());
         }
@@ -196,13 +187,13 @@ public class CartService {
         return Cart.getInstance();
     }
 
+    // ✅ СТАРЫЙ МЕТОД (для обратной совместимости)
     public double applyDiscount(String promoCode) throws Exception {
         if (promoCode == null || promoCode.isEmpty()) {
             throw new IllegalArgumentException("Промокод не может быть пустым");
         }
 
         double discountPercent = 0;
-
         if (promoCode.equalsIgnoreCase("SALE10")) {
             discountPercent = 10;
         } else if (promoCode.equalsIgnoreCase("SALE20")) {
@@ -229,5 +220,39 @@ public class CartService {
 
     public boolean isProductInCart(Product product) {
         return getProductQuantity(product) > 0;
+    }
+
+    // ============================================
+    // ✅ НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ПРОМОКОДАМИ
+    // ============================================
+
+    /**
+     * ✅ Устанавливает примененный промокод
+     */
+    public void setAppliedPromoCode(PromoCode promoCode) {
+        this.appliedPromoCode = promoCode;
+        System.out.println("✅ Промокод сохранен в CartService: " + (promoCode != null ? promoCode.getCode() : "null"));
+    }
+
+    /**
+     * ✅ Получает примененный промокод
+     */
+    public PromoCode getAppliedPromoCode() {
+        return this.appliedPromoCode;
+    }
+
+    /**
+     * ✅ Проверяет, применен ли промокод
+     */
+    public boolean hasAppliedPromoCode() {
+        return this.appliedPromoCode != null;
+    }
+
+    /**
+     * ✅ Сбрасывает примененный промокод
+     */
+    public void clearAppliedPromoCode() {
+        this.appliedPromoCode = null;
+        System.out.println("🗑 Промокод очищен");
     }
 }

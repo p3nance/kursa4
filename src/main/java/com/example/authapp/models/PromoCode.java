@@ -22,6 +22,9 @@ public class PromoCode {
         this.isActive = new SimpleBooleanProperty(isActive);
     }
 
+    /**
+     * ✅ Проверка доступности промокода
+     */
     public boolean canUse() {
         return isActive.get() && usedCount.get() < maxUses.get();
     }
@@ -35,10 +38,6 @@ public class PromoCode {
     public String getExpiryDate() { return expiryDate.get(); }
     public boolean getIsActive() { return isActive.get(); }
 
-    // Setters
-    public void setUsedCount(int count) { usedCount.set(count); }
-    public void setIsActive(boolean active) { isActive.set(active); }
-
     // Properties
     public IntegerProperty promoIdProperty() { return promoId; }
     public StringProperty codeProperty() { return code; }
@@ -48,9 +47,12 @@ public class PromoCode {
     public StringProperty expiryDateProperty() { return expiryDate; }
     public BooleanProperty isActiveProperty() { return isActive; }
 
-    @Override
-    public String toString() {
-        return String.format("%s (-%d%%, осталось: %d)", code.get(), (int)discountPercent.get(),
-                maxUses.get() - usedCount.get());
-    }
+    // Setters
+    public void setPromoId(int promoId) { this.promoId.set(promoId); }
+    public void setCode(String code) { this.code.set(code); }
+    public void setDiscountPercent(double discountPercent) { this.discountPercent.set(discountPercent); }
+    public void setMaxUses(int maxUses) { this.maxUses.set(maxUses); }
+    public void setUsedCount(int usedCount) { this.usedCount.set(usedCount); }
+    public void setExpiryDate(String expiryDate) { this.expiryDate.set(expiryDate); }
+    public void setIsActive(boolean isActive) { this.isActive.set(isActive); }
 }

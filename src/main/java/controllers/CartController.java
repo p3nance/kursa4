@@ -5,6 +5,8 @@ import com.example.authapp.models.Cart.CartItem;
 import com.example.authapp.services.CartService;
 import com.example.authapp.services.OrderService;
 import com.example.authapp.services.ProductService;
+import com.example.authapp.models.PromoCode;
+import com.example.authapp.services.PromoCodeService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,10 +34,11 @@ public class CartController implements Initializable {
     private CartService cartService;
     private ProductService productService;
     private OrderService orderService;
+    private PromoCodeService promoCodeService; // ✅ ДОБАВЛЕНО
 
     private double appliedDiscount = 0;
     private String appliedPromoCode = null;
-    private boolean isCheckingOut = false; // ✅ Флаг для предотвращения двойного клика
+    private boolean isCheckingOut = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -45,6 +48,7 @@ public class CartController implements Initializable {
             cartService = new CartService();
             productService = new ProductService();
             orderService = new OrderService(cartService, productService);
+            promoCodeService = new PromoCodeService(); // ✅ ИНИЦИАЛИЗАЦИЯ
 
             cartService.loadUserCart();
             System.out.println("✅ Корзина загружена");
@@ -84,7 +88,7 @@ public class CartController implements Initializable {
         }
 
         if (applyPromoButton != null) {
-            applyPromoButton.setOnAction(e -> applyPromo());
+            applyPromoButton.setOnAction(e -> applyPromoCode());
         }
     }
 
@@ -147,7 +151,7 @@ public class CartController implements Initializable {
             }
         });
 
-        // ✅ Кнопка удаления с КРАСНЫМ стилем
+        // Кнопка удаления
         Button remove = new Button("🗑");
         remove.setStyle("-fx-font-size: 14px; -fx-padding: 8px 12px; " +
                 "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: bold; " +
@@ -180,32 +184,59 @@ public class CartController implements Initializable {
     /**
      * ✅ Применяет промокод
      */
-    private void applyPromo() {
+    @FXML
+    private void applyPromoCode() {
         String code = promoCodeField.getText().trim();
 
         if (code.isEmpty()) {
-            showAlert("Ошибка", "Введите код промокода");
+            showAlert("Ошибка", "Введите промокод!");
             return;
         }
 
-        try {
-            double discount = cartService.applyDiscount(code);
+        System.out.println("🎟️ Попытка применить промокод: " + code);
 
-            appliedDiscount = discount;
-            appliedPromoCode = code;
+        new Thread(() -> {
+            try {
+                // Валидация промокода
+                PromoCode promo = promoCodeService.validateAndGetPromoCode(code);
 
-            System.out.println("✅ Промокод применен: " + code + " Скидка: " + discount + " ₽");
+                // Расчет скидки
+                double totalBeforeDiscount = cartService.getCartTotal();
+                double discount = promoCodeService.calculateDiscount(totalBeforeDiscount, promo);
+                double finalPrice = totalBeforeDiscount - discount;
 
-            showAlert("Успех", String.format("Промокод '%s' применен!\nСкидка: %.2f ₽", code, discount));
-            updateTotal();
+                Platform.runLater(() -> {
+                    // Сохраняем промокод и скидку
+                    appliedPromoCode = promo.getCode();
+                    appliedDiscount = discount;
+                    cartService.setAppliedPromoCode(promo);
 
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка применения промокода: " + e.getMessage());
-            showAlert("Ошибка", "Неверный промокод: " + e.getMessage());
-            appliedDiscount = 0;
-            appliedPromoCode = null;
-            updateTotal();
-        }
+                    // Обновляем UI
+                    discountLabel.setText(String.format("Скидка: %.2f ₽ (-%.0f%%)", discount, promo.getDiscountPercent()));
+                    discountLabel.setVisible(true);
+                    totalLabel.setText(String.format("Итого: %.2f ₽", finalPrice));
+
+                    // Блокируем поле ввода
+                    promoCodeField.setDisable(true);
+                    applyPromoButton.setDisable(true);
+
+                    showAlert("✅ Успех", String.format("Промокод применен!\nСкидка: %.0f%%", promo.getDiscountPercent()));
+
+                    System.out.println("✅ Промокод успешно применен");
+                    System.out.println("   - Код: " + promo.getCode());
+                    System.out.println("   - Сумма до скидки: " + totalBeforeDiscount + " ₽");
+                    System.out.println("   - Скидка: " + discount + " ₽");
+                    System.out.println("   - Итого: " + finalPrice + " ₽");
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    showAlert("❌ Ошибка", e.getMessage());
+                    System.err.println("❌ Ошибка применения промокода: " + e.getMessage());
+                    e.printStackTrace();
+                });
+            }
+        }).start();
     }
 
     /**
@@ -215,12 +246,15 @@ public class CartController implements Initializable {
         double total = Cart.getInstance().getTotal();
         double finalTotal = total - appliedDiscount;
 
-        if (discountLabel != null) {
+        if (discountLabel != null && appliedDiscount > 0) {
             discountLabel.setText(String.format("Скидка: %.2f ₽", appliedDiscount));
+            discountLabel.setVisible(true);
+        } else if (discountLabel != null) {
+            discountLabel.setVisible(false);
         }
 
         if (totalLabel != null) {
-            totalLabel.setText(String.format("Итого: %,.2f ₽", finalTotal));
+            totalLabel.setText(String.format("Итого: %.2f ₽", finalTotal));
         }
     }
 
@@ -229,7 +263,6 @@ public class CartController implements Initializable {
      */
     @FXML
     private void checkout() {
-        // ✅ Проверяем флаг, чтобы избежать двойного клика
         if (isCheckingOut) {
             System.out.println("⚠️ Оформление уже в процессе, ждите...");
             return;
@@ -261,25 +294,26 @@ public class CartController implements Initializable {
                 finalTotal
         );
 
+        if (appliedPromoCode != null) {
+            message += "\n\nПромокод: " + appliedPromoCode;
+        }
+
         confirmDialog.setContentText(message);
 
-        // ✅ ИСПРАВЛЕНО: Правильно обрабатываем результат
         Optional<ButtonType> result = confirmDialog.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) {
             System.out.println("❌ Оформление отменено пользователем");
             return;
         }
 
-        // ✅ Устанавливаем флаг
         isCheckingOut = true;
         checkoutButton.setDisable(true);
 
-        // ✅ Выполняем оформление в отдельном потоке
         Thread checkoutThread = new Thread(() -> {
             try {
                 System.out.println("📤 Отправка заказа на сервер...");
 
-                // ✅ Используем OrderService
+                // Создаем заказ
                 int orderId = orderService.createOrderFromCart(appliedPromoCode);
 
                 Platform.runLater(() -> {
@@ -287,7 +321,10 @@ public class CartController implements Initializable {
                     appliedDiscount = 0;
                     appliedPromoCode = null;
                     promoCodeField.clear();
+                    promoCodeField.setDisable(false);
+                    applyPromoButton.setDisable(false);
                     discountLabel.setText("Скидка: -");
+                    discountLabel.setVisible(false);
                     loadCartItems();
                     updateTotal();
 
@@ -306,7 +343,7 @@ public class CartController implements Initializable {
                                     orderId,
                                     total,
                                     appliedDiscount,
-                                    (total - appliedDiscount)
+                                    finalTotal
                             )
                     );
                     successAlert.showAndWait();
@@ -318,7 +355,6 @@ public class CartController implements Initializable {
 
                     System.out.println("✅ Заказ #" + orderId + " успешно завершен");
 
-                    // ✅ Сбрасываем флаг
                     isCheckingOut = false;
                     checkoutButton.setDisable(false);
                 });
@@ -338,7 +374,6 @@ public class CartController implements Initializable {
 
                     System.err.println("❌ Заказ не был создан");
 
-                    // ✅ Сбрасываем флаг при ошибке
                     isCheckingOut = false;
                     checkoutButton.setDisable(false);
                 });
