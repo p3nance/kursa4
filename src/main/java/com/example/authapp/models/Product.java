@@ -1,6 +1,12 @@
 package com.example.authapp.models;
 
-import javafx.beans.property.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.util.StringConverter;
 
 public class Product {
     private final IntegerProperty id;
@@ -72,7 +78,32 @@ public class Product {
 
     @Override
     public String toString() {
-        return String.format("%s (%s) — %.2f руб.", getName(), getCategory(), getPrice());
+        String n = getName() != null && !getName().isEmpty() ? getName() : "Без названия";
+        String c = getCategory() != null && !getCategory().isEmpty() ? getCategory() : "Без категории";
+        double p = getPrice();
+        return String.format("%s (%s) — %,.0f руб.", n, c, p);
+    }
+
+    public static StringConverter<Product> stringConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(Product product) {
+                if (product == null) return "";
+                String n = product.getName() != null && !product.getName().isEmpty()
+                        ? product.getName()
+                        : "Без названия";
+                String c = product.getCategory() != null && !product.getCategory().isEmpty()
+                        ? product.getCategory()
+                        : "";
+                if (c.isEmpty()) return n;
+                return c + " | " + n;
+            }
+
+            @Override
+            public Product fromString(String string) {
+                return null; // не нужен для ComboBox
+            }
+        };
     }
 
     @Override

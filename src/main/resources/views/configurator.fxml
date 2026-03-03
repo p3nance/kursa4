@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="controllers.ConfiguratorController">
+
+    <!-- Основной контент конфигуратора -->
+    <BorderPane fx:id="mainContent" style="-fx-background-color: #f5f5f5;">
+        <!-- Шапка -->
+        <top>
+            <HBox spacing="15" alignment="CENTER_LEFT"
+                  style="-fx-padding: 15 25; -fx-background-color: #1e40af;">
+                <Button fx:id="backBtn"
+                        text="← Назад"
+                        style="-fx-background-color: rgba(255,255,255,0.1);
+                               -fx-text-fill: white;
+                               -fx-font-size: 13px;
+                               -fx-font-weight: bold;
+                               -fx-padding: 8 16;
+                               -fx-background-radius: 8;
+                               -fx-cursor: hand;"/>
+                <Label text="🔧 Сборка ПК"
+                       style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+            </HBox>
+        </top>
+
+        <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
+        <center>
+            <BorderPane style="-fx-padding: 20;">
+
+                <!-- Левая часть: Выбор компонентов -->
+                <center>
+                    <VBox style="-fx-padding: 0 20 0 0;">
+                        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                                    style="-fx-background-color: transparent; -fx-background: #f5f5f5; -fx-border-color: transparent;">
+                            <VBox spacing="20">
+                                <Label text="Выберите компоненты" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                                <VBox fx:id="categoriesContainer" spacing="15"/>
+                            </VBox>
+                        </ScrollPane>
+                    </VBox>
+                </center>
+
+                <!-- Правая часть: Итоговая сборка -->
+                <right>
+                    <VBox prefWidth="340" minWidth="340" maxWidth="340" spacing="15"
+                          style="-fx-background-color: white;
+                                 -fx-padding: 20;
+                                 -fx-border-color: #e5e7eb;
+                                 -fx-border-radius: 12;
+                                 -fx-background-radius: 12;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);">
+
+                        <!-- Заголовок -->
+                        <Label text="Текущая сборка" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
+                        <Separator/>
+
+                        <!-- ПЛАШКА СТАТУСА СОВМЕСТИМОСТИ -->
+                        <HBox fx:id="compatStatusBox" spacing="10" alignment="CENTER_LEFT"
+                              minHeight="-Infinity"
+                              style="-fx-background-color: #f3f4f6; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8;">
+                            <Label fx:id="compatIcon" text="ℹ" style="-fx-font-size: 16px;" minWidth="-Infinity"/>
+                            <Label fx:id="compatStatusText" text="Сборка пуста" wrapText="true"
+                                   HBox.hgrow="ALWAYS" minHeight="-Infinity"
+                                   style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4b5563;"/>
+                        </HBox>
+
+                        <!-- ЖЕСТКОЕ ОГРАНИЧЕНИЕ ВЫСОТЫ СПИСКА -->
+                        <ListView fx:id="componentsList" VBox.vgrow="NEVER"
+                                  prefHeight="250" minHeight="150" maxHeight="250"
+                                  style="-fx-background-color: transparent; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-font-size: 12px;"/>
+
+                        <!-- Нижний блок, который всегда будет на экране -->
+                        <VBox spacing="15" VBox.vgrow="NEVER">
+                            <Separator/>
+
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="Итого:" style="-fx-font-size: 16px; -fx-text-fill: #374151;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="totalPrice" text="0 ₽" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10b981;"/>
+                            </HBox>
+
+                            <Button fx:id="addBuildToCart" text="🛒 Добавить в корзину" maxWidth="Infinity"
+                                    style="-fx-background-color: linear-gradient(to bottom, #10b981, #059669);
+                                           -fx-text-fill: #ffffff;
+                                           -fx-font-size: 14px;
+                                           -fx-font-weight: bold;
+                                           -fx-padding: 12 20;
+                                           -fx-background-radius: 10;
+                                           -fx-border-radius: 10;
+                                           -fx-border-width: 1.5;
+                                           -fx-border-color: #34d399;
+                                           -fx-cursor: hand;
+                                           -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.4), 10, 0, 0, 3);"/>
+
+                            <HBox fx:id="cartStatusBox" spacing="10" alignment="CENTER_LEFT"
+                                  visible="false" managed="false" minHeight="-Infinity"
+                                  style="-fx-background-color: #ecfdf5; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8;">
+                                <Label fx:id="cartStatusIcon" text="✅" style="-fx-font-size: 16px;" minWidth="-Infinity"/>
+                                <Label fx:id="cartStatusText" text="" wrapText="true"
+                                       HBox.hgrow="ALWAYS" minHeight="-Infinity"
+                                       style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #065f46;"/>
+                            </HBox>
+                        </VBox>
+
+                    </VBox>
+                </right>
+
+            </BorderPane>
+        </center>
+    </BorderPane>
+
+    <!-- Скрытый оверлей для выбора товаров -->
+    <VBox fx:id="overlayPane" alignment="CENTER" visible="false"
+          style="-fx-background-color: rgba(0, 0, 0, 0.5);">
+
+        <VBox style="-fx-background-color: #f5f5f5; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25;"
+              maxWidth="800" maxHeight="600" VBox.vgrow="NEVER">
+
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 0 0 15 0;">
+                <Label fx:id="overlayTitle" text="Выберите товар" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="✕ Закрыть" fx:id="closeOverlayBtn"
+                        style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background: #f5f5f5; -fx-background-color: transparent; -fx-border-color: transparent;">
+                <TilePane fx:id="overlayProductsGrid" hgap="15" vgap="15" prefColumns="3" alignment="TOP_CENTER"
+                          style="-fx-padding: 10;"/>
+            </ScrollPane>
+
+            <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15 0 0 0;">
+                <Button fx:id="clearSelectionBtn" text="Убрать выбор"
+                        style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-background-radius: 8; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </VBox>
+
+</StackPane>

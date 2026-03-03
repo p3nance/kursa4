@@ -5,54 +5,77 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            stylesheets="@styles/styles.css"
+            stylesheets="@../styles/styles.css"
             style="-fx-background-color: #f5f5f5;">
 
+    <!-- Шапка с кнопкой назад -->
     <top>
-        <VBox spacing="10" style="-fx-padding: 15; -fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
-            <Button fx:id="backButton" text="← Назад к товарам"
-                    style="-fx-background-color: #6b7280; -fx-text-fill: white; -fx-padding: 8 16; -fx-font-size: 12px; -fx-background-radius: 5;"/>
+        <VBox styleClass="detail-header">
+            <Button fx:id="backButton"
+                    text="← Назад к товарам"
+                    styleClass="detail-back-btn"/>
         </VBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: #f5f5f5;">
-            <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: #f5f5f5;">
+        <ScrollPane fitToWidth="true" styleClass="detail-scroll">
+            <VBox spacing="24" styleClass="detail-content">
 
-                <HBox spacing="30" styleClass="card">
-                    <!-- Левая часть - изображение -->
-                    <VBox alignment="TOP_CENTER" spacing="10">
-                        <ImageView fx:id="largeImage" fitWidth="400" fitHeight="300" preserveRatio="true"/>
+                <!-- Основной блок: изображение + инфо -->
+                <HBox spacing="32" styleClass="detail-card">
+
+                    <!-- Изображение слева -->
+                    <VBox alignment="TOP_CENTER" spacing="10" minWidth="400">
+                        <ImageView fx:id="largeImage"
+                                   fitWidth="400" fitHeight="300"
+                                   preserveRatio="true"/>
                     </VBox>
 
-                    <!-- Правая часть - информация -->
-                    <VBox spacing="15" HBox.hgrow="ALWAYS">
-                        <Label fx:id="productNameLabel" text="Название товара"
-                               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                    <!-- Информация справа -->
+                    <VBox spacing="14" HBox.hgrow="ALWAYS">
 
-                        <Label fx:id="manufacturerLabel" text="Производитель:"
-                               style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+                        <Label fx:id="productNameLabel"
+                               text="Название товара"
+                               styleClass="detail-product-name"
+                               wrapText="true"/>
 
-                        <Label fx:id="categoryLabel" text="Категория:"
-                               style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+                        <Label fx:id="manufacturerLabel"
+                               text="Производитель:"
+                               styleClass="detail-meta"/>
 
-                        <Label fx:id="priceLabel" text="0 ₽"
-                               style="-fx-font-size: 26px; -fx-text-fill: #10b981; -fx-font-weight: bold;"/>
+                        <Label fx:id="categoryLabel"
+                               text="Категория:"
+                               styleClass="detail-meta"/>
+
+                        <Label fx:id="priceLabel"
+                               text="0 ₽"
+                               styleClass="detail-price"/>
 
                         <Separator/>
 
-                        <Label text="Описание:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
-                        <TextArea fx:id="descriptionArea" wrapText="true" editable="false" prefRowCount="5"
-                                  style="-fx-control-inner-background: #f9f9f9; -fx-text-fill: #666;"/>
+                        <Label text="Описание:"
+                               styleClass="detail-section-title"/>
+
+                        <TextArea fx:id="descriptionArea"
+                                  wrapText="true"
+                                  editable="false"
+                                  prefRowCount="6"
+                                  styleClass="detail-description"/>
 
                         <Separator/>
 
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Button fx:id="addToCartButton" text="🛒 Добавить в корзину"
-                                    styleClass="button-success" prefWidth="200"/>
-                            <Button fx:id="buyNowButton" text="💳 Купить сейчас"
-                                    style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 12 40; -fx-background-radius: 5; -fx-font-size: 14;" prefWidth="200"/>
+                        <!-- Кнопки действий -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button fx:id="addToCartButton"
+                                    text="🛒 Добавить в корзину"
+                                    styleClass="detail-cart-btn"
+                                    prefWidth="210"/>
+                            <Button fx:id="buyNowButton"
+                                    text="💳 Купить сейчас"
+                                    styleClass="detail-buy-btn"
+                                    prefWidth="210"/>
                         </HBox>
+
                     </VBox>
                 </HBox>
 

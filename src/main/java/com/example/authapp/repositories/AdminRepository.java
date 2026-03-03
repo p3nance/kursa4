@@ -15,10 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import config.Config;
 
-/**
- * ✅ AdminRepository - управление товарами, пользователями и заказами
- * Использует Supabase REST API для товаров/заказов и Admin API для блокировки
- */
 public class AdminRepository {
     private static final String SUPABASE_URL = Config.SUPABASE_URL;
     private static final String SUPABASE_KEY = Config.SUPABASE_ANON_KEY;

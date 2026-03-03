@@ -5,30 +5,49 @@
 <?import javafx.geometry.Insets?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      spacing="8" alignment="TOP_CENTER" style="-fx-padding: 12; -fx-border-color: #e5e7eb; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-color: #ffffff; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 4, 0, 0, 2);">
+      styleClass="product-card"
+      spacing="8"
+      alignment="TOP_CENTER"
+      prefWidth="220"
+      minHeight="260">
 
-    <!-- Изображение товара -->
-    <ImageView fx:id="productImage" fitWidth="180" fitHeight="120" preserveRatio="true"/>
+    <!-- Изображение -->
+    <ImageView fx:id="productImage"
+               fitWidth="180" fitHeight="110"
+               preserveRatio="true"/>
 
     <!-- Название -->
-    <Label fx:id="productName" text="Название товара"
-           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f2937; -fx-wrap-text: true;"/>
+    <Label fx:id="productName"
+           text="Название товара"
+           styleClass="product-card-title"
+           wrapText="true"
+           prefHeight="40" minHeight="40"/>
 
     <!-- Производитель -->
-    <Label fx:id="productManufacturer" text="Производитель"
-           style="-fx-font-size: 10px; -fx-text-fill: #9ca3af;"/>
+    <Label fx:id="productManufacturer"
+           text="Производитель"
+           styleClass="product-card-manufacturer"
+           prefHeight="20" minHeight="20"/>
 
     <!-- Цена -->
-    <Label fx:id="productPrice" text="0 ₽"
-           style="-fx-text-fill: #10b981; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+    <Label fx:id="productPrice"
+           text="0 ₽"
+           styleClass="product-card-price"
+           prefHeight="24" minHeight="24"/>
+
+    <!-- Распорка -->
+    <Region VBox.vgrow="ALWAYS"/>
 
     <!-- Кнопки -->
-    <HBox spacing="5" alignment="CENTER">
-        <Button fx:id="detailsButton" text="Подробнее →"
-                style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4;"
-                HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-        <Button fx:id="addToCartButton" text="🛒"
-                style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4;"/>
+    <HBox spacing="5" alignment="CENTER" prefHeight="35" minHeight="35">
+        <Button fx:id="detailsButton"
+                text="Подробнее"
+                styleClass="product-card-more-btn"
+                HBox.hgrow="ALWAYS"
+                maxWidth="Infinity"/>
+        <Button fx:id="addToCartButton"
+                text="🛒"
+                styleClass="product-card-cart-btn"/>
     </HBox>
 
 </VBox>

@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Node?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.Pane?>
 
@@ -16,62 +15,90 @@
             fx:controller="controllers.MainController">
 
     <top>
-        <HBox fx:id="headerPane" spacing="20"
-              style="-fx-padding: 15 20; -fx-alignment: center; -fx-background-color: #1e40af;">
+        <HBox fx:id="headerPane" spacing="16"
+              style="-fx-padding: 14 24; -fx-alignment: center; -fx-background-color: #1e40af;">
+
             <Label text="💻 TechStore"
                    style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
             <HBox fx:id="searchBox"
-                  style="-fx-background-color: white; -fx-background-radius: 25; -fx-padding: 0 15; -fx-spacing: 10; -fx-alignment: center-left;"
+                  style="-fx-background-color: white; -fx-background-radius: 25;
+                         -fx-padding: 0 15; -fx-spacing: 10; -fx-alignment: center-left;"
                   HBox.hgrow="ALWAYS">
-                <Label text="🔍"
-                       style="-fx-font-size: 16px;"/>
+                <Label text="🔍" style="-fx-font-size: 16px;"/>
                 <TextField fx:id="searchField"
                            promptText="Поиск товаров по названию..."
-                           style="-fx-font-size: 13px; -fx-border-width: 0; -fx-background-color: transparent; -fx-padding: 8 0;"
+                           style="-fx-font-size: 13px; -fx-border-width: 0;
+                                  -fx-background-color: transparent; -fx-padding: 8 0;"
                            HBox.hgrow="ALWAYS"/>
             </HBox>
+
+            <Button fx:id="configuratorBtn"
+                    text="🔧 Конфигуратор"
+                    style="-fx-background-color: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+                           -fx-text-fill: #ffffff;
+                           -fx-font-size: 13px;
+                           -fx-font-weight: bold;
+                           -fx-padding: 10 20;
+                           -fx-background-radius: 10;
+                           -fx-border-radius: 10;
+                           -fx-border-width: 1.5;
+                           -fx-border-color: #93c5fd;
+                           -fx-cursor: hand;
+                           -fx-effect: dropshadow(gaussian, rgba(29,78,216,0.5), 10, 0, 0, 3);"/>
+
             <Button fx:id="profileBtn"
                     text="👤 Мой кабинет"
-                    style="-fx-padding: 10 20; -fx-font-size: 13px; -fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold;" />
+                    style="-fx-padding: 10 20;
+                           -fx-font-size: 13px;
+                           -fx-background-color: #10b981;
+                           -fx-text-fill: white;
+                           -fx-background-radius: 8;
+                           -fx-cursor: hand;
+                           -fx-font-weight: bold;"/>
         </HBox>
     </top>
+
     <left>
         <VBox fx:id="categoryPane"
               style="-fx-background-color: #f3f4f6; -fx-border-width: 0 1 0 0; -fx-border-color: #d1d5db;"
               spacing="0"
-              prefWidth="220">
+              prefWidth="180">
             <VBox fx:id="categoryItemsPane"
                   spacing="6"
                   alignment="CENTER"
-                  style="-fx-padding: 12 0 0 0;" /> <!-- убрали padding сверху -->
+                  style="-fx-padding: 12 0 0 0;"/>
             <Pane VBox.vgrow="ALWAYS"/>
             <HBox alignment="CENTER" spacing="0" style="-fx-padding: 0 0 12 0;">
                 <Button fx:id="cartBtn"
                         text="🛒 Корзина"
-                        style="
-                -fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
-                -fx-text-fill: #fff;
-                -fx-background-radius: 13;
-                -fx-font-weight: bold;
-                -fx-font-size: 15px;
-                -fx-padding: 11 20;
-                -fx-cursor: hand;
-                -fx-effect: dropshadow(gaussian, #2563eb22, 2,0,0,2);
-                -fx-border-width: 0;
-            "
-                        minWidth="140"
-                        maxWidth="180"
+                        style="-fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
+                               -fx-text-fill: #fff;
+                               -fx-background-radius: 13;
+                               -fx-font-weight: bold;
+                               -fx-font-size: 14px;
+                               -fx-padding: 10 16;
+                               -fx-cursor: hand;
+                               -fx-effect: dropshadow(gaussian, #2563eb22, 2,0,0,2);
+                               -fx-border-width: 0;"
+                        minWidth="130"
+                        maxWidth="160"
                         wrapText="true"
                         alignment="CENTER"/>
             </HBox>
         </VBox>
     </left>
+
     <center>
-        <ScrollPane fx:id="contentScroll" style="-fx-background: white;" fitToWidth="true">
-            <FlowPane fx:id="productPane"
-                      hgap="20"
-                      vgap="20"
-                      style="-fx-background-color: white; -fx-padding: 20;"/>
+        <ScrollPane fx:id="contentScroll"
+                    fitToWidth="true"
+                    style="-fx-background-color: #f5f5f5; -fx-background: #f5f5f5;">
+            <TilePane fx:id="productPane"
+                      prefColumns="4"
+                      hgap="16"
+                      vgap="16"
+                      style="-fx-background-color: #f5f5f5; -fx-padding: 24;"/>
         </ScrollPane>
     </center>
+
 </BorderPane>
