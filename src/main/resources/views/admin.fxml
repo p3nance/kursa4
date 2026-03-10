@@ -21,7 +21,7 @@
                 <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
             <HBox spacing="15" alignment="CENTER_LEFT">
-                <Label text="👑 Панель администратора" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
+                <Label text="Панель администратора" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1f2937;"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="exitAdminBtn" text="← Выход из панели" styleClass="button-danger"/>
             </HBox>
@@ -124,7 +124,7 @@
             </Tab>
 
             <!-- ============ ВКЛ. ПРОМОКОДЫ ============ -->
-            <Tab text="🎟️ Промокоды" closable="false">
+            <Tab text="🎟 Промокоды" closable="false">
                 <VBox spacing="15" style="-fx-background-color: #ffffff;">
                     <padding>
                         <Insets top="20" right="20" bottom="20" left="20"/>

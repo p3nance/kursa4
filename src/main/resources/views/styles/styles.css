@@ -446,3 +446,182 @@
 .detail-buy-btn:hover {
     -fx-background-color: #059669;
 }
+/* ─── Корневой контейнер ─── */
+.cab-root {
+    -fx-background-color: #f0f4f8;
+}
+
+/* ─── Шапка ─── */
+.cab-header {
+    -fx-background-color: linear-gradient(to right, #1e3a8a, #2563eb, #3b82f6);
+    -fx-effect: dropshadow(gaussian, rgba(30,58,138,0.35), 12, 0, 0, 4);
+}
+.cab-header-inner {
+    -fx-padding: 16 24 16 24;
+}
+
+/* Аватар-круг */
+.cab-avatar {
+    -fx-min-width:  48;
+    -fx-min-height: 48;
+    -fx-max-width:  48;
+    -fx-max-height: 48;
+    -fx-background-color: rgba(255,255,255,0.18);
+    -fx-background-radius: 24;
+    -fx-border-radius: 24;
+    -fx-border-color: rgba(255,255,255,0.35);
+    -fx-border-width: 2;
+}
+
+/* Тексты шапки */
+.cab-header-title {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+.cab-header-email {
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(255,255,255,0.78);
+}
+
+/* ─── Кнопки шапки ─── */
+.cab-btn-back {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18;
+    -fx-background-radius: 9;
+    -fx-border-radius: 9;
+    -fx-border-color: rgba(255,255,255,0.30);
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+.cab-btn-back:hover {
+    -fx-background-color: rgba(255,255,255,0.28);
+}
+.cab-btn-back:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+.cab-btn-logout {
+    -fx-background-color: rgba(239,68,68,0.75);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18;
+    -fx-background-radius: 9;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+}
+.cab-btn-logout:hover {
+    -fx-background-color: #ef4444;
+    -fx-effect: dropshadow(gaussian, rgba(239,68,68,0.5), 8, 0, 0, 2);
+}
+.cab-btn-logout:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+/* ─── Контент / ScrollPane ─── */
+.cab-scroll {
+    -fx-background-color: #f0f4f8;
+    -fx-background: #f0f4f8;
+    -fx-padding: 0;
+}
+.cab-scroll:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.cab-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.cab-content {
+    -fx-background-color: #f0f4f8;
+    -fx-padding: 24 28 32 28;
+}
+
+/* ─── Карточки ─── */
+.cab-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.07), 10, 0, 0, 3);
+}
+
+/* ─── Заголовки секций ─── */
+.cab-section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+.cab-sep {
+    -fx-border-color: #e2e8f0;
+    -fx-padding: 0;
+}
+
+/* ─── Метки полей ─── */
+.cab-field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748b;
+}
+
+/* ─── Read-only поле (email) ─── */
+.cab-field-readonly {
+    -fx-control-inner-background: #f1f5f9;
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #94a3b8;
+    -fx-border-color: #cbd5e1;
+    -fx-prompt-text-fill: #94a3b8;
+}
+
+/* ─── Кнопка «Сохранить» ─── */
+.cab-btn-save {
+    -fx-background-color: linear-gradient(to bottom, #10b981, #059669);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 24;
+    -fx-background-radius: 10;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(5,150,105,0.40), 8, 0, 0, 3);
+}
+.cab-btn-save:hover {
+    -fx-background-color: linear-gradient(to bottom, #059669, #047857);
+    -fx-effect: dropshadow(gaussian, rgba(5,150,105,0.55), 10, 0, 0, 4);
+}
+.cab-btn-save:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+.cab-btn-save:disabled {
+    -fx-opacity: 0.55;
+}
+
+/* ─── Кнопка «Изменить пароль» ─── */
+.cab-btn-password {
+    -fx-background-color: linear-gradient(to bottom, #3b82f6, #2563eb);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 24;
+    -fx-background-radius: 10;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.40), 8, 0, 0, 3);
+}
+.cab-btn-password:hover {
+    -fx-background-color: linear-gradient(to bottom, #2563eb, #1d4ed8);
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.55), 10, 0, 0, 4);
+}
+.cab-btn-password:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}

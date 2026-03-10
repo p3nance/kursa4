@@ -22,7 +22,6 @@ public class PromoCodeRepository {
         try {
             String upperCode = code.toUpperCase().trim();
 
-            // Ищем промокод в БД
             String urlString = Config.SUPABASE_URL + "/rest/v1/promo_codes?code=eq." + upperCode + "&select=*";
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -46,7 +45,6 @@ public class PromoCodeRepository {
 
             JSONObject json = jsonArray.getJSONObject(0);
 
-            // Создаем объект PromoCode
             PromoCode promo = new PromoCode(
                     json.getInt("id"),
                     json.getString("code"),
@@ -57,7 +55,6 @@ public class PromoCodeRepository {
                     json.getBoolean("is_active")
             );
 
-            // Проверки валидации
             if (!promo.getIsActive()) {
                 throw new Exception("Промокод неактивен");
             }
@@ -119,6 +116,9 @@ public class PromoCodeRepository {
         }
     }
 
+    /**
+     * ✅ Увеличение счётчика использований промокода через RPC
+     */
     public void usePromoCode(int promoId) throws Exception {
         try {
             String urlString = Config.SUPABASE_URL + "/rest/v1/rpc/increment_promo_code_usage";
@@ -155,7 +155,10 @@ public class PromoCodeRepository {
     }
 
     /**
-     * ✅ Удаление промокода (деактивация)
+     * ✅ Физическое удаление промокода из БД (DELETE)
+     *
+     * Использует нативный DELETE-запрос к Supabase REST API.
+     * Строка удаляется полностью — без деактивации.
      */
     public void deletePromoCode(int promoId) throws Exception {
         try {
@@ -163,31 +166,20 @@ public class PromoCodeRepository {
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            conn.setRequestMethod("POST");  // ✅ Используем POST вместо PATCH
+            conn.setRequestMethod("DELETE");
             conn.setRequestProperty("apikey", Config.SUPABASE_ANON_KEY);
             conn.setRequestProperty("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("X-HTTP-Method-Override", "PATCH");  // ✅ Указываем реальный метод
             conn.setRequestProperty("Prefer", "return=minimal");
-            conn.setDoOutput(true);
-
-            JSONObject json = new JSONObject();
-            json.put("is_active", false);
-
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = json.toString().getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
 
             int responseCode = conn.getResponseCode();
             if (responseCode != 200 && responseCode != 204) {
                 Scanner errorScanner = new Scanner(conn.getErrorStream(), StandardCharsets.UTF_8);
                 String errorResponse = errorScanner.useDelimiter("\\A").next();
                 errorScanner.close();
-                throw new Exception("Не удалось деактивировать промокод: " + errorResponse);
+                throw new Exception("Не удалось удалить промокод: " + errorResponse);
             }
 
-            System.out.println("✅ Промокод деактивирован");
+            System.out.println("✅ Промокод удалён (id=" + promoId + ")");
 
         } catch (Exception e) {
             throw new Exception("Ошибка удаления промокода: " + e.getMessage());
@@ -283,7 +275,7 @@ public class PromoCodeRepository {
     }
 
     /**
-     * ✅ Проверка срока действия
+     * ✅ Проверка срока действия промокода
      */
     private boolean isDateValid(String expiryDate) {
         try {

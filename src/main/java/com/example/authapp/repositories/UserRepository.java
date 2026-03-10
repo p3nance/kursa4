@@ -1,5 +1,5 @@
 package com.example.authapp.repositories;
-
+import config.Config;
 import com.example.authapp.dto.UserDTO;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -179,4 +179,58 @@ public class UserRepository {
             throw new Exception("Ошибка обновления профиля: " + e.getMessage());
         }
     }
+    public static void verifyPassword(String email, String password) throws Exception {
+        String url = config.Config.SUPABASE_URL + "/auth/v1/token?grant_type=password";
+
+        org.json.JSONObject body = new org.json.JSONObject();
+        body.put("email", email);
+        body.put("password", password);
+
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(url))
+                .header("apikey", config.Config.SUPABASE_ANON_KEY)
+                .header("Content-Type", "application/json")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        java.net.http.HttpResponse<String> response =
+                java.net.http.HttpClient.newHttpClient()
+                        .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Неверный текущий пароль");
+        }
+
+        System.out.println("✅ Текущий пароль подтверждён");
+    }
+
+    /**
+     * ✅ Смена пароля через Supabase Admin API (service_role)
+     */
+    public static void updatePassword(String userId, String newPassword) throws Exception {
+        String serviceRoleKey = config.Config.SUPABASE_SERVICE_ROLE_KEY;
+        String url = config.Config.SUPABASE_URL + "/auth/v1/admin/users/" + userId;
+
+        org.json.JSONObject body = new org.json.JSONObject();
+        body.put("password", newPassword);
+
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(url))
+                .header("Authorization", "Bearer " + serviceRoleKey)
+                .header("apikey", serviceRoleKey)
+                .header("Content-Type", "application/json")
+                .method("PUT", java.net.http.HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        java.net.http.HttpResponse<String> response =
+                java.net.http.HttpClient.newHttpClient()
+                        .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("HTTP " + response.statusCode() + " — " + response.body());
+        }
+
+        System.out.println("✅ Пароль изменён для userId=" + userId);
+    }
+
 }

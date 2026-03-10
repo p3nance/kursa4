@@ -11,10 +11,9 @@ import com.example.authapp.services.ProductService;
 import com.example.authapp.utils.PhoneFormatter;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import java.net.URL;
@@ -23,7 +22,6 @@ import java.util.ResourceBundle;
 
 /**
  * ✅ Контроллер личного кабинета пользователя
- * Загружает профиль, показывает историю заказов, позволяет редактировать данные
  */
 public class CabinetController implements Initializable {
 
@@ -58,14 +56,13 @@ public class CabinetController implements Initializable {
             orderService = new OrderService(cartService, productService);
 
             userEmail = SessionManager.getUserEmail();
-            userId = SessionManager.getUserId();
+            userId    = SessionManager.getUserId();
 
             if (userEmail != null) {
                 userEmailLabel.setText(userEmail);
                 emailField.setText(userEmail);
                 emailField.setEditable(false);
 
-                // ✅ Применяем форматирование к полю телефона
                 PhoneFormatter.setupPhoneField(phoneField);
 
                 loadUserData();
@@ -88,9 +85,12 @@ public class CabinetController implements Initializable {
         hostMainController = controller;
     }
 
-    // ✅ ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+    // ═══════════════════════════════════════════════════════
+    // ЗАГРУЗКА ДАННЫХ
+    // ═══════════════════════════════════════════════════════
+
     private void loadUserData() {
-        Thread loadThread = new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 UserDTO user = UserRepository.getUserProfileByEmail(userEmail);
                 Platform.runLater(() -> {
@@ -100,11 +100,7 @@ public class CabinetController implements Initializable {
                         phoneField.setText(user.phone != null ? user.phone : "");
                         cityField.setText(user.city != null ? user.city : "");
                         addressField.setText(user.address != null ? user.address : "");
-
-
                         System.out.println("✅ Данные пользователя загружены");
-                        System.out.println("   Email: " + user.email);
-                        System.out.println("   Is Admin: " + isAdmin);
                     } else {
                         System.out.println("⚠️ Профиль пользователя не найден");
                     }
@@ -115,13 +111,12 @@ public class CabinetController implements Initializable {
                 Platform.runLater(() -> showError("❌ Ошибка загрузки профиля: " + e.getMessage()));
             }
         });
-        loadThread.setDaemon(true);
-        loadThread.start();
+        t.setDaemon(true);
+        t.start();
     }
 
-    // ✅ ЗАГРУЗКА ИСТОРИИ ЗАКАЗОВ
     private void loadOrderHistory() {
-        Thread loadThread = new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 List<OrderDTO> orders = orderService.getUserOrderHistory();
                 Platform.runLater(() -> {
@@ -139,14 +134,11 @@ public class CabinetController implements Initializable {
                         historyTitle.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
                         ordersVBox.getChildren().add(historyTitle);
                         ordersVBox.getChildren().add(new Separator());
-
                         for (OrderDTO order : orders) {
                             ordersVBox.getChildren().add(createOrderCard(order));
                         }
-
                         System.out.println("✅ Загружено " + orders.size() + " заказов");
                     }
-
                     mainContentVBox.getChildren().add(ordersVBox);
                 });
             } catch (Exception e) {
@@ -155,18 +147,20 @@ public class CabinetController implements Initializable {
                 Platform.runLater(() -> showError("❌ Ошибка загрузки заказов"));
             }
         });
-        loadThread.setDaemon(true);
-        loadThread.start();
+        t.setDaemon(true);
+        t.start();
     }
 
-    // ✅ СОЗДАНИЕ КАРТОЧКИ ЗАКАЗА
+    // ═══════════════════════════════════════════════════════
+    // КАРТОЧКА ЗАКАЗА
+    // ═══════════════════════════════════════════════════════
+
     private VBox createOrderCard(OrderDTO order) {
-        VBox cardVBox = new VBox(10);
-        cardVBox.setStyle("-fx-border-color: #e5e7eb; -fx-border-radius: 12; " +
+        VBox card = new VBox(10);
+        card.setStyle("-fx-border-color: #e5e7eb; -fx-border-radius: 12; " +
                 "-fx-background-color: #f9fafb; -fx-background-radius: 12; " +
                 "-fx-padding: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2,0,0,1);");
 
-        // Заголовок с номером, датой и статусом
         HBox headerBox = new HBox(15);
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -184,10 +178,9 @@ public class CabinetController implements Initializable {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         headerBox.getChildren().addAll(orderIdLabel, dateLabel, spacer, statusLabel);
 
-        // Товары в заказе
         VBox itemsBox = new VBox(5);
-        itemsBox.setStyle("-fx-padding: 10; -fx-background-color: #ffffff; -fx-background-radius: 8; " +
-                "-fx-border-color: #e5e7eb; -fx-border-width: 1;");
+        itemsBox.setStyle("-fx-padding: 10; -fx-background-color: #ffffff; " +
+                "-fx-background-radius: 8; -fx-border-color: #e5e7eb; -fx-border-width: 1;");
 
         if (order.items != null && !order.items.isEmpty()) {
             for (OrderItemDTO item : order.items) {
@@ -213,191 +206,150 @@ public class CabinetController implements Initializable {
             itemsBox.getChildren().add(noItems);
         }
 
-        // Суммы и итоги
         VBox summaryBox = new VBox(8);
         summaryBox.setStyle("-fx-padding: 12; -fx-background-color: #f9fafb; -fx-border-radius: 8;");
-
-        HBox totalBox = createSummaryRow("Сумма:", String.format("%.2f ₽", order.totalAmount), "#666");
-        summaryBox.getChildren().add(totalBox);
+        summaryBox.getChildren().add(createSummaryRow("Сумма:", String.format("%.2f ₽", order.totalAmount), "#666"));
 
         if (order.discountAmount > 0) {
-            HBox discountBox = createSummaryRow("Скидка:", String.format("-%.2f ₽", order.discountAmount), "#ef4444");
-            summaryBox.getChildren().add(discountBox);
-            summaryBox.getChildren().add(new Separator());
-        } else {
-            summaryBox.getChildren().add(new Separator());
+            summaryBox.getChildren().add(createSummaryRow("Скидка:",
+                    String.format("-%.2f ₽", order.discountAmount), "#ef4444"));
         }
+        summaryBox.getChildren().add(new Separator());
+        summaryBox.getChildren().add(createSummaryRow("К оплате:",
+                String.format("%.2f ₽", order.finalAmount), "#059669"));
 
-        HBox finalBox = createSummaryRow("К оплате:", String.format("%.2f ₽", order.finalAmount), "#059669");
-        summaryBox.getChildren().add(finalBox);
-
-        cardVBox.getChildren().addAll(headerBox, itemsBox, summaryBox);
-        return cardVBox;
+        card.getChildren().addAll(headerBox, itemsBox, summaryBox);
+        return card;
     }
 
-    // ✅ СОЗДАНИЕ СТРОКИ ИТОГА
     private HBox createSummaryRow(String label, String value, String color) {
         HBox box = new HBox(15);
         box.setAlignment(Pos.CENTER_LEFT);
 
-        Label labelField = new Label(label);
-        labelField.setStyle("-fx-font-size: 13; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
+        Label lbl = new Label(label);
+        lbl.setStyle("-fx-font-size: 13; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
 
-        Label valueField = new Label(value);
-        valueField.setStyle("-fx-font-size: 13; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
+        Label val = new Label(value);
+        val.setStyle("-fx-font-size: 13; -fx-text-fill: " + color + "; -fx-font-weight: bold;");
 
-        box.getChildren().addAll(labelField, spacer, valueField);
+        box.getChildren().addAll(lbl, sp, val);
         return box;
     }
 
-    // ✅ ТЕКСТ СТАТУСА ЗАКАЗА
     private String getStatusLabel(String status) {
         if (status == null) return "❓ Неизвестно";
         switch (status.toLowerCase()) {
-            case "pending": return "⏳ В ожидании";
+            case "pending":   return "⏳ В ожидании";
             case "completed": return "✅ Завершен";
             case "cancelled": return "❌ Отменен";
-            default: return "❓ Неизвестно";
+            default:          return "❓ Неизвестно";
         }
     }
 
-    // ✅ СТИЛЬ СТАТУСА
     private String getStatusStyle(String status) {
         if (status == null) return "-fx-background-color: #e5e7eb;";
         switch (status.toLowerCase()) {
-            case "pending": return "-fx-background-color: #fbbf24; -fx-text-fill: #000;";
+            case "pending":   return "-fx-background-color: #fbbf24; -fx-text-fill: #000;";
             case "completed": return "-fx-background-color: #10b981; -fx-text-fill: #fff;";
             case "cancelled": return "-fx-background-color: #ef4444; -fx-text-fill: #fff;";
-            default: return "-fx-background-color: #e5e7eb;";
+            default:          return "-fx-background-color: #e5e7eb;";
         }
     }
 
-    // ✅ ПРОВЕРКА АДМИН-СТАТУСА И ДОБАВЛЕНИЕ КНОПКИ
+    // ═══════════════════════════════════════════════════════
+    // АДМИН
+    // ═══════════════════════════════════════════════════════
+
     private void checkIfAdmin() {
-        Thread checkThread = new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 UserDTO user = UserRepository.getUserProfileByEmail(userEmail);
-                System.out.println("🔍 Проверка администратора для: " + userEmail);
-                if (user != null) {
-                    System.out.println("   User found: " + user.email);
-                    System.out.println("   is_admin: " + user.is_admin);
-                    if (user.is_admin) {
-                        isAdmin = true;
-                        System.out.println("✅ Пользователь - администратор!");
-                        Platform.runLater(() -> {
-                            addAdminButton();
-                        });
-                    } else {
-                        System.out.println("❌ Пользователь - обычный пользователь");
-                    }
-                } else {
-                    System.out.println("❌ User not found!");
+                if (user != null && user.is_admin) {
+                    isAdmin = true;
+                    System.out.println("✅ Пользователь — администратор!");
+                    Platform.runLater(this::addAdminButton);
                 }
             } catch (Exception e) {
                 System.err.println("⚠️ Ошибка проверки администратора: " + e.getMessage());
-                e.printStackTrace();
             }
         });
-        checkThread.setDaemon(true);
-        checkThread.start();
+        t.setDaemon(true);
+        t.start();
     }
 
-    // ✅ ДОБАВЛЯЕТ КНОПКУ АДМИН ПАНЕЛИ
     private void addAdminButton() {
-        System.out.println("📌 Добавление кнопки админ панели...");
         Button adminButton = new Button("🔐 Админ панель");
         adminButton.setStyle("-fx-font-size: 13; -fx-padding: 10 20; " +
                 "-fx-background-color: #dc2626; -fx-text-fill: white; " +
                 "-fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;");
-
         adminButton.setOnAction(e -> openAdminPanel());
 
-        // Добавляем кнопку в верхний контейнер (рядом с другими кнопками)
         if (rootBorderPane != null) {
             VBox topContainer = (VBox) rootBorderPane.getTop();
             if (topContainer != null) {
-                // Ищем HBox с кнопками
                 for (javafx.scene.Node node : topContainer.getChildren()) {
                     if (node instanceof HBox) {
-                        HBox btnBox = (HBox) node;
-                        btnBox.getChildren().add(adminButton);
-                        System.out.println("✅ Админ кнопка добавлена успешно");
+                        ((HBox) node).getChildren().add(adminButton);
+                        System.out.println("✅ Админ кнопка добавлена");
                         return;
                     }
                 }
             }
         }
-        System.out.println("⚠️ Не удалось найти контейнер для кнопки админ панели");
     }
 
-    // ✅ ОТКРЫВАЕТ АДМИН ПАНЕЛЬ
     private void openAdminPanel() {
         try {
-            System.out.println("🔐 Открытие админ панели через MainController...");
-
-            // ✅ ВЫЗЫВАЕМ МЕТОД MainController - он уже знает как это делать!
             if (hostMainController != null) {
                 hostMainController.openAdminPanel();
-                System.out.println("✅ Админ панель открыта через MainController");
             } else {
-                System.err.println("❌ hostMainController is null!");
                 showError("❌ Ошибка: не удалось открыть админ панель");
             }
         } catch (Exception e) {
-            System.err.println("❌ Ошибка открытия админ панели: " + e.getMessage());
             e.printStackTrace();
             showError("❌ Ошибка открытия админ панели:\n" + e.getMessage());
         }
     }
 
-
-    // ✅ ВОЗВРАЩАЕТСЯ ИЗ АДМИН ПАНЕЛИ
     public void returnFromAdminPanel() {
         try {
-            System.out.println("🚪 Возврат из админ панели в кабинет...");
-
-            // Перезагружаем историю заказов
             mainContentVBox.getChildren().clear();
             loadOrderHistory();
-
-            // Останавливаем сервис обновления админки если нужно
-            if (adminController != null) {
-                adminController.stopRefreshService();
-            }
-
-            System.out.println("✅ Возврат в кабинет завершён");
+            if (adminController != null) adminController.stopRefreshService();
         } catch (Exception e) {
             System.err.println("❌ Ошибка возврата: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // ✅ НАСТРОЙКА КНОПОК
+    // ═══════════════════════════════════════════════════════
+    // КНОПКИ
+    // ═══════════════════════════════════════════════════════
+
     private void setupButtons() {
         saveButton.setOnAction(e -> saveProfile());
-        changePasswordButton.setOnAction(e -> changePassword());
+        changePasswordButton.setOnAction(e -> showChangePasswordDialog());
         backButton.setOnAction(e -> goBack());
         logoutButton.setOnAction(e -> logout());
     }
 
-    // ✅ СОХРАНЕНИЕ ПРОФИЛЯ
+    // ═══════════════════════════════════════════════════════
+    // СОХРАНЕНИЕ ПРОФИЛЯ
+    // ═══════════════════════════════════════════════════════
+
     private void saveProfile() {
-        String name = nameField.getText().trim();
+        String name    = nameField.getText().trim();
         String surname = surnameField.getText().trim();
-        String phone = phoneField.getText().trim();
-        String city = cityField.getText().trim();
+        String phone   = phoneField.getText().trim();
+        String city    = cityField.getText().trim();
         String address = addressField.getText().trim();
 
-        // Валидация
         if (name.isEmpty() || surname.isEmpty()) {
             showWarning("⚠️ Пожалуйста, заполните имя и фамилию");
             return;
         }
-
-        // ✅ Проверка телефона
         if (!phone.isEmpty() && !PhoneFormatter.isCompletePhone(phone)) {
             showWarning("⚠️ Телефон должен быть в формате +79878073394 (12 символов)");
             return;
@@ -406,17 +358,15 @@ public class CabinetController implements Initializable {
         saveButton.setDisable(true);
         saveButton.setText("Сохранение...");
 
-        Thread saveThread = new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 UserRepository.updateUserProfile(userEmail, name, surname, phone, city, address);
                 Platform.runLater(() -> {
                     saveButton.setDisable(false);
                     saveButton.setText("💾 Сохранить");
                     showSuccess("✅ Профиль успешно обновлен");
-                    System.out.println("✅ Профиль обновлен: " + name + " " + surname);
                 });
             } catch (Exception e) {
-                System.err.println("❌ Ошибка сохранения: " + e.getMessage());
                 e.printStackTrace();
                 Platform.runLater(() -> {
                     saveButton.setDisable(false);
@@ -425,89 +375,222 @@ public class CabinetController implements Initializable {
                 });
             }
         });
-        saveThread.setDaemon(true);
-        saveThread.start();
+        t.setDaemon(true);
+        t.start();
     }
 
-    // ✅ СМЕНА ПАРОЛЯ
-    private void changePassword() {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Смена пароля");
-        dialog.setHeaderText("Введите новый пароль");
+    // ═══════════════════════════════════════════════════════
+    // ОКНО СМЕНЫ ПАРОЛЯ
+    // ═══════════════════════════════════════════════════════
 
+    private void showChangePasswordDialog() {
+
+        // Затемнение
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
+        overlay.setPrefSize(rootBorderPane.getWidth(), rootBorderPane.getHeight());
+
+        // Карточка — фиксированный размер
+        VBox card = new VBox(16);
+        card.setAlignment(Pos.TOP_LEFT);
+        card.setPrefWidth(400);
+        card.setMaxWidth(400);
+        card.setMinWidth(400);
+        card.setPadding(new Insets(30));
+        card.setStyle(
+                "-fx-background-color: #ffffff;" +
+                        "-fx-background-radius: 18;" +
+                        "-fx-border-radius: 18;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(15,23,42,0.25), 30, 0, 0, 8);"
+        );
+        StackPane.setAlignment(card, Pos.CENTER);
+
+        // Заголовок
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        Label icon = new Label("🔑");
+        icon.setStyle("-fx-font-size: 20px;");
+        Label titleLbl = new Label("Смена пароля");
+        titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        titleBox.getChildren().addAll(icon, titleLbl);
+
+        Separator sep = new Separator();
+
+        // Поле: текущий пароль
+        Label oldPassLabel = new Label("Текущий пароль");
+        oldPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
+        PasswordField oldPasswordField = new PasswordField();
+        oldPasswordField.setPromptText("Введите текущий пароль");
+        oldPasswordField.setMaxWidth(Double.MAX_VALUE);
+        oldPasswordField.setStyle(fieldStyle(false));
+
+        // Поле: новый пароль
+        Label newPassLabel = new Label("Новый пароль");
+        newPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         PasswordField newPasswordField = new PasswordField();
-        newPasswordField.setPromptText("Новый пароль");
+        newPasswordField.setPromptText("Минимум 6 символов");
+        newPasswordField.setMaxWidth(Double.MAX_VALUE);
+        newPasswordField.setStyle(fieldStyle(false));
 
+        // Поле: подтверждение
+        Label confirmPassLabel = new Label("Подтверждение пароля");
+        confirmPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         PasswordField confirmPasswordField = new PasswordField();
-        confirmPasswordField.setPromptText("Подтверждение пароля");
+        confirmPasswordField.setPromptText("Повторите новый пароль");
+        confirmPasswordField.setMaxWidth(Double.MAX_VALUE);
+        confirmPasswordField.setStyle(fieldStyle(false));
 
-        VBox content = new VBox(10);
-        content.setPrefWidth(300);
-        content.getChildren().addAll(
-                new Label("Новый пароль:"),
-                newPasswordField,
-                new Label("Подтверждение:"),
-                confirmPasswordField
+        // Inline-ошибка
+        Label errorLabel = new Label();
+        errorLabel.setWrapText(true);
+        errorLabel.setMaxWidth(340);
+        errorLabel.setStyle(
+                "-fx-font-size: 12px; -fx-text-fill: #ef4444;" +
+                        "-fx-padding: 8 12; -fx-background-color: #fef2f2;" +
+                        "-fx-background-radius: 6; -fx-border-radius: 6;" +
+                        "-fx-border-color: #fecaca; -fx-border-width: 1;"
+        );
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+
+        // Кнопки
+        Button confirmBtn = new Button("✅  Сменить пароль");
+        confirmBtn.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #3b82f6, #2563eb);" +
+                        "-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;" +
+                        "-fx-padding: 11 0; -fx-background-radius: 10; -fx-border-width: 0;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(37,99,235,0.4), 8, 0, 0, 3);"
+        );
+        confirmBtn.setMaxWidth(Double.MAX_VALUE);
+
+        Button cancelBtn = new Button("Отмена");
+        cancelBtn.setStyle(
+                "-fx-background-color: #f1f5f9; -fx-text-fill: #64748b;" +
+                        "-fx-font-size: 13px; -fx-font-weight: bold;" +
+                        "-fx-padding: 11 0; -fx-background-radius: 10; -fx-border-width: 0;" +
+                        "-fx-cursor: hand;"
+        );
+        cancelBtn.setMaxWidth(Double.MAX_VALUE);
+
+        HBox btnBox = new HBox(10);
+        btnBox.getChildren().addAll(confirmBtn, cancelBtn);
+        HBox.setHgrow(confirmBtn, Priority.ALWAYS);
+        HBox.setHgrow(cancelBtn, Priority.ALWAYS);
+
+        card.getChildren().addAll(
+                titleBox, sep,
+                oldPassLabel, oldPasswordField,
+                newPassLabel, newPasswordField,
+                confirmPassLabel, confirmPasswordField,
+                errorLabel, btnBox
         );
 
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        overlay.getChildren().add(card);
 
-        dialog.setResultConverter(buttonType -> {
-            if (buttonType == ButtonType.OK) {
-                String newPassword = newPasswordField.getText();
-                String confirmPassword = confirmPasswordField.getText();
+        // Встраиваем overlay поверх текущего контента
+        StackPane root = new StackPane();
+        javafx.scene.Node currentCenter = rootBorderPane.getCenter();
+        rootBorderPane.setCenter(root);
+        root.getChildren().addAll(currentCenter, overlay);
 
-                if (newPassword.isEmpty()) {
-                    showWarning("⚠️ Пароль не может быть пустым");
-                    return null;
-                }
+        // Закрытие
+        Runnable closeDialog = () -> {
+            root.getChildren().remove(overlay);
+            rootBorderPane.setCenter(currentCenter);
+        };
 
-                if (!newPassword.equals(confirmPassword)) {
-                    showWarning("⚠️ Пароли не совпадают");
-                    return null;
-                }
-
-                if (newPassword.length() < 6) {
-                    showWarning("⚠️ Пароль должен быть не менее 6 символов");
-                    return null;
-                }
-
-                return newPassword;
-            }
-            return null;
+        cancelBtn.setOnAction(e -> closeDialog.run());
+        overlay.setOnMouseClicked(e -> {
+            if (e.getTarget() == overlay) closeDialog.run();
         });
 
-        dialog.showAndWait().ifPresent(newPassword -> {
-            if (newPassword != null) {
-                changePasswordButton.setDisable(true);
-                changePasswordButton.setText("Обновление...");
+        // Логика подтверждения
+        confirmBtn.setOnAction(e -> {
+            String oldPassword     = oldPasswordField.getText();
+            String newPassword     = newPasswordField.getText();
+            String confirmPassword = confirmPasswordField.getText();
 
-                Thread changeThread = new Thread(() -> {
-                    try {
-                        // TODO: Реализовать смену пароля в Supabase Auth
-                        Platform.runLater(() -> {
-                            changePasswordButton.setDisable(false);
-                            changePasswordButton.setText("🔐 Смена пароля");
-                            showSuccess("✅ Пароль успешно изменен");
-                            System.out.println("✅ Пароль пользователя изменен");
-                        });
-                    } catch (Exception e) {
-                        System.err.println("❌ Ошибка смены пароля: " + e.getMessage());
-                        Platform.runLater(() -> {
-                            changePasswordButton.setDisable(false);
-                            changePasswordButton.setText("🔐 Смена пароля");
-                            showError("❌ Ошибка смены пароля");
-                        });
-                    }
-                });
-                changeThread.setDaemon(true);
-                changeThread.start();
+            // Сброс подсветки
+            oldPasswordField.setStyle(fieldStyle(false));
+            newPasswordField.setStyle(fieldStyle(false));
+            confirmPasswordField.setStyle(fieldStyle(false));
+            errorLabel.setVisible(false);
+            errorLabel.setManaged(false);
+
+            // Валидация
+            if (oldPassword.isEmpty()) {
+                oldPasswordField.setStyle(fieldStyle(true));
+                showFieldError(errorLabel, "⚠️ Введите текущий пароль");
+                return;
             }
+            if (newPassword.isEmpty() || newPassword.length() < 6) {
+                newPasswordField.setStyle(fieldStyle(true));
+                showFieldError(errorLabel, "⚠️ Новый пароль — минимум 6 символов");
+                return;
+            }
+            if (newPassword.equals(oldPassword)) {
+                newPasswordField.setStyle(fieldStyle(true));
+                showFieldError(errorLabel, "⚠️ Новый пароль совпадает со старым");
+                return;
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                confirmPasswordField.setStyle(fieldStyle(true));
+                showFieldError(errorLabel, "⚠️ Пароли не совпадают");
+                return;
+            }
+
+            confirmBtn.setDisable(true);
+            confirmBtn.setText("Проверка...");
+
+            Thread t = new Thread(() -> {
+                try {
+                    // Шаг 1: проверяем старый пароль
+                    UserRepository.verifyPassword(userEmail, oldPassword);
+
+                    // Шаг 2: меняем пароль через Admin API
+                    UserRepository.updatePassword(userId, newPassword);
+
+                    Platform.runLater(() -> {
+                        closeDialog.run();
+                        showSuccess("✅ Пароль успешно изменён");
+                        System.out.println("✅ Пароль изменён");
+                    });
+                } catch (Exception ex) {
+                    System.err.println("❌ Ошибка смены пароля: " + ex.getMessage());
+                    Platform.runLater(() -> {
+                        confirmBtn.setDisable(false);
+                        confirmBtn.setText("✅  Сменить пароль");
+                        showFieldError(errorLabel, "❌ " + ex.getMessage());
+                    });
+                }
+            });
+            t.setDaemon(true);
+            t.start();
         });
     }
 
-    // ✅ ВОЗВРАТ НА ГЛАВНЫЙ ЭКРАН
+    /** Стиль поля: нормальный или с красной рамкой */
+    private String fieldStyle(boolean error) {
+        String border = error ? "#ef4444" : "#cbd5e1";
+        String bg     = error ? "#fef2f2" : "#f8fafc";
+        return "-fx-padding: 10; -fx-font-size: 13px;" +
+                "-fx-background-color: " + bg + ";" +
+                "-fx-border-color: " + border + ";" +
+                "-fx-border-radius: 8; -fx-background-radius: 8;";
+    }
+
+    /** Inline-ошибка внутри диалога */
+    private void showFieldError(Label errorLabel, String message) {
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // НАВИГАЦИЯ
+    // ═══════════════════════════════════════════════════════
+
     private void goBack() {
         if (hostMainController != null) {
             hostMainController.showMainContent();
@@ -515,7 +598,6 @@ public class CabinetController implements Initializable {
         }
     }
 
-    // ✅ ВЫХОД ИЗ АККАУНТА
     private void logout() {
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Подтверждение выхода");
@@ -533,30 +615,25 @@ public class CabinetController implements Initializable {
         });
     }
 
-    // ✅ УВЕДОМЛЕНИЕ ОБ УСПЕХЕ
+    // ═══════════════════════════════════════════════════════
+    // АЛЕРТЫ
+    // ═══════════════════════════════════════════════════════
+
     private void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Успех");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle("Успех"); a.setHeaderText(null); a.setContentText(message);
+        a.showAndWait();
     }
 
-    // ✅ УВЕДОМЛЕНИЕ ОБ ОШИБКЕ
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Ошибка");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle("Ошибка"); a.setHeaderText(null); a.setContentText(message);
+        a.showAndWait();
     }
 
-    // ✅ ПРЕДУПРЕЖДЕНИЕ
     private void showWarning(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Предупреждение");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setTitle("Предупреждение"); a.setHeaderText(null); a.setContentText(message);
+        a.showAndWait();
     }
 }

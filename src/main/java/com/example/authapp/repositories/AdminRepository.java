@@ -31,7 +31,6 @@ public class AdminRepository {
         try {
             String url = SUPABASE_URL + "/rest/v1/products?select=*";
 
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -62,26 +61,70 @@ public class AdminRepository {
         }
     }
 
+    /**
+     * ✅ Удаление товара с каскадной очисткой зависимых записей (ИСПРАВЛЕНО 409 Conflict)
+     *
+     * Порядок удаления:
+     *  1. order_items      — позиции заказов, ссылающиеся на product_id
+     *  2. cart_items       — позиции корзин, ссылающиеся на product_id
+     *  3. products         — сам товар
+     *
+     * Если в БД есть другие таблицы с FK → products.id, добавьте их по аналогии.
+     */
     public static void deleteProduct(int productId) throws Exception {
         try {
+            // 1. Удаляем позиции заказов с этим товаром
+            deleteRelated("/rest/v1/order_items?product_id=eq." + productId, "order_items");
+
+            // 2. Удаляем позиции корзин с этим товаром
+            deleteRelated("/rest/v1/cart_items?product_id=eq." + productId, "cart_items");
+
+            // 3. Удаляем сам товар
             String url = SUPABASE_URL + "/rest/v1/products?id=eq." + productId;
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
                     .header("apikey", SUPABASE_KEY)
+                    .header("Prefer", "return=minimal")
                     .DELETE()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 204) {
-                throw new Exception("Ошибка удаления: " + response.statusCode());
+            if (response.statusCode() != 200 && response.statusCode() != 204) {
+                throw new Exception("Ошибка удаления товара: HTTP " + response.statusCode() + " — " + response.body());
             }
+
+            System.out.println("✅ Товар удалён (id=" + productId + ")");
 
         } catch (Exception e) {
             throw new Exception("Ошибка удаления товара: " + e.getMessage());
         }
+    }
+
+    /**
+     * Вспомогательный метод: удаляет все строки по заданному endpoint-у.
+     * Игнорирует 404 (таблица пуста / нет записей) — это нормально.
+     */
+    private static void deleteRelated(String endpoint, String tableName) throws Exception {
+        String url = SUPABASE_URL + endpoint;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("apikey", SUPABASE_KEY)
+                .header("Prefer", "return=minimal")
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 204) {
+            throw new Exception("Ошибка очистки " + tableName + ": HTTP " + response.statusCode() + " — " + response.body());
+        }
+
+        System.out.println("✅ Зависимые записи удалены из " + tableName);
     }
 
     public static void addProduct(String name, String description, double price,
@@ -97,7 +140,6 @@ public class AdminRepository {
             jsonBody.addProperty("category", category);
             jsonBody.addProperty("manufacturer", manufacturer);
             jsonBody.addProperty("image_url", imageUrl != null ? imageUrl : "");
-
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -119,7 +161,6 @@ public class AdminRepository {
         }
     }
 
-    // Обновление товара
     public static void updateProduct(int productId, String name, String description, double price,
                                      int stock, String category, String manufacturer) throws Exception {
         try {
@@ -181,7 +222,7 @@ public class AdminRepository {
         }
     }
 
-    // ПОЛЬЗОВАТЕЛИ
+    // ============ ПОЛЬЗОВАТЕЛИ ============
 
     public static List<UserDTO> getAllUsers() throws Exception {
         try {
@@ -214,7 +255,7 @@ public class AdminRepository {
         }
     }
 
-    // ЗАКАЗЫ
+    // ============ ЗАКАЗЫ ============
 
     public static List<OrderDTO> getAllOrders() throws Exception {
         try {
@@ -241,8 +282,6 @@ public class AdminRepository {
                 JsonObject orderJson = jsonArray.get(i).getAsJsonObject();
 
                 OrderDTO dto = new OrderDTO();
-
-                // ✅ КРИТИЧЕСКИ ВАЖНО: правильно парсим orderId из поля "id"
                 dto.orderId = orderJson.get("id").getAsInt();
                 dto.userId = orderJson.has("user_id") && !orderJson.get("user_id").isJsonNull()
                         ? orderJson.get("user_id").getAsString() : null;
@@ -252,8 +291,6 @@ public class AdminRepository {
                         ? orderJson.get("status").getAsString() : "unknown";
                 dto.orderDate = orderJson.has("created_at") && !orderJson.get("created_at").isJsonNull()
                         ? orderJson.get("created_at").getAsString() : null;
-
-                // Промокод данные (если есть)
                 dto.promoCodeId = orderJson.has("promo_code_id") && !orderJson.get("promo_code_id").isJsonNull()
                         ? orderJson.get("promo_code_id").getAsInt() : null;
                 dto.discountAmount = orderJson.has("discount_amount") && !orderJson.get("discount_amount").isJsonNull()
@@ -261,9 +298,7 @@ public class AdminRepository {
                 dto.finalAmount = orderJson.has("final_amount")
                         ? orderJson.get("final_amount").getAsDouble() : dto.totalAmount;
 
-                // Загружаем товары заказа
                 dto.items = getOrderItemsAdmin(dto.orderId);
-
                 orders.add(dto);
 
                 System.out.println("✅ Заказ загружен: ID=" + dto.orderId + ", статус=" + dto.status);
@@ -321,9 +356,6 @@ public class AdminRepository {
             JsonObject jsonBody = new JsonObject();
             jsonBody.addProperty("status", newStatus);
 
-            System.out.println("📤 URL: " + url);
-            System.out.println("📤 Body: " + jsonBody.toString());
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_KEY)
@@ -351,6 +383,8 @@ public class AdminRepository {
         }
     }
 
+    // ============ ПОЛЬЗОВАТЕЛИ: блокировка ============
+
     public static void blockUser(String userId) throws Exception {
         try {
             String url = SUPABASE_URL + "/auth/v1/admin/users/" + userId;
@@ -368,17 +402,12 @@ public class AdminRepository {
                     .method("PUT", HttpRequest.BodyPublishers.ofString(jsonString))
                     .build();
 
-            System.out.println("📤 Отправка запроса...");
-
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             System.out.println("📊 HTTP Статус: " + response.statusCode());
             System.out.println("📄 Ответ: " + response.body());
 
             if (response.statusCode() != 200) {
-                System.err.println("❌ Ошибка при блокировке!");
-                System.err.println(" Статус: " + response.statusCode());
-                System.err.println(" Тело ошибки: " + response.body());
                 throw new Exception("Ошибка блокировки пользователя: HTTP " + response.statusCode());
             }
             updateUserBlockStatus(userId, true);
@@ -386,7 +415,6 @@ public class AdminRepository {
         } catch (Exception e) {
             System.err.println("════════════════════════════════════════");
             System.err.println("❌ ОШИБКА ПРИ БЛОКИРОВКЕ");
-            System.err.println("════════════════════════════════════════");
             System.err.println("📌 Сообщение: " + e.getMessage());
             e.printStackTrace();
             System.err.println("════════════════════════════════════════");
@@ -400,20 +428,18 @@ public class AdminRepository {
             JsonObject jsonBody = new JsonObject();
             jsonBody.addProperty("ban_duration", "0ms");
 
-            String jsonString = jsonBody.toString();
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + SUPABASE_SERVICE_ROLE_KEY)
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
-                    .method("PUT", HttpRequest.BodyPublishers.ofString(jsonString))
+                    .method("PUT", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             updateUserBlockStatus(userId, false);
-            if (response.statusCode() != 200) {
 
+            if (response.statusCode() != 200) {
                 throw new Exception("Ошибка разблокировки пользователя: HTTP " + response.statusCode());
             }
         } catch (Exception e) {
@@ -422,38 +448,31 @@ public class AdminRepository {
             throw new Exception("Ошибка при разблокировке пользователя: " + e.getMessage());
         }
     }
+
     private static void updateUserBlockStatus(String userId, boolean isBlocked) throws Exception {
-        try {
-            String url = SUPABASE_URL + "/rest/v1/profiles?id=eq." + userId;
+        String url = SUPABASE_URL + "/rest/v1/profiles?id=eq." + userId;
 
-            JsonObject jsonBody = new JsonObject();
-            jsonBody.addProperty("is_blocked", isBlocked);  // ✅ Обновляем флаг!
+        JsonObject jsonBody = new JsonObject();
+        jsonBody.addProperty("is_blocked", isBlocked);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + SUPABASE_KEY)
+                .header("apikey", SUPABASE_KEY)
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
+                .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e) {
-            throw e;
-        }
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    /**
-     * ✅ Получение всех промокодов
-     */
+    // ============ ПРОМОКОДЫ ============
+
     public static List<PromoCodeDTO> getAllPromoCodes() throws Exception {
         PromoCodeRepository repo = new PromoCodeRepository();
         return repo.getAllPromoCodes();
     }
 
-    /**
-     * ✅ Создание промокода
-     */
     public static void createPromoCode(PromoCodeDTO dto) throws Exception {
         PromoCode promo = new PromoCode(
                 dto.id,
@@ -468,9 +487,6 @@ public class AdminRepository {
         repo.createPromoCode(promo);
     }
 
-    /**
-     * ✅ Удаление промокода
-     */
     public static void deletePromoCode(int promoId) throws Exception {
         PromoCodeRepository repo = new PromoCodeRepository();
         repo.deletePromoCode(promoId);
