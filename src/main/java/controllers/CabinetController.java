@@ -25,33 +25,34 @@ import java.util.ResourceBundle;
  */
 public class CabinetController implements Initializable {
 
-    @FXML private Label userEmailLabel;
-    @FXML private TextField emailField;
-    @FXML private TextField nameField;
-    @FXML private TextField surnameField;
-    @FXML private TextField phoneField;
-    @FXML private TextField cityField;
-    @FXML private TextField addressField;
-    @FXML private Button saveButton;
-    @FXML private Button changePasswordButton;
-    @FXML private Button backButton;
-    @FXML private Button logoutButton;
-    @FXML private VBox mainContentVBox;
+    @FXML private Label      userEmailLabel;
+    @FXML private TextField  emailField;
+    @FXML private TextField  nameField;
+    @FXML private TextField  surnameField;
+    @FXML private TextField  phoneField;
+    @FXML private TextField  cityField;
+    @FXML private TextField  addressField;
+    @FXML private Button     saveButton;
+    @FXML private Button     changePasswordButton;
+    @FXML private Button     backButton;
+    @FXML private Button     logoutButton;
+    @FXML private VBox       mainContentVBox;
     @FXML private BorderPane rootBorderPane;
     @FXML private ScrollPane scrollPane;
 
     private static MainController hostMainController;
-    private OrderService orderService;
-    private String userEmail;
-    private String userId;
-    private boolean isAdmin = false;
+    private OrderService   orderService;
+    private String         userEmail;
+    private String         userId;
+    private boolean        isAdmin   = false;
+    private boolean        isManager = false;
     private AdminController adminController = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("👤 Инициализация CabinetController...");
         try {
-            CartService cartService = new CartService();
+            CartService    cartService    = new CartService();
             ProductService productService = new ProductService();
             orderService = new OrderService(cartService, productService);
 
@@ -69,6 +70,7 @@ public class CabinetController implements Initializable {
                 setupButtons();
                 loadOrderHistory();
                 checkIfAdmin();
+                checkIfManager();
 
                 System.out.println("✅ CabinetController инициализирован");
             } else {
@@ -95,10 +97,10 @@ public class CabinetController implements Initializable {
                 UserDTO user = UserRepository.getUserProfileByEmail(userEmail);
                 Platform.runLater(() -> {
                     if (user != null) {
-                        nameField.setText(user.name != null ? user.name : "");
+                        nameField.setText(user.name    != null ? user.name    : "");
                         surnameField.setText(user.surname != null ? user.surname : "");
-                        phoneField.setText(user.phone != null ? user.phone : "");
-                        cityField.setText(user.city != null ? user.city : "");
+                        phoneField.setText(user.phone   != null ? user.phone   : "");
+                        cityField.setText(user.city    != null ? user.city    : "");
                         addressField.setText(user.address != null ? user.address : "");
                         System.out.println("✅ Данные пользователя загружены");
                     } else {
@@ -260,7 +262,7 @@ public class CabinetController implements Initializable {
     }
 
     // ═══════════════════════════════════════════════════════
-    // АДМИН
+    // АДМИНИСТРАТОР
     // ═══════════════════════════════════════════════════════
 
     private void checkIfAdmin() {
@@ -293,7 +295,7 @@ public class CabinetController implements Initializable {
                 for (javafx.scene.Node node : topContainer.getChildren()) {
                     if (node instanceof HBox) {
                         ((HBox) node).getChildren().add(adminButton);
-                        System.out.println("✅ Админ кнопка добавлена");
+                        System.out.println("✅ Кнопка администратора добавлена");
                         return;
                     }
                 }
@@ -321,6 +323,62 @@ public class CabinetController implements Initializable {
             if (adminController != null) adminController.stopRefreshService();
         } catch (Exception e) {
             System.err.println("❌ Ошибка возврата: " + e.getMessage());
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // МЕНЕДЖЕР
+    // ═══════════════════════════════════════════════════════
+
+    private void checkIfManager() {
+        Thread t = new Thread(() -> {
+            try {
+                UserDTO user = UserRepository.getUserProfileByEmail(userEmail);
+                // Показываем кнопку менеджера только если пользователь НЕ администратор
+                if (user != null && user.is_manager && !user.is_admin) {
+                    isManager = true;
+                    System.out.println("✅ Пользователь — менеджер!");
+                    Platform.runLater(this::addManagerButton);
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Ошибка проверки менеджера: " + e.getMessage());
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void addManagerButton() {
+        Button managerButton = new Button("🗂️ Панель менеджера");
+        managerButton.setStyle("-fx-font-size: 13; -fx-padding: 10 20; " +
+                "-fx-background-color: #0f766e; -fx-text-fill: white; " +
+                "-fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold;");
+        managerButton.setOnAction(e -> openManagerPanel());
+
+        if (rootBorderPane != null) {
+            VBox topContainer = (VBox) rootBorderPane.getTop();
+            if (topContainer != null) {
+                for (javafx.scene.Node node : topContainer.getChildren()) {
+                    if (node instanceof HBox) {
+                        ((HBox) node).getChildren().add(managerButton);
+                        System.out.println("✅ Кнопка менеджера добавлена");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private void openManagerPanel() {
+        try {
+            if (hostMainController != null) {
+                hostMainController.openManagerPanel();
+            } else {
+                showError("❌ Ошибка: не удалось открыть панель менеджера");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("❌ Ошибка открытия панели менеджера:\n" + e.getMessage());
         }
     }
 
@@ -384,18 +442,13 @@ public class CabinetController implements Initializable {
     // ═══════════════════════════════════════════════════════
 
     private void showChangePasswordDialog() {
-
-        // Затемнение
         StackPane overlay = new StackPane();
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
         overlay.setPrefSize(rootBorderPane.getWidth(), rootBorderPane.getHeight());
 
-        // Карточка — фиксированный размер
         VBox card = new VBox(16);
         card.setAlignment(Pos.TOP_LEFT);
-        card.setPrefWidth(400);
-        card.setMaxWidth(400);
-        card.setMinWidth(400);
+        card.setPrefWidth(400); card.setMaxWidth(400); card.setMinWidth(400);
         card.setPadding(new Insets(30));
         card.setStyle(
                 "-fx-background-color: #ffffff;" +
@@ -405,18 +458,15 @@ public class CabinetController implements Initializable {
         );
         StackPane.setAlignment(card, Pos.CENTER);
 
-        // Заголовок
         HBox titleBox = new HBox(10);
         titleBox.setAlignment(Pos.CENTER_LEFT);
-        Label icon = new Label("🔑");
-        icon.setStyle("-fx-font-size: 20px;");
+        Label icon     = new Label("🔑"); icon.setStyle("-fx-font-size: 20px;");
         Label titleLbl = new Label("Смена пароля");
         titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
         titleBox.getChildren().addAll(icon, titleLbl);
 
         Separator sep = new Separator();
 
-        // Поле: текущий пароль
         Label oldPassLabel = new Label("Текущий пароль");
         oldPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         PasswordField oldPasswordField = new PasswordField();
@@ -424,7 +474,6 @@ public class CabinetController implements Initializable {
         oldPasswordField.setMaxWidth(Double.MAX_VALUE);
         oldPasswordField.setStyle(fieldStyle(false));
 
-        // Поле: новый пароль
         Label newPassLabel = new Label("Новый пароль");
         newPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         PasswordField newPasswordField = new PasswordField();
@@ -432,7 +481,6 @@ public class CabinetController implements Initializable {
         newPasswordField.setMaxWidth(Double.MAX_VALUE);
         newPasswordField.setStyle(fieldStyle(false));
 
-        // Поле: подтверждение
         Label confirmPassLabel = new Label("Подтверждение пароля");
         confirmPassLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;");
         PasswordField confirmPasswordField = new PasswordField();
@@ -440,7 +488,6 @@ public class CabinetController implements Initializable {
         confirmPasswordField.setMaxWidth(Double.MAX_VALUE);
         confirmPasswordField.setStyle(fieldStyle(false));
 
-        // Inline-ошибка
         Label errorLabel = new Label();
         errorLabel.setWrapText(true);
         errorLabel.setMaxWidth(340);
@@ -453,8 +500,7 @@ public class CabinetController implements Initializable {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 
-        // Кнопки
-        Button confirmBtn = new Button("✅  Сменить пароль");
+        Button confirmBtn = new Button("✅ Сменить пароль");
         confirmBtn.setStyle(
                 "-fx-background-color: linear-gradient(to bottom, #3b82f6, #2563eb);" +
                         "-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;" +
@@ -476,7 +522,7 @@ public class CabinetController implements Initializable {
         HBox btnBox = new HBox(10);
         btnBox.getChildren().addAll(confirmBtn, cancelBtn);
         HBox.setHgrow(confirmBtn, Priority.ALWAYS);
-        HBox.setHgrow(cancelBtn, Priority.ALWAYS);
+        HBox.setHgrow(cancelBtn,  Priority.ALWAYS);
 
         card.getChildren().addAll(
                 titleBox, sep,
@@ -488,37 +534,30 @@ public class CabinetController implements Initializable {
 
         overlay.getChildren().add(card);
 
-        // Встраиваем overlay поверх текущего контента
         StackPane root = new StackPane();
         javafx.scene.Node currentCenter = rootBorderPane.getCenter();
         rootBorderPane.setCenter(root);
         root.getChildren().addAll(currentCenter, overlay);
 
-        // Закрытие
         Runnable closeDialog = () -> {
             root.getChildren().remove(overlay);
             rootBorderPane.setCenter(currentCenter);
         };
 
         cancelBtn.setOnAction(e -> closeDialog.run());
-        overlay.setOnMouseClicked(e -> {
-            if (e.getTarget() == overlay) closeDialog.run();
-        });
+        overlay.setOnMouseClicked(e -> { if (e.getTarget() == overlay) closeDialog.run(); });
 
-        // Логика подтверждения
         confirmBtn.setOnAction(e -> {
             String oldPassword     = oldPasswordField.getText();
             String newPassword     = newPasswordField.getText();
             String confirmPassword = confirmPasswordField.getText();
 
-            // Сброс подсветки
             oldPasswordField.setStyle(fieldStyle(false));
             newPasswordField.setStyle(fieldStyle(false));
             confirmPasswordField.setStyle(fieldStyle(false));
             errorLabel.setVisible(false);
             errorLabel.setManaged(false);
 
-            // Валидация
             if (oldPassword.isEmpty()) {
                 oldPasswordField.setStyle(fieldStyle(true));
                 showFieldError(errorLabel, "⚠️ Введите текущий пароль");
@@ -545,12 +584,8 @@ public class CabinetController implements Initializable {
 
             Thread t = new Thread(() -> {
                 try {
-                    // Шаг 1: проверяем старый пароль
                     UserRepository.verifyPassword(userEmail, oldPassword);
-
-                    // Шаг 2: меняем пароль через Admin API
                     UserRepository.updatePassword(userId, newPassword);
-
                     Platform.runLater(() -> {
                         closeDialog.run();
                         showSuccess("✅ Пароль успешно изменён");
@@ -560,7 +595,7 @@ public class CabinetController implements Initializable {
                     System.err.println("❌ Ошибка смены пароля: " + ex.getMessage());
                     Platform.runLater(() -> {
                         confirmBtn.setDisable(false);
-                        confirmBtn.setText("✅  Сменить пароль");
+                        confirmBtn.setText("✅ Сменить пароль");
                         showFieldError(errorLabel, "❌ " + ex.getMessage());
                     });
                 }
@@ -570,7 +605,6 @@ public class CabinetController implements Initializable {
         });
     }
 
-    /** Стиль поля: нормальный или с красной рамкой */
     private String fieldStyle(boolean error) {
         String border = error ? "#ef4444" : "#cbd5e1";
         String bg     = error ? "#fef2f2" : "#f8fafc";
@@ -580,7 +614,6 @@ public class CabinetController implements Initializable {
                 "-fx-border-radius: 8; -fx-background-radius: 8;";
     }
 
-    /** Inline-ошибка внутри диалога */
     private void showFieldError(Label errorLabel, String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);

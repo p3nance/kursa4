@@ -36,6 +36,9 @@ public class UserDTO {
     @SerializedName("is_blocked")
     public boolean is_blocked = false;
 
+    @SerializedName("is_manager")
+    public boolean is_manager;
+
     @SerializedName("role")
     public String role;
 
@@ -48,11 +51,9 @@ public class UserDTO {
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
                 ", email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
-                ", city='" + city + '\'' +
-                ", address='" + address + '\'' +
                 ", is_admin=" + is_admin +
                 ", is_blocked=" + is_blocked +
+                ", is_manager=" + is_manager +
                 '}';
     }
 }

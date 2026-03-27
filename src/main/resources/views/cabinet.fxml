@@ -53,7 +53,6 @@
 
                     <!-- Заголовок секции -->
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label text="✏️" style="-fx-font-size: 18px;"/>
                         <Label text="Мой профиль" styleClass="cab-section-title"/>
                     </HBox>
                     <Separator styleClass="cab-sep"/>

@@ -299,60 +299,91 @@ public class MainController implements Initializable {
     }
 
     private VBox createProductCard(Product product) {
-        VBox card = new VBox(8);
+        VBox card = new VBox(4); // было 8 — уменьшаем gap между элементами
         card.setAlignment(Pos.TOP_CENTER);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setMinWidth(180);
         card.setMinHeight(270);
-        card.setPadding(new Insets(14));
+        card.setPadding(new Insets(10)); // было 14
         card.setStyle(CARD_STYLE);
 
         card.setOnMouseEntered(e -> card.setStyle(CARD_HOVER_STYLE));
         card.setOnMouseExited(e -> card.setStyle(CARD_STYLE));
 
-        // Изображение
-        ImageView imageView = new ImageView();
-        imageView.setFitWidth(180);
-        imageView.setFitHeight(110);
-        imageView.setPreserveRatio(true);
-        loadImage(imageView, product.getImageUrl(), 180, 110);
+        // ===== КАРТИНКА (увеличена) =====
+        StackPane imageWrapper = new StackPane();
+        imageWrapper.setPrefHeight(150); // было 120
+        imageWrapper.setMaxWidth(Double.MAX_VALUE);
+        imageWrapper.setStyle(
+                "-fx-background-color: #f9fafb;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-overflow: hidden;"
+        );
 
-        // Плашка категории
+        ImageView imageView = new ImageView();
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(220);
+        imageView.setFitHeight(150);
+        loadImage(imageView, product.getImageUrl(), 220, 150);
+
+        imageWrapper.getChildren().add(imageView);
+
+        boolean hasRealImage =
+                product.getImageUrl() != null &&
+                        !product.getImageUrl().isBlank() &&
+                        (product.getImageUrl().startsWith("http://") ||
+                                product.getImageUrl().startsWith("https://"));
+
+        if (hasRealImage) {
+            imageWrapper.setOnMouseEntered(e -> {
+                imageView.setScaleX(1.5);
+                imageView.setScaleY(1.5);
+                imageView.setTranslateY(-6);
+            });
+            imageWrapper.setOnMouseExited(e -> {
+                imageView.setScaleX(1.0);
+                imageView.setScaleY(1.0);
+                imageView.setTranslateY(0);
+            });
+        }
+
+        // ===== ТЕКСТ — убраны все лишние отступы =====
         Label categoryBadge = new Label(product.getCategory() == null ? "" : product.getCategory());
         categoryBadge.setStyle(
                 "-fx-background-color: #eff6ff;" +
                         "-fx-text-fill: #3b82f6;" +
                         "-fx-font-size: 10px;" +
                         "-fx-font-weight: bold;" +
-                        "-fx-padding: 2 8;" +
+                        "-fx-padding: 1 6;" +       // было 2 8
                         "-fx-background-radius: 20;"
         );
+        VBox.setMargin(categoryBadge, new Insets(4, 0, 0, 0)); // маленький отступ только сверху
 
-        // Название
         Label name = new Label(product.getName() == null ? "Без названия" : product.getName());
-        name.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        name.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #111827;");
         name.setWrapText(true);
-        name.setPrefHeight(40);
-        name.setMinHeight(40);
-        VBox.setVgrow(name, Priority.NEVER);
+        name.setMaxHeight(34);          // ограничиваем высоту — не больше 2 строк
+        VBox.setMargin(name, new Insets(0));
 
-        // Производитель
         Label manufacturer = new Label(
                 product.getManufacturer() == null || product.getManufacturer().isEmpty()
                         ? "" : "🏭 " + product.getManufacturer());
-        manufacturer.setStyle("-fx-font-size: 11px; -fx-text-fill: #9ca3af;");
+        manufacturer.setStyle("-fx-font-size: 10px; -fx-text-fill: #9ca3af;");
+        VBox.setMargin(manufacturer, new Insets(0));
 
-        // Цена
         Label price = new Label(String.format("%,.0f ₽", product.getPrice()));
-        price.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
+        price.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
+        VBox.setMargin(price, new Insets(0));
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        // Кнопки
+        // ===== КНОПКИ =====
         HBox buttonBox = new HBox(6);
         buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setMinHeight(36);
+        buttonBox.setMinHeight(32);
 
         Button detailsBtn = new Button("Подробнее");
         detailsBtn.setStyle(BTN_PRIMARY);
@@ -369,7 +400,17 @@ public class MainController implements Initializable {
         addToCartBtn.setOnAction(e -> addProductToCart(product, 1));
 
         buttonBox.getChildren().addAll(detailsBtn, addToCartBtn);
-        card.getChildren().addAll(imageView, categoryBadge, name, manufacturer, price, spacer, buttonBox);
+
+        card.getChildren().addAll(
+                imageWrapper,
+                categoryBadge,
+                name,
+                manufacturer,
+                price,
+                spacer,
+                buttonBox
+        );
+
         return card;
     }
 
@@ -729,5 +770,21 @@ public class MainController implements Initializable {
     public void showCategoriesAndSearch() {
         if (categoryPane != null) { categoryPane.setVisible(true); categoryPane.setManaged(true); }
         if (searchField != null) { searchField.setVisible(true); searchField.setManaged(true); }
+    }
+    public void openManagerPanel() {
+        try {
+            lastCenter = contentScroll;
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/manager.fxml"));
+            Node managerNode = loader.load();
+            headerPane.setVisible(false);   headerPane.setManaged(false);
+            categoryPane.setVisible(false); categoryPane.setManaged(false);
+            mainPane.setCenter(managerNode);
+            mainPane.setTop(null);
+            mainPane.setLeft(null);
+            ManagerController managerController = loader.getController();
+            managerController.setMainController(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

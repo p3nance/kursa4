@@ -15,22 +15,25 @@ public class SessionManager {
     private static String accessToken;
     private static String userEmail;
     private static String userId;
-    private static boolean isAdmin = false;
+    private static boolean isAdmin   = false;
+    private static boolean isManager = false;
     private static boolean isBlocked = false;
 
     // --- GETTERS ---
-    public static String getAccessToken() { return accessToken; }
-    public static String getUserEmail() { return userEmail; }
-    public static String getUserId() { return userId; }
-    public static boolean isAdmin() { return isAdmin; }
-    public static boolean isBlocked() { return isBlocked; }
+    public static String  getAccessToken() { return accessToken; }
+    public static String  getUserEmail()   { return userEmail; }
+    public static String  getUserId()      { return userId; }
+    public static boolean isAdmin()        { return isAdmin; }
+    public static boolean isManager()      { return isManager; }
+    public static boolean isBlocked()      { return isBlocked; }
 
     public static void clearSession() {
         accessToken = null;
-        userEmail = null;
-        userId = null;
-        isAdmin = false;
-        isBlocked = false;
+        userEmail   = null;
+        userId      = null;
+        isAdmin     = false;
+        isManager   = false;
+        isBlocked   = false;
         System.out.println("🚪 Сессия очищена");
     }
 
@@ -56,7 +59,7 @@ public class SessionManager {
 
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
-                userEmail = email;
+                userEmail   = email;
 
                 if (json.has("user")) {
                     userId = json.getJSONObject("user").optString("id", null);
@@ -67,7 +70,6 @@ public class SessionManager {
                 System.out.println("✅ Пользователь авторизован: " + email);
                 System.out.println("📝 User ID: " + userId);
 
-                // ✅ ПРОВЕРЯЕМ БЛОКИРОВКУ И АДМИН СТАТУС
                 if (isUserBlocked(email)) {
                     clearSession();
                     System.err.println("❌ Пользователь заблокирован администратором!");
@@ -75,6 +77,7 @@ public class SessionManager {
                 }
 
                 checkAdminStatus(email);
+                checkManagerStatus(email);
                 return true;
             }
 
@@ -110,7 +113,7 @@ public class SessionManager {
 
             if (json.has("access_token")) {
                 accessToken = json.getString("access_token");
-                userEmail = email;
+                userEmail   = email;
 
                 if (json.has("user")) {
                     userId = json.getJSONObject("user").optString("id", null);
@@ -118,7 +121,8 @@ public class SessionManager {
                     userId = json.optString("user_id", null);
                 }
 
-                isAdmin = false;
+                isAdmin   = false;
+                isManager = false;
                 System.out.println("✅ Пользователь зарегистрирован: " + email);
                 return true;
             }
@@ -193,9 +197,7 @@ public class SessionManager {
                     if (jsonArray.size() > 0) {
                         JsonObject user = jsonArray.get(0).getAsJsonObject();
                         isAdmin = user.get("is_admin").getAsBoolean();
-                        if (isAdmin) {
-                            System.out.println("👑 Пользователь имеет права администратора");
-                        }
+                        if (isAdmin) System.out.println("👑 Пользователь имеет права администратора");
                     }
                 } else {
                     isAdmin = false;
@@ -205,8 +207,48 @@ public class SessionManager {
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️ Ошибка проверки админ статуса: " + e.getMessage());
+            System.err.println("⚠️ Ошибка проверки admin-статуса: " + e.getMessage());
             isAdmin = false;
+        }
+    }
+
+    // --- ПРОВЕРКА МЕНЕДЖЕР СТАТУСА ---
+    private static void checkManagerStatus(String email) {
+        try {
+            String encodedEmail = URLEncoder.encode(email, "UTF-8");
+            String url = Config.SUPABASE_URL + "/rest/v1/profiles?email=eq." + encodedEmail + "&select=is_manager";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("apikey", Config.SUPABASE_ANON_KEY)
+                    .GET()
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                String body = response.body();
+                if (!body.equals("[]")) {
+                    JsonArray jsonArray = JsonParser.parseString(body).getAsJsonArray();
+                    if (jsonArray.size() > 0) {
+                        JsonObject user = jsonArray.get(0).getAsJsonObject();
+                        if (user.has("is_manager") && !user.get("is_manager").isJsonNull()) {
+                            isManager = user.get("is_manager").getAsBoolean();
+                            if (isManager) System.out.println("🗂️ Пользователь — менеджер");
+                        }
+                    }
+                } else {
+                    isManager = false;
+                }
+            } else {
+                isManager = false;
+            }
+
+        } catch (Exception e) {
+            System.err.println("⚠️ Ошибка проверки manager-статуса: " + e.getMessage());
+            isManager = false;
         }
     }
 }

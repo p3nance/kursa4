@@ -27,6 +27,8 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -34,34 +36,34 @@ public class AdminController implements Initializable {
 
     // ============ ОБЩИЕ ЭЛЕМЕНТЫ ============
     @FXML private TabPane adminTabs;
-    @FXML private Button exitAdminBtn;
+    @FXML private Button  exitAdminBtn;
 
     // ============ ТОВАРЫ ============
-    @FXML private Button addProductBtn;
+    @FXML private Button              addProductBtn;
     @FXML private TableView<ProductDTO> productsTable;
     private ObservableList<ProductDTO> productsData = FXCollections.observableArrayList();
     private boolean productsTableSetup = false;
 
     // ============ ПОЛЬЗОВАТЕЛИ ============
     @FXML private TableView<UserDTO> usersTable;
-    @FXML private TextField userSearchField;
-    private ObservableList<UserDTO> usersData = FXCollections.observableArrayList();
+    @FXML private TextField          userSearchField;
+    private ObservableList<UserDTO>  usersData = FXCollections.observableArrayList();
     private boolean usersTableSetup = false;
 
     // ============ ЗАКАЗЫ ============
-    @FXML private TableView<OrderDTO> ordersTable;
-    @FXML private ComboBox<String> orderStatusFilter;
-    private ObservableList<OrderDTO> ordersData = FXCollections.observableArrayList();
+    @FXML private TableView<OrderDTO>  ordersTable;
+    @FXML private ComboBox<String>     orderStatusFilter;
+    private ObservableList<OrderDTO>   ordersData = FXCollections.observableArrayList();
     private boolean ordersTableSetup = false;
 
     // ============ ПРОМОКОДЫ ============
     @FXML private TableView<PromoCodeDTO> promoCodesTable;
-    @FXML private Button addPromoCodeBtn;
-    private ObservableList<PromoCodeDTO> promoCodesData = FXCollections.observableArrayList();
+    @FXML private Button                  addPromoCodeBtn;
+    private ObservableList<PromoCodeDTO>  promoCodesData = FXCollections.observableArrayList();
     private boolean promoCodesTableSetup = false;
 
     // ============ КОНТРОЛЛЕРЫ И СЕРВИСЫ ============
-    private MainController mainController;
+    private MainController    mainController;
     private CabinetController cabinetController;
     private AdminRefreshService refreshService;
 
@@ -86,11 +88,10 @@ public class AdminController implements Initializable {
         this.cabinetController = cabinet;
     }
 
-    /**
-     * ✅ Настройка UI элементов
-     */
+    // ============================================
+    // ✅ Настройка UI элементов
+    // ============================================
     private void setupUI() {
-        // ВЫХОД ИЗ ПАНЕЛИ
         if (exitAdminBtn != null) {
             exitAdminBtn.setOnAction(e -> {
                 if (refreshService != null) refreshService.stop();
@@ -98,17 +99,14 @@ public class AdminController implements Initializable {
             });
         }
 
-        // КНОПКА ДОБАВИТЬ ТОВАР
         if (addProductBtn != null) {
             addProductBtn.setOnAction(e -> showAddProductDialog());
         }
 
-        // КНОПКА ДОБАВИТЬ ПРОМОКОД
         if (addPromoCodeBtn != null) {
             addPromoCodeBtn.setOnAction(e -> showAddPromoCodeDialog());
         }
 
-        // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
         if (userSearchField != null) {
             userSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal == null || newVal.isEmpty()) {
@@ -118,7 +116,7 @@ public class AdminController implements Initializable {
                     String searchText = newVal.toLowerCase();
                     for (UserDTO user : usersData) {
                         if (user.email.toLowerCase().contains(searchText) ||
-                                (user.name != null && user.name.toLowerCase().contains(searchText)) ||
+                                (user.name    != null && user.name.toLowerCase().contains(searchText)) ||
                                 (user.surname != null && user.surname.toLowerCase().contains(searchText))) {
                             filtered.add(user);
                         }
@@ -128,7 +126,6 @@ public class AdminController implements Initializable {
             });
         }
 
-        // ФИЛЬТР ЗАКАЗОВ
         if (orderStatusFilter != null) {
             orderStatusFilter.setItems(FXCollections.observableArrayList("Все", "Ожидает", "Выполнен", "Отменен"));
             orderStatusFilter.setValue("Все");
@@ -136,9 +133,17 @@ public class AdminController implements Initializable {
                 if ("Все".equals(newVal)) {
                     ordersTable.setItems(ordersData);
                 } else {
+                    // Маппинг русских фильтров → английских значений из БД
+                    String dbStatus;
+                    switch (newVal) {
+                        case "Ожидает": dbStatus = "pending"; break;
+                        case "Выполнен": dbStatus = "completed"; break;
+                        case "Отменен": dbStatus = "cancelled"; break;
+                        default: dbStatus = newVal; break;
+                    }
                     ObservableList<OrderDTO> filtered = FXCollections.observableArrayList();
                     for (OrderDTO order : ordersData) {
-                        if (newVal.equalsIgnoreCase(order.status)) {
+                        if (dbStatus.equalsIgnoreCase(order.status)) {
                             filtered.add(order);
                         }
                     }
@@ -148,9 +153,9 @@ public class AdminController implements Initializable {
         }
     }
 
-    /**
-     * ✅ Загрузка всех данных админ-панели
-     */
+    // ============================================
+    // ✅ Загрузка всех данных
+    // ============================================
     private void loadAdminData() {
         new Thread(() -> {
             try {
@@ -194,27 +199,27 @@ public class AdminController implements Initializable {
         productsTable.getColumns().clear();
 
         TableColumn<ProductDTO, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
+        idCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().id).asObject());
         idCol.setPrefWidth(50);
 
         TableColumn<ProductDTO, String> nameCol = new TableColumn<>("Название");
-        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name));
+        nameCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().name));
         nameCol.setPrefWidth(200);
 
         TableColumn<ProductDTO, String> categoryCol = new TableColumn<>("Категория");
-        categoryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().category));
+        categoryCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().category));
         categoryCol.setPrefWidth(130);
 
         TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
-        priceCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().price).asObject());
+        priceCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().price).asObject());
         priceCol.setPrefWidth(100);
 
         TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
-        stockCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().stock).asObject());
+        stockCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().stock).asObject());
         stockCol.setPrefWidth(70);
 
         TableColumn<ProductDTO, Void> imageCol = new TableColumn<>("Фото");
-        imageCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+        imageCol.setCellFactory(col -> new TableCell<>() {
             private final Button uploadBtn = new Button("📷");
             {
                 uploadBtn.setStyle("-fx-font-size: 12px; -fx-padding: 4px 8px;");
@@ -231,27 +236,26 @@ public class AdminController implements Initializable {
         imageCol.setPrefWidth(60);
 
         TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
-        actionCol.setCellFactory(col -> new TableCell<ProductDTO, Void>() {
+        actionCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty) { setGraphic(null); return; }
 
                 ProductDTO product = getTableView().getItems().get(getIndex());
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
                 Button editBtn = new Button("Редактировать");
-                editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white;" +
+                        " -fx-padding: 4px 8px; -fx-font-size: 12px;");
                 editBtn.setOnAction(e -> {
                     if (getIndex() >= 0) showEditProductDialog(getTableView().getItems().get(getIndex()));
                 });
 
                 Button deleteBtn = new Button("🗑");
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;" +
+                        " -fx-padding: 4px 8px; -fx-font-size: 12px;");
                 deleteBtn.setOnAction(e -> {
                     if (getIndex() >= 0) deleteProduct(getTableView().getItems().get(getIndex()));
                 });
@@ -272,27 +276,18 @@ public class AdminController implements Initializable {
         dialog.setHeaderText("📦 Введите данные товара");
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(20));
 
-        TextField nameField = new TextField();
-        nameField.setPromptText("Название");
-        TextField priceField = new TextField();
-        priceField.setPromptText("Цена (₽)");
-        TextField stockField = new TextField();
-        stockField.setPromptText("Количество");
-        TextField categoryField = new TextField();
-        categoryField.setPromptText("Категория");
+        TextField nameField     = new TextField(); nameField.setPromptText("Название");
+        TextField priceField    = new TextField(); priceField.setPromptText("Цена (₽)");
+        TextField stockField    = new TextField(); stockField.setPromptText("Количество");
+        TextField categoryField = new TextField(); categoryField.setPromptText("Категория");
 
-        grid.add(new Label("Название:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Цена (₽):"), 0, 1);
-        grid.add(priceField, 1, 1);
-        grid.add(new Label("Склад:"), 0, 2);
-        grid.add(stockField, 1, 2);
-        grid.add(new Label("Категория:"), 0, 3);
-        grid.add(categoryField, 1, 3);
+        grid.add(new Label("Название:"),  0, 0); grid.add(nameField,     1, 0);
+        grid.add(new Label("Цена (₽):"),  0, 1); grid.add(priceField,    1, 1);
+        grid.add(new Label("Склад:"),     0, 2); grid.add(stockField,    1, 2);
+        grid.add(new Label("Категория:"), 0, 3); grid.add(categoryField, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -300,11 +295,10 @@ public class AdminController implements Initializable {
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    String name = nameField.getText().trim();
-                    double price = Double.parseDouble(priceField.getText());
-                    int stock = Integer.parseInt(stockField.getText());
+                    String name     = nameField.getText().trim();
+                    double price    = Double.parseDouble(priceField.getText());
+                    int    stock    = Integer.parseInt(stockField.getText());
                     String category = categoryField.getText().trim();
-
                     if (name.isEmpty() || category.isEmpty()) {
                         showAlert("Ошибка", "Заполните поля!");
                         return null;
@@ -327,7 +321,8 @@ public class AdminController implements Initializable {
     private void saveProduct(ProductDTO product) {
         new Thread(() -> {
             try {
-                AdminRepository.addProduct(product.name, product.description, product.price, product.stock, product.category, product.manufacturer, "");
+                AdminRepository.addProduct(product.name, product.description, product.price,
+                        product.stock, product.category, product.manufacturer, "");
                 Platform.runLater(() -> {
                     showAlert("✅ Успех", "Товар добавлен!");
                     loadProducts();
@@ -345,42 +340,24 @@ public class AdminController implements Initializable {
         dialog.setHeaderText("✏️ Редактирование товара #" + product.id);
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(20));
 
-        TextField nameField = new TextField();
-        nameField.setText(product.name);
-
-        TextField priceField = new TextField();
-        priceField.setText(String.valueOf(product.price));
-
-        TextField stockField = new TextField();
-        stockField.setText(String.valueOf(product.stock));
-
-        TextField categoryField = new TextField();
-        categoryField.setText(product.category);
-
-        TextField manufacturerField = new TextField();
-        manufacturerField.setText(product.manufacturer != null ? product.manufacturer : "");
-
-        TextArea descriptionArea = new TextArea();
-        descriptionArea.setText(product.description != null ? product.description : "");
+        TextField nameField         = new TextField(product.name);
+        TextField priceField        = new TextField(String.valueOf(product.price));
+        TextField stockField        = new TextField(String.valueOf(product.stock));
+        TextField categoryField     = new TextField(product.category);
+        TextField manufacturerField = new TextField(product.manufacturer != null ? product.manufacturer : "");
+        TextArea  descriptionArea   = new TextArea(product.description  != null ? product.description  : "");
         descriptionArea.setPrefRowCount(3);
         descriptionArea.setWrapText(true);
 
-        grid.add(new Label("Название:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Цена (₽):"), 0, 1);
-        grid.add(priceField, 1, 1);
-        grid.add(new Label("Склад:"), 0, 2);
-        grid.add(stockField, 1, 2);
-        grid.add(new Label("Категория:"), 0, 3);
-        grid.add(categoryField, 1, 3);
-        grid.add(new Label("Производитель:"), 0, 4);
-        grid.add(manufacturerField, 1, 4);
-        grid.add(new Label("Описание:"), 0, 5);
-        grid.add(descriptionArea, 1, 5);
+        grid.add(new Label("Название:"),      0, 0); grid.add(nameField,         1, 0);
+        grid.add(new Label("Цена (₽):"),      0, 1); grid.add(priceField,        1, 1);
+        grid.add(new Label("Склад:"),         0, 2); grid.add(stockField,        1, 2);
+        grid.add(new Label("Категория:"),     0, 3); grid.add(categoryField,     1, 3);
+        grid.add(new Label("Производитель:"), 0, 4); grid.add(manufacturerField, 1, 4);
+        grid.add(new Label("Описание:"),      0, 5); grid.add(descriptionArea,   1, 5);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -388,25 +365,24 @@ public class AdminController implements Initializable {
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    String name = nameField.getText().trim();
-                    double price = Double.parseDouble(priceField.getText());
-                    int stock = Integer.parseInt(stockField.getText());
-                    String category = categoryField.getText().trim();
+                    String name         = nameField.getText().trim();
+                    double price        = Double.parseDouble(priceField.getText());
+                    int    stock        = Integer.parseInt(stockField.getText());
+                    String category     = categoryField.getText().trim();
                     String manufacturer = manufacturerField.getText().trim();
-                    String description = descriptionArea.getText().trim();
+                    String description  = descriptionArea.getText().trim();
 
                     if (name.isEmpty() || category.isEmpty()) {
                         showAlert("Ошибка", "Заполните обязательные поля!");
                         return null;
                     }
 
-                    product.name = name;
-                    product.price = price;
-                    product.stock = stock;
-                    product.category = category;
+                    product.name         = name;
+                    product.price        = price;
+                    product.stock        = stock;
+                    product.category     = category;
                     product.manufacturer = manufacturer;
-                    product.description = description;
-
+                    product.description  = description;
                     return product;
                 } catch (NumberFormatException e) {
                     showAlert("Ошибка", "Проверьте формат цены и количества!");
@@ -426,23 +402,12 @@ public class AdminController implements Initializable {
         new Thread(() -> {
             try {
                 System.out.println("✏️ Обновление товара: " + product.name);
-
-                AdminRepository.updateProduct(
-                        product.id,
-                        product.name,
-                        product.description,
-                        product.price,
-                        product.stock,
-                        product.category,
-                        product.manufacturer
-                );
-
+                AdminRepository.updateProduct(product.id, product.name, product.description,
+                        product.price, product.stock, product.category, product.manufacturer);
                 Platform.runLater(() -> {
                     showAlert("✅ Успех", "Товар обновлен!");
                     loadProducts();
-                    if (mainController != null) {
-                        mainController.reloadProducts();
-                    }
+                    if (mainController != null) mainController.reloadProducts();
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("❌ Ошибка", "Ошибка обновления: " + e.getMessage()));
@@ -475,9 +440,8 @@ public class AdminController implements Initializable {
     private void uploadProductImage(ProductDTO product) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Выберите изображение");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Изображения", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp")
-        );
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Изображения", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp"));
 
         File selectedFile = fileChooser.showOpenDialog(productsTable.getScene().getWindow());
         if (selectedFile != null) {
@@ -486,7 +450,6 @@ public class AdminController implements Initializable {
                     String fileName = SupabaseStorageService.generateFileName(product.id, selectedFile.getName());
                     String imageUrl = SupabaseStorageService.uploadImage(selectedFile, fileName);
                     AdminRepository.updateProductImage(product.id, imageUrl);
-
                     Platform.runLater(() -> {
                         product.imageUrl = imageUrl;
                         loadProducts();
@@ -527,50 +490,48 @@ public class AdminController implements Initializable {
         usersTable.getColumns().clear();
 
         TableColumn<UserDTO, String> emailCol = new TableColumn<>("Email");
-        emailCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().email));
+        emailCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().email));
         emailCol.setPrefWidth(200);
 
         TableColumn<UserDTO, String> nameCol = new TableColumn<>("Имя");
-        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().name != null ? cellData.getValue().name : ""));
+        nameCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().name != null ? cd.getValue().name : ""));
         nameCol.setPrefWidth(120);
 
         TableColumn<UserDTO, String> surnameCol = new TableColumn<>("Фамилия");
-        surnameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().surname != null ? cellData.getValue().surname : ""));
+        surnameCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().surname != null ? cd.getValue().surname : ""));
         surnameCol.setPrefWidth(120);
 
         TableColumn<UserDTO, String> statusCol = new TableColumn<>("Статус");
-        statusCol.setCellValueFactory(cellData -> {
-            UserDTO user = cellData.getValue();
-            String status = user.is_admin ? "👑 Админ" : (user.is_blocked ? "🔒 Блокирован" : "✅ Активен");
+        statusCol.setCellValueFactory(cd -> {
+            UserDTO user = cd.getValue();
+            String status = user.is_admin   ? "Админ"
+                    : user.is_blocked       ? "🔒 Заблокирован"
+                    : user.is_manager       ? "Менеджер"
+                    : "✅ Активен";
             return new SimpleStringProperty(status);
         });
-        statusCol.setPrefWidth(120);
+        statusCol.setPrefWidth(130);
 
         TableColumn<UserDTO, Void> actionCol = new TableColumn<>("Действия");
-        actionCol.setCellFactory(col -> new TableCell<UserDTO, Void>() {
+        actionCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty) { setGraphic(null); return; }
 
                 UserDTO user = getTableView().getItems().get(getIndex());
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
                 Button blockBtn = new Button(user.is_blocked ? "🔓 Разбл." : "🔒 Блок.");
-                blockBtn.setStyle(user.is_blocked ?
-                        "-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;" :
-                        "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;");
-
+                blockBtn.setStyle(user.is_blocked
+                        ? "-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;"
+                        : "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;");
                 blockBtn.setOnAction(e -> {
-                    if (user.is_blocked) {
-                        unblockUser(user.id, user.email);
-                    } else {
-                        blockUser(user.id, user.email);
-                    }
+                    if (user.is_blocked) unblockUser(user.id, user.email);
+                    else                 blockUser(user.id, user.email);
                 });
 
                 actions.getChildren().add(blockBtn);
@@ -637,64 +598,68 @@ public class AdminController implements Initializable {
         ordersTable.getColumns().clear();
 
         TableColumn<OrderDTO, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().orderId).asObject());
+        idCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().orderId).asObject());
         idCol.setPrefWidth(60);
 
         TableColumn<OrderDTO, String> userCol = new TableColumn<>("Email");
-        userCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().userId != null ? cellData.getValue().userId : "-"));
+        userCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().userId != null ? cd.getValue().userId : "-"));
         userCol.setPrefWidth(150);
 
         TableColumn<OrderDTO, Double> sumCol = new TableColumn<>("Сумма");
-        sumCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().totalAmount).asObject());
+        sumCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().totalAmount).asObject());
         sumCol.setPrefWidth(100);
 
         TableColumn<OrderDTO, String> statusCol = new TableColumn<>("Статус");
-        statusCol.setCellValueFactory(cellData -> new SimpleStringProperty(getOrderStatus(cellData.getValue().status)));
+        statusCol.setCellValueFactory(cd -> new SimpleStringProperty(getOrderStatus(cd.getValue().status)));
         statusCol.setPrefWidth(100);
 
+        // ✅ Дата в читаемом формате dd.MM.yyyy HH:mm
         TableColumn<OrderDTO, String> dateCol = new TableColumn<>("Дата");
-        dateCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().orderDate != null ? cellData.getValue().orderDate : "-"));
+        dateCol.setCellValueFactory(cd -> new SimpleStringProperty(formatDate(cd.getValue().orderDate)));
         dateCol.setPrefWidth(150);
 
         TableColumn<OrderDTO, Void> actionCol = new TableColumn<>("Действия");
-        actionCol.setCellFactory(col -> new TableCell<OrderDTO, Void>() {
+        actionCol.setCellFactory(col -> new TableCell<>() {
+            private final Button completeBtn = new Button("✅");
+            private final Button pendingBtn  = new Button("⏳");
+            private final Button cancelBtn   = new Button("❌");
+            private final HBox actions = new HBox(5, completeBtn, pendingBtn, cancelBtn);
+            {
+                actions.setAlignment(Pos.CENTER);
+            }
+
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+                if (empty || getIndex() < 0 || getIndex() >= getTableView().getItems().size()) {
                     setGraphic(null);
                     return;
                 }
 
                 OrderDTO order = getTableView().getItems().get(getIndex());
-                HBox actions = new HBox(5);
-                actions.setAlignment(Pos.CENTER);
 
-                Button completeBtn = new Button("✅");
-                completeBtn.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
-                if ("completed".equalsIgnoreCase(order.status)) {
-                    completeBtn.setDisable(true);
-                    completeBtn.setStyle("-fx-background-color: #9ca3af; -fx-padding: 6px 10px;");
-                }
+                // ✅ Кнопка "Завершён"
+                completeBtn.setDisable("completed".equalsIgnoreCase(order.status));
+                completeBtn.setStyle("completed".equalsIgnoreCase(order.status)
+                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
+                        : "-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
                 completeBtn.setOnAction(e -> updateOrderStatus(order.orderId, "completed"));
 
-                Button pendingBtn = new Button("⏳");
-                pendingBtn.setStyle("-fx-background-color: #fbbf24; -fx-text-fill: #000; -fx-padding: 6px 10px; -fx-font-size: 11px;");
-                if ("pending".equalsIgnoreCase(order.status)) {
-                    pendingBtn.setDisable(true);
-                    pendingBtn.setStyle("-fx-background-color: #9ca3af; -fx-padding: 6px 10px;");
-                }
+                // ⏳ Кнопка "В ожидании"
+                pendingBtn.setDisable("pending".equalsIgnoreCase(order.status));
+                pendingBtn.setStyle("pending".equalsIgnoreCase(order.status)
+                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
+                        : "-fx-background-color: #fbbf24; -fx-text-fill: #000; -fx-padding: 6px 10px; -fx-font-size: 11px;");
                 pendingBtn.setOnAction(e -> updateOrderStatus(order.orderId, "pending"));
 
-                Button cancelBtn = new Button("❌");
-                cancelBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
-                if ("cancelled".equalsIgnoreCase(order.status)) {
-                    cancelBtn.setDisable(true);
-                    cancelBtn.setStyle("-fx-background-color: #9ca3af; -fx-padding: 6px 10px;");
-                }
+                // ❌ Кнопка "Отменён"
+                cancelBtn.setDisable("cancelled".equalsIgnoreCase(order.status));
+                cancelBtn.setStyle("cancelled".equalsIgnoreCase(order.status)
+                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
+                        : "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
                 cancelBtn.setOnAction(e -> updateOrderStatus(order.orderId, "cancelled"));
 
-                actions.getChildren().addAll(completeBtn, pendingBtn, cancelBtn);
                 setGraphic(actions);
             }
         });
@@ -720,10 +685,10 @@ public class AdminController implements Initializable {
     private String getOrderStatus(String status) {
         if (status == null) return "❓ Неизвестно";
         switch (status.toLowerCase()) {
-            case "pending": return "⏳ В ожидании";
+            case "pending":   return "⏳ В ожидании";
             case "completed": return "✅ Завершен";
             case "cancelled": return "❌ Отменен";
-            default: return "❓ Неизвестно";
+            default:          return "❓ Неизвестно";
         }
     }
 
@@ -754,49 +719,48 @@ public class AdminController implements Initializable {
         promoCodesTable.getColumns().clear();
 
         TableColumn<PromoCodeDTO, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().id).asObject());
+        idCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().id).asObject());
         idCol.setPrefWidth(50);
 
         TableColumn<PromoCodeDTO, String> codeCol = new TableColumn<>("Код");
-        codeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().code));
+        codeCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().code));
         codeCol.setPrefWidth(150);
 
         TableColumn<PromoCodeDTO, Double> discountCol = new TableColumn<>("Скидка %");
-        discountCol.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().discountPercent).asObject());
+        discountCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().discountPercent).asObject());
         discountCol.setPrefWidth(100);
 
         TableColumn<PromoCodeDTO, Integer> maxUsesCol = new TableColumn<>("Лимит");
-        maxUsesCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().maxUses).asObject());
+        maxUsesCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().maxUses).asObject());
         maxUsesCol.setPrefWidth(80);
 
         TableColumn<PromoCodeDTO, Integer> usedCol = new TableColumn<>("Использовано");
-        usedCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().usedCount).asObject());
+        usedCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().usedCount).asObject());
         usedCol.setPrefWidth(120);
 
         TableColumn<PromoCodeDTO, String> expiryCol = new TableColumn<>("Срок действия");
-        expiryCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().expiryDate));
+        expiryCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().expiryDate));
         expiryCol.setPrefWidth(120);
 
         TableColumn<PromoCodeDTO, String> statusCol = new TableColumn<>("Статус");
-        statusCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive ? "✅ Активен" : "❌ Неактивен"));
+        statusCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().isActive ? "✅ Активен" : "❌ Неактивен"));
         statusCol.setPrefWidth(100);
 
         TableColumn<PromoCodeDTO, Void> actionCol = new TableColumn<>("Действия");
-        actionCol.setCellFactory(col -> new TableCell<PromoCodeDTO, Void>() {
+        actionCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty) { setGraphic(null); return; }
 
                 PromoCodeDTO promo = getTableView().getItems().get(getIndex());
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
                 Button deleteBtn = new Button("🗑");
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;" +
+                        " -fx-padding: 6px 10px; -fx-font-size: 11px;");
                 deleteBtn.setOnAction(e -> deletePromoCode(promo.id));
 
                 actions.getChildren().add(deleteBtn);
@@ -815,30 +779,18 @@ public class AdminController implements Initializable {
         dialog.setHeaderText("➕ Новый промокод");
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(20));
 
-        TextField codeField = new TextField();
-        codeField.setPromptText("Например: SALE2025");
+        TextField  codeField     = new TextField();    codeField.setPromptText("Например: SALE2025");
+        TextField  discountField = new TextField();    discountField.setPromptText("От 0 до 100");
+        TextField  maxUsesField  = new TextField();    maxUsesField.setPromptText("Например: 100");
+        DatePicker expiryPicker  = new DatePicker();   expiryPicker.setValue(java.time.LocalDate.now().plusMonths(1));
 
-        TextField discountField = new TextField();
-        discountField.setPromptText("От 0 до 100");
-
-        TextField maxUsesField = new TextField();
-        maxUsesField.setPromptText("Например: 100");
-
-        DatePicker expiryPicker = new DatePicker();
-        expiryPicker.setValue(java.time.LocalDate.now().plusMonths(1));
-
-        grid.add(new Label("Код промокода:"), 0, 0);
-        grid.add(codeField, 1, 0);
-        grid.add(new Label("Скидка (%):"), 0, 1);
-        grid.add(discountField, 1, 1);
-        grid.add(new Label("Лимит использований:"), 0, 2);
-        grid.add(maxUsesField, 1, 2);
-        grid.add(new Label("Срок действия:"), 0, 3);
-        grid.add(expiryPicker, 1, 3);
+        grid.add(new Label("Код промокода:"),        0, 0); grid.add(codeField,     1, 0);
+        grid.add(new Label("Скидка (%):"),           0, 1); grid.add(discountField, 1, 1);
+        grid.add(new Label("Лимит использований:"),  0, 2); grid.add(maxUsesField,  1, 2);
+        grid.add(new Label("Срок действия:"),        0, 3); grid.add(expiryPicker,  1, 3);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -846,31 +798,25 @@ public class AdminController implements Initializable {
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    String code = codeField.getText().trim().toUpperCase();
-                    double discount = Double.parseDouble(discountField.getText());
-                    int maxUses = Integer.parseInt(maxUsesField.getText());
+                    String code      = codeField.getText().trim().toUpperCase();
+                    double discount  = Double.parseDouble(discountField.getText());
+                    int    maxUses   = Integer.parseInt(maxUsesField.getText());
                     String expiryDate = expiryPicker.getValue().toString();
 
                     if (code.isEmpty() || code.length() > 50) {
-                        showAlert("Ошибка", "Код промокода должен быть от 1 до 50 символов!");
-                        return null;
+                        showAlert("Ошибка", "Код промокода должен быть от 1 до 50 символов!"); return null;
                     }
-
                     if (discount < 0 || discount > 100) {
-                        showAlert("Ошибка", "Скидка должна быть от 0 до 100%!");
-                        return null;
+                        showAlert("Ошибка", "Скидка должна быть от 0 до 100%!"); return null;
                     }
-
                     if (maxUses < 1) {
-                        showAlert("Ошибка", "Лимит должен быть не меньше 1!");
-                        return null;
+                        showAlert("Ошибка", "Лимит должен быть не меньше 1!"); return null;
                     }
 
                     return new PromoCodeDTO(0, code, discount, maxUses, 0, expiryDate, true);
 
                 } catch (NumberFormatException e) {
-                    showAlert("Ошибка", "Проверьте формат чисел!");
-                    return null;
+                    showAlert("Ошибка", "Проверьте формат чисел!"); return null;
                 }
             }
             return null;
@@ -905,9 +851,7 @@ public class AdminController implements Initializable {
         confirmAlert.setContentText("Промокод будет деактивирован.");
 
         var result = confirmAlert.showAndWait();
-        if (result.isEmpty() || result.get() != ButtonType.OK) {
-            return;
-        }
+        if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
         new Thread(() -> {
             try {
@@ -926,21 +870,10 @@ public class AdminController implements Initializable {
     // ✅ ПУБЛИЧНЫЕ МЕТОДЫ ДЛЯ ОБНОВЛЕНИЯ
     // ============================================
 
-    public void refreshProductsList() {
-        loadProducts();
-    }
-
-    public void refreshUsersList() {
-        loadUsers();
-    }
-
-    public void refreshOrdersList() {
-        loadOrders();
-    }
-
-    public void refreshPromoCodesList() {
-        loadPromoCodes();
-    }
+    public void refreshProductsList()   { loadProducts(); }
+    public void refreshUsersList()      { loadUsers(); }
+    public void refreshOrdersList()     { loadOrders(); }
+    public void refreshPromoCodesList() { loadPromoCodes(); }
 
     public void stopRefreshService() {
         if (refreshService != null) refreshService.stop();
@@ -949,6 +882,22 @@ public class AdminController implements Initializable {
     // ============================================
     // ✅ УТИЛИТЫ
     // ============================================
+
+    /** ✅ Конвертирует ISO дату БД → читаемый формат dd.MM.yyyy HH:mm */
+    private String formatDate(String rawDate) {
+        if (rawDate == null || rawDate.isEmpty()) return "-";
+        try {
+            OffsetDateTime odt = OffsetDateTime.parse(rawDate);
+            return odt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+        } catch (Exception e1) {
+            try {
+                java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(rawDate.substring(0, 19));
+                return ldt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            } catch (Exception e2) {
+                return rawDate;
+            }
+        }
+    }
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

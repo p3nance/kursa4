@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controllers.ManagerController"
+            prefWidth="1100" prefHeight="700"
+            style="-fx-background-color: #f0f4f8;">
+
+    <!-- ===== ШАПКА ===== -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="14"
+              style="-fx-background-color: linear-gradient(to right, #1e3a8a, #2563eb, #3b82f6);
+                     -fx-padding: 14 24 14 24;
+                     -fx-effect: dropshadow(gaussian, rgba(30,58,138,0.35), 12, 0, 0, 4);">
+
+            <Label text="📦" style="-fx-font-size: 22px;"/>
+            <Label text="Панель менеджера — Управление товарами"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff;"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Label fx:id="managerEmailLabel"
+                   style="-fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.78);"/>
+
+            <Button fx:id="exitManagerBtn" text="← Выход"
+                    style="-fx-background-color: rgba(255,255,255,0.15);
+                           -fx-text-fill: #ffffff; -fx-font-size: 12px; -fx-font-weight: bold;
+                           -fx-padding: 9 18; -fx-background-radius: 9; -fx-border-radius: 9;
+                           -fx-border-color: rgba(255,255,255,0.30); -fx-border-width: 1;
+                           -fx-cursor: hand;"/>
+        </HBox>
+    </top>
+
+    <!-- ===== КОНТЕНТ ===== -->
+    <center>
+        <VBox spacing="0" style="-fx-background-color: #f0f4f8;">
+
+            <!-- Панель инструментов -->
+            <HBox alignment="CENTER_LEFT" spacing="14"
+                  style="-fx-background-color: #ffffff;
+                         -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;
+                         -fx-padding: 14 24;">
+
+                <Button fx:id="addProductBtn" text="➕ Добавить товар"
+                        style="-fx-background-color: #10b981; -fx-text-fill: white;
+                               -fx-font-size: 13px; -fx-font-weight: bold;
+                               -fx-padding: 9 18; -fx-background-radius: 7;
+                               -fx-border-width: 0; -fx-cursor: hand;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Легенда -->
+                <Label text="● >5"  style="-fx-font-size: 11px; -fx-text-fill: #10b981; -fx-font-weight: bold;"/>
+                <Label text="● ≤5"  style="-fx-font-size: 11px; -fx-text-fill: #f59e0b; -fx-font-weight: bold;"/>
+                <Label text="● = 0" style="-fx-font-size: 11px; -fx-text-fill: #ef4444; -fx-font-weight: bold;"/>
+
+                <Separator orientation="VERTICAL"/>
+
+                <Label text="🔍" style="-fx-font-size: 14px;"/>
+                <TextField fx:id="searchField"
+                           promptText="Поиск по названию, категории, производителю..."
+                           prefWidth="280"
+                           style="-fx-padding: 7 10; -fx-border-color: #d1d5db;
+                                  -fx-border-radius: 5; -fx-background-radius: 5;"/>
+            </HBox>
+
+            <!-- Таблица -->
+            <TableView fx:id="productsTable" VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: #ffffff;
+                              -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;">
+                <placeholder>
+                    <Label text="📭 Товары не найдены"
+                           style="-fx-font-size: 14px; -fx-text-fill: #9ca3af;"/>
+                </placeholder>
+            </TableView>
+
+            <!-- Подсказка -->
+            <HBox alignment="CENTER_LEFT" spacing="10"
+                  style="-fx-background-color: #f9fafb;
+                         -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;
+                         -fx-padding: 10 24;">
+                <Label text="✏️ — редактировать    ➕ — пополнить склад    📷 — загрузить фото    🗑 — удалить"
+                       style="-fx-font-size: 11px; -fx-text-fill: #6b7280;"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
