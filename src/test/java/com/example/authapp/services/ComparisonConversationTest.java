@@ -13,7 +13,7 @@ class ComparisonConversationTest {
     private String previous;
     @BeforeAll static void readCatalog() throws Exception {
         var list=new ArrayList<Product>();
-        try(var reader=Files.newBufferedReader(Path.of("knowledge/catalog-reference.json"))) {
+        try(var reader=Files.newBufferedReader(Path.of("src/test/resources/knowledge/catalog-reference.json"))) {
             for(var item:JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("products")) {
                 var p=item.getAsJsonObject();
                 list.add(new Product(p.get("id").getAsInt(),p.get("name").getAsString(),p.get("description").getAsString(),
@@ -22,7 +22,7 @@ class ComparisonConversationTest {
         }
         catalog=List.copyOf(list);
     }
-    @BeforeEach void localData() {previous=System.getProperty("techstore.knowledge.dir");System.setProperty("techstore.knowledge.dir",Path.of("knowledge").toAbsolutePath().toString());}
+    @BeforeEach void localData() {previous=System.getProperty("techstore.knowledge.dir");System.setProperty("techstore.knowledge.dir",Path.of("src/main/resources/knowledge").toAbsolutePath().toString());}
     @AfterEach void restore() {if(previous==null)System.clearProperty("techstore.knowledge.dir");else System.setProperty("techstore.knowledge.dir",previous);Thread.interrupted();}
     private ChatBotService bot() {return new ChatBotService(catalog);}
     private static ChatBotService.BenchmarksContent benchmarks(ChatBotService.Reply reply) {

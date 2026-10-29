@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Offline integration checks for the authored data and the actual public catalog snapshot. */
 class VerifiedCatalogSpecsTest {
-    private static final Path KNOWLEDGE = Path.of("knowledge").toAbsolutePath();
+    private static final Path KNOWLEDGE = Path.of("src/main/resources/knowledge").toAbsolutePath();
     private static LocalKnowledgeRepository.Snapshot snapshot;
     private static Map<Integer, CatalogComponent> components;
     private static Map<Integer, Product> products;
@@ -39,7 +39,7 @@ class VerifiedCatalogSpecsTest {
     @BeforeAll
     static void loadRealLocalCatalog() throws IOException {
         List<Product> catalog = new ArrayList<>();
-        for (var item : readJson(KNOWLEDGE.resolve("catalog-reference.json")).getAsJsonArray("products")) {
+        for (var item : readJson(Path.of("src/test/resources/knowledge/catalog-reference.json")).getAsJsonArray("products")) {
             JsonObject row = item.getAsJsonObject();
             catalog.add(new Product(row.get("id").getAsInt(), row.get("name").getAsString(),
                     string(row, "description"), row.get("price").getAsDouble(), row.get("stock").getAsInt(),

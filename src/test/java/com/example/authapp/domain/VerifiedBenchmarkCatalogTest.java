@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Real published scores and catalog identities, read entirely from local files. */
 class VerifiedBenchmarkCatalogTest {
-    private static final Path KNOWLEDGE=Path.of("knowledge").toAbsolutePath();
+    private static final Path KNOWLEDGE=Path.of("src/main/resources/knowledge").toAbsolutePath();
     private static List<Product> products;
     private static Map<Integer,Product> productsById;
     private static Map<Integer,String> modelByProduct;
@@ -36,7 +36,7 @@ class VerifiedBenchmarkCatalogTest {
 
     @BeforeAll static void loadPublishedLocalData() throws IOException {
         var catalog=new ArrayList<Product>();
-        for(var item:json(KNOWLEDGE.resolve("catalog-reference.json")).getAsJsonArray("products")) {
+        for(var item:json(Path.of("src/test/resources/knowledge/catalog-reference.json")).getAsJsonArray("products")) {
             var row=item.getAsJsonObject();
             catalog.add(new Product(row.get("id").getAsInt(),row.get("name").getAsString(),
                     string(row,"description"),row.get("price").getAsDouble(),row.get("stock").getAsInt(),

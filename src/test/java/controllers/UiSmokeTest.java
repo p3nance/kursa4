@@ -157,7 +157,7 @@ class UiSmokeTest {
         });
     }
     @Test void realBenchmarkComparisonWrapsLongPublishedConditionsAtBothWindowSizes() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"4070 super против 4070");return null;});
         waitUntil(()->text(lookup(chat,"#messages")).contains("Разница значений: 19.46 %"));
         onFx(()->{
@@ -202,7 +202,7 @@ class UiSmokeTest {
         });
     }
     @Test void userAbbreviationsProduceUsefulSpecificationsWhenOneModelHasNoBenchmarks() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"сравни i9-14900k и ryzen 7 7800x3d");return null;});
         waitUntil(()->!lookup(chat,"#messages").lookupAll(".chat-specifications-card").isEmpty());
         onFx(()->{
@@ -220,7 +220,7 @@ class UiSmokeTest {
         });
     }
     @Test void shortCpuPairShowsHumanNamesAndCollapsedMethodology() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"14700K vs 14600K");return null;});
         waitUntil(()->lookup(chat,"#messages").lookupAll(".chat-benchmark-card").size()==2);
         onFx(()->{
@@ -233,7 +233,7 @@ class UiSmokeTest {
         });
     }
     @Test void cancelledComparisonCannotRestoreContextAfterANewDialog() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{
             submitChat(chat,"14700K vs 14600K");
             ((Button)lookup(chat,"#cancelButton")).fire();
@@ -262,7 +262,7 @@ class UiSmokeTest {
     }
     private static void submitChat(Parent chat,String message){((TextArea)lookup(chat,"#input")).setText(message);((Button)lookup(chat,"#sendButton")).fire();}
     @Test void chatColumnsAndWrappedControlsStayAlignedWhenTheWindowActuallyResizes() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Как сравнить комплектующие по бенчмаркам?");return null;});
         waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
         List<String> problems=new ArrayList<>();JSONArray geometry=new JSONArray();
@@ -296,7 +296,7 @@ class UiSmokeTest {
         onFx(()->{root.applyCss();root.layout();return null;});
     }
     @Test void chatComparisonTablesDetailsAndLongChoicesReflowWithoutClipping() throws Exception {
-        Parent chat=localChat(localCatalogSnapshot(),Path.of("knowledge").toAbsolutePath());
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни ASUS ROG Strix Z790-E Gaming WiFi и ASUS ROG Strix X670E-F Gaming WiFi");return null;});
         waitUntil(()->!chat.lookupAll(".chat-specifications-card").isEmpty());
         for(int[] size:List.of(new int[]{1440,900},new int[]{1200,800},new int[]{900,600},new int[]{720,534},new int[]{1440,900})) {
@@ -371,7 +371,7 @@ class UiSmokeTest {
         Parent chat=localChat(List.of(
                 new Product(10001,"NVIDIA GeForce RTX 4070 SUPER 12GB "+variant+" A","",100,1,"","Видеокарты","Тест"),
                 new Product(10002,"NVIDIA GeForce RTX 4070 SUPER 12GB "+variant+" B","",100,1,"","Видеокарты","Тест"),
-                new Product(10003,"NVIDIA GeForce RTX 4070 12GB","",100,1,"","Видеокарты","Тест")),Path.of("knowledge").toAbsolutePath());
+                new Product(10003,"NVIDIA GeForce RTX 4070 12GB","",100,1,"","Видеокарты","Тест")),Path.of("src/main/resources/knowledge").toAbsolutePath());
         resizeWindow(chat,720,534);
         onFx(()->{submitChat(chat,"4070 super против 4070");return null;});
         waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
@@ -428,7 +428,7 @@ class UiSmokeTest {
         for(Label header:nodes(chat.lookup(".chat-header"),Label.class))assertTrue(header.prefHeight(header.getWidth())<=header.getHeight()+2,"Header text is clipped");
     }
     private static List<Product> localCatalogSnapshot() throws java.io.IOException {
-        var snapshot=new JSONObject(Files.readString(Path.of("knowledge/catalog-reference.json"),StandardCharsets.UTF_8));
+        var snapshot=new JSONObject(Files.readString(Path.of("src/test/resources/knowledge/catalog-reference.json"),StandardCharsets.UTF_8));
         List<Product> catalog=new ArrayList<>();
         for(Object item:snapshot.getJSONArray("products")) {
             var row=(JSONObject)item;

@@ -161,7 +161,7 @@ class ComparisonServiceTest {
 
     @Test void realCatalogRegressionShows14900kAnd7800x3dFactsAndKeepsActualGpuComparisons() throws Exception {
         List<Product> products=new ArrayList<>();
-        try(var reader=Files.newBufferedReader(Path.of("knowledge/catalog-reference.json"))) {
+        try(var reader=Files.newBufferedReader(Path.of("src/test/resources/knowledge/catalog-reference.json"))) {
             for(var element:JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("products")) {
                 var row=element.getAsJsonObject();
                 products.add(new Product(row.get("id").getAsInt(),row.get("name").getAsString(),row.get("description").getAsString(),
@@ -169,7 +169,7 @@ class ComparisonServiceTest {
             }
         }
         String previous=System.getProperty("techstore.knowledge.dir");LocalKnowledgeRepository.Snapshot snapshot;
-        try {System.setProperty("techstore.knowledge.dir",Path.of("knowledge").toAbsolutePath().toString());snapshot=new LocalKnowledgeRepository().load(products);}
+        try {System.setProperty("techstore.knowledge.dir",Path.of("src/main/resources/knowledge").toAbsolutePath().toString());snapshot=new LocalKnowledgeRepository().load(products);}
         finally {if(previous==null)System.clearProperty("techstore.knowledge.dir");else System.setProperty("techstore.knowledge.dir",previous);}
         assertTrue(snapshot.warnings().isEmpty());
         var byId=new HashMap<Integer,CatalogComponent>();snapshot.components().forEach(c->byId.put(c.productId(),c));

@@ -60,3 +60,9 @@ config.local.properties
 /docs/
 /knowledge/evidence/
 /database/tests/verify-key-revocation.py
+
+# Repository contains only the JavaFX client and its tests/build inputs.
+/database/
+/tools/
+/knowledge/
+.idea/
