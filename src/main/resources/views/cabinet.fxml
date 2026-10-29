@@ -1,158 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
-
-<BorderPane fx:id="rootBorderPane"
-            xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="controllers.CabinetController"
-            stylesheets="@styles/styles.css"
-            styleClass="cab-root">
-
-    <!-- ═══════════════════════════════════════════
-         ШАП КА: градиент + аватар + email + кнопки
-         ═══════════════════════════════════════════ -->
-    <top>
-        <VBox styleClass="cab-header">
-            <!-- Эта HBox — именно сюда checkIfAdmin() добавляет кнопку «Админ панель» -->
-            <HBox spacing="14" alignment="CENTER_LEFT" styleClass="cab-header-inner">
-
-                <!-- Аватар-заглушка -->
-                <StackPane styleClass="cab-avatar">
-                    <Label text="👤" style="-fx-font-size: 22px;"/>
-                </StackPane>
-
-                <!-- Заголовок + email -->
-                <VBox spacing="3">
-                    <Label text="Личный кабинет" styleClass="cab-header-title"/>
-                    <Label fx:id="userEmailLabel" text="Загрузка…" styleClass="cab-header-email"/>
-                </VBox>
-
-                <Region HBox.hgrow="ALWAYS"/>
-
-                <!-- Кнопки (admin-кнопка будет добавлена сюда же) -->
-                <Button fx:id="backButton"  text="← Назад"  styleClass="cab-btn-back"/>
-                <Button fx:id="logoutButton" text="Выход →" styleClass="cab-btn-logout"/>
-            </HBox>
-        </VBox>
-    </top>
-
-    <!-- ═══════════════════════════════════════════
-         КОНТЕНТ
-         ═══════════════════════════════════════════ -->
-    <center>
-        <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="cab-scroll">
-
-            <VBox fx:id="mainContentVBox" styleClass="cab-content" spacing="20">
-
-                <!-- ───────────────────────────────────────────
-                     КАРТОЧКА: Мой профиль
-                     ─────────────────────────────────────────── -->
-                <VBox spacing="18" styleClass="cab-card">
-
-                    <!-- Заголовок секции -->
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label text="Мой профиль" styleClass="cab-section-title"/>
-                    </HBox>
-                    <Separator styleClass="cab-sep"/>
-
-                    <!-- Сетка полей -->
-                    <GridPane hgap="16" vgap="14">
-                        <columnConstraints>
-                            <ColumnConstraints minWidth="100" prefWidth="115"/>
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="140"/>
-                            <ColumnConstraints minWidth="100" prefWidth="115"/>
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="140"/>
-                        </columnConstraints>
-
-                        <!-- Строка 0 -->
-                        <Label text="📧 Email"
-                               GridPane.columnIndex="0" GridPane.rowIndex="0"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="emailField" editable="false"
-                                   promptText="email@example.com"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="0"
-                                   styleClass="cab-field-readonly"/>
-
-                        <Label text="👤 Имя"
-                               GridPane.columnIndex="2" GridPane.rowIndex="0"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="nameField"
-                                   promptText="Введите имя"
-                                   GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-
-                        <!-- Строка 1 -->
-                        <Label text="👨 Фамилия"
-                               GridPane.columnIndex="0" GridPane.rowIndex="1"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="surnameField"
-                                   promptText="Введите фамилию"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                        <Label text="☎ Телефон"
-                               GridPane.columnIndex="2" GridPane.rowIndex="1"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="phoneField"
-                                   promptText="+7 (000) 000-00-00"
-                                   GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-
-                        <!-- Строка 2 -->
-                        <Label text="🏙 Город"
-                               GridPane.columnIndex="0" GridPane.rowIndex="2"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="cityField"
-                                   promptText="Ваш город"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-
-                        <Label text="🏠 Адрес"
-                               GridPane.columnIndex="2" GridPane.rowIndex="2"
-                               GridPane.valignment="CENTER"
-                               styleClass="cab-field-label"/>
-                        <TextField fx:id="addressField"
-                                   promptText="Улица, дом, квартира"
-                                   GridPane.columnIndex="3" GridPane.rowIndex="2"/>
-                    </GridPane>
-
-                    <!-- Кнопка сохранения -->
-                    <HBox>
-                        <Button fx:id="saveButton"
-                                text="💾  Сохранить изменения"
-                                styleClass="cab-btn-save"
-                                minWidth="220"/>
-                    </HBox>
-                </VBox>
-
-                <!-- ───────────────────────────────────────────
-                     КАРТОЧКА: Безопасность
-                     ─────────────────────────────────────────── -->
-                <VBox spacing="18" styleClass="cab-card">
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label text="🔐" style="-fx-font-size: 18px;"/>
-                        <Label text="Безопасность" styleClass="cab-section-title"/>
-                    </HBox>
-                    <Separator styleClass="cab-sep"/>
-
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button fx:id="changePasswordButton"
-                                text="🔑  Изменить пароль"
-                                styleClass="cab-btn-password"
-                                minWidth="200"/>
-                    </HBox>
-                </VBox>
-
-                <!-- ───────────────────────────────────────────
-                     История заказов добавляется динамически
-                     через loadOrderHistory() в контроллере
-                     ─────────────────────────────────────────── -->
-
-            </VBox>
-        </ScrollPane>
-    </center>
-
+<?import javafx.scene.layout.*?>
+<BorderPane fx:id="rootBorderPane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CabinetController" styleClass="secondary-page" stylesheets="@styles/theme.css, @styles/secondary.css">
+  <top><VBox spacing="10" styleClass="secondary-page-heading"><Label text="ВАШ АККАУНТ" styleClass="secondary-eyebrow"/><HBox alignment="CENTER_LEFT" spacing="14"><Label text="Личный кабинет" styleClass="page-title"/><Region HBox.hgrow="ALWAYS"/><Button fx:id="logoutButton" text="Выйти" styleClass="btn"/></HBox><Label fx:id="userEmailLabel" text="Профиль и заказы" styleClass="page-subtitle"/></VBox></top>
+  <center><ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="secondary-scroll"><VBox fx:id="mainContentVBox" spacing="22" styleClass="secondary-content">
+    <VBox spacing="18" styleClass="surface, account-card"><Label text="Личные данные" styleClass="secondary-section-title"/><Label text="Контактные данные используются для связи по вашим заказам." wrapText="true" styleClass="secondary-muted"/>
+      <GridPane hgap="18" vgap="18"><columnConstraints><ColumnConstraints percentWidth="50" hgrow="ALWAYS"/><ColumnConstraints percentWidth="50" hgrow="ALWAYS"/></columnConstraints>
+        <VBox spacing="7" GridPane.columnIndex="0" GridPane.rowIndex="0"><Label text="Email" styleClass="field-label"/><TextField fx:id="emailField" editable="false"/></VBox>
+        <VBox spacing="7" GridPane.columnIndex="1" GridPane.rowIndex="0"><Label text="Имя" styleClass="field-label"/><TextField fx:id="nameField" promptText="Ваше имя"/></VBox>
+        <VBox spacing="7" GridPane.columnIndex="0" GridPane.rowIndex="1"><Label text="Фамилия" styleClass="field-label"/><TextField fx:id="surnameField" promptText="Ваша фамилия"/></VBox>
+        <VBox spacing="7" GridPane.columnIndex="1" GridPane.rowIndex="1"><Label text="Телефон" styleClass="field-label"/><TextField fx:id="phoneField" promptText="+7XXXXXXXXXX"/></VBox>
+        <VBox spacing="7" GridPane.columnIndex="0" GridPane.rowIndex="2"><Label text="Город" styleClass="field-label"/><TextField fx:id="cityField" promptText="Ваш город"/></VBox>
+        <VBox spacing="7" GridPane.columnIndex="1" GridPane.rowIndex="2"><Label text="Адрес" styleClass="field-label"/><TextField fx:id="addressField" promptText="Улица, дом, квартира"/></VBox>
+      </GridPane>
+      <Label fx:id="profileStatus" wrapText="true" visible="false" styleClass="secondary-status"/>
+      <HBox spacing="12"><Button fx:id="saveButton" text="Сохранить изменения" styleClass="btn, btn-primary"/><Button fx:id="changePasswordButton" text="Изменить пароль" styleClass="btn"/></HBox>
+    </VBox>
+    <VBox spacing="13"><Label text="История заказов" styleClass="secondary-section-title"/><Label fx:id="ordersStatus" text="Загружаем историю заказов…" wrapText="true" styleClass="secondary-muted"/><VBox fx:id="ordersContainer" spacing="14"/></VBox>
+  </VBox></ScrollPane></center>
 </BorderPane>

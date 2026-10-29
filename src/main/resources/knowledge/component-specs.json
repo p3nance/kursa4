@@ -1,0 +1,2590 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-25",
+  "scope": "Local manufacturer-verified facts bound to the current catalog identity. Not a full compatibility certificate.",
+  "sourcePolicy": "Official primary sources read on checkedAt. Revision, kit, BIOS and physical configuration uncertainties remain unverified; TDP is not maximum electrical power.",
+  "catalogReference": "knowledge/catalog-reference.json",
+  "summary": {
+    "productsReviewed": 67,
+    "productsWithVerifiedFacts": 64,
+    "verifiedFacts": 204,
+    "importedFacts": 5
+  },
+  "products": [
+    {
+      "productId": 2,
+      "catalogName": "Intel Core i5-14600K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i5-14600k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 181,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      },
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 3,
+      "catalogName": "Intel Core i7-14700K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i7-14700k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 253,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      },
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 4,
+      "catalogName": "Intel Core i9-14900K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i9-14900k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 253,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      },
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 5,
+      "catalogName": "Intel Core i5-12400F",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i5-12400f",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 117,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      },
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 6,
+      "catalogName": "AMD Ryzen 5 7600",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-5-7600",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ],
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 7,
+      "catalogName": "AMD Ryzen 5 7600X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-5-7600x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ],
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 8,
+      "catalogName": "AMD Ryzen 7 7800X3D",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-7-7800x3d",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ],
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 9,
+      "catalogName": "AMD Ryzen 9 7900X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-9-7900x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ],
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 10,
+      "catalogName": "AMD Ryzen 9 7950X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-9-7950x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ],
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 11,
+      "catalogName": "Intel Core i3-14100F",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i3-14100f",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 110,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      },
+      "catalogCategory": "Процессоры"
+    },
+    {
+      "productId": 12,
+      "catalogName": "NVIDIA GeForce RTX 4060 8GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4060",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 8,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 13,
+      "catalogName": "NVIDIA GeForce RTX 4070 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4070",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 650,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 14,
+      "catalogName": "NVIDIA GeForce RTX 4070 SUPER 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4070 SUPER",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 650,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 15,
+      "catalogName": "NVIDIA GeForce RTX 4080 SUPER 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4080 SUPER",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 750,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 16,
+      "catalogName": "NVIDIA GeForce RTX 4090 24GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4090",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 24,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 850,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 17,
+      "catalogName": "AMD Radeon RX 7600 8GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7600",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 8,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 18,
+      "catalogName": "AMD Radeon RX 7700 XT 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7700 XT",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 700,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 19,
+      "catalogName": "AMD Radeon RX 7800 XT 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7800 XT",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 700,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 20,
+      "catalogName": "NVIDIA GeForce RTX 4060 Ti 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4060 Ti",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 21,
+      "catalogName": "AMD Radeon RX 7900 XTX 24GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7900 XTX",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 24,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 800,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      },
+      "catalogCategory": "Видеокарты"
+    },
+    {
+      "productId": 22,
+      "catalogName": "ASUS ROG Strix Z790-E Gaming WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 23,
+      "catalogName": "MSI MAG Z790 TOMAHAWK WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://storage-asset.msi.com/datasheet/mb/global/MAG-Z790-TOMAHAWK-WIFI.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product datasheet, page 1: CPU Socket LGA 1700."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 24,
+      "catalogName": "GIGABYTE Z790 AORUS ELITE AX",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown.",
+        "Catalog omits PCB revision. Only identical facts corroborated on both official revision specifications are included."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 25,
+      "catalogName": "ASUS TUF Gaming B760-PLUS WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 26,
+      "catalogName": "MSI PRO B760M-P DDR4",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 128,
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 27,
+      "catalogName": "ASUS ROG Strix X670E-F Gaming WiFi",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 28,
+      "catalogName": "MSI MPG X670E CARBON WiFi",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 29,
+      "catalogName": "GIGABYTE B650 AORUS ELITE AX",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown.",
+        "Catalog omits PCB revision. Only identical facts corroborated on both official revision specifications are included."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 30,
+      "catalogName": "ASRock B650M Pro RS",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 31,
+      "catalogName": "ASUS PRIME B550M-A",
+      "facts": {
+        "socket": {
+          "value": "AM4",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 128,
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ],
+      "catalogCategory": "Материнские платы"
+    },
+    {
+      "productId": 32,
+      "catalogName": "Kingston Fury Beast 16GB (2x8) DDR4-3200",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      },
+      "catalogCategory": "Оперативная память"
+    },
+    {
+      "productId": 33,
+      "catalogName": "Kingston Fury Beast 32GB (2x16) DDR4-3600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      },
+      "catalogCategory": "Оперативная память"
+    },
+    {
+      "productId": 34,
+      "catalogName": "G.Skill Trident Z5 RGB 32GB (2x16) DDR5-6000",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      },
+      "catalogCategory": "Оперативная память"
+    },
+    {
+      "productId": 35,
+      "catalogName": "Corsair Vengeance 32GB (2x16) DDR5-5600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      },
+      "catalogCategory": "Оперативная память"
+    },
+    {
+      "productId": 36,
+      "catalogName": "Patriot Viper Steel 16GB (2x8) DDR4-3600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      },
+      "catalogCategory": "Оперативная память"
+    },
+    {
+      "productId": 40,
+      "catalogName": "Samsung 990 PRO 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Samsung 990 PRO 1TB",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      },
+      "catalogCategory": "SSD-накопители"
+    },
+    {
+      "productId": 41,
+      "catalogName": "Samsung 990 PRO 2TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Samsung 990 PRO 2TB",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 2000,
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      },
+      "catalogCategory": "SSD-накопители"
+    },
+    {
+      "productId": 42,
+      "catalogName": "Kingston NV2 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Kingston NV2 1TB",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official 1TB capacity and SNV2S/1000G part list.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      },
+      "catalogCategory": "SSD-накопители"
+    },
+    {
+      "productId": 43,
+      "catalogName": "Crucial MX500 1TB SATA",
+      "facts": {},
+      "identityScope": "Catalog name/description suggests MX500 1TB 2.5-inch SATA. Official source could not be opened successfully in this session, so no VERIFIED fact is added.",
+      "unknownFields": {
+        "model_id": "Candidate CT1000MX500SSD1 is indexed in the official product flyer, but the document could not be opened.",
+        "storage_interface": "Official search index suggests SATA 6Gb/s; not promoted from an inaccessible source.",
+        "capacity_gb": "Official search index suggests 1TB decimal / 1000GB; source not opened.",
+        "form_factor": "Catalog description and official search index suggest 2.5-inch 7mm; source not opened."
+      },
+      "research": {
+        "candidateSource": "https://content.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-en.pdf",
+        "alternateCandidateSource": "https://assets.micron.com/adobe/assets/urn%3Aaaid%3Aaem%3A3c743a1f-9319-4b34-9b20-15cdad1ee2ce/renditions/original/as/crucial-mx500-ssd-productflyer-en.pdf.html",
+        "checkedAt": "2026-10-25",
+        "result": "Public official Crucial/Micron URLs were attempted. Browser fetches returned timeout/rejection; direct read returned unavailable server. Only search-index text was available; omitted rather than treating it as full document verification."
+      },
+      "catalogCategory": "SSD-накопители"
+    },
+    {
+      "productId": 44,
+      "catalogName": "WD Black SN850X 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "WD_BLACK SN850X 1TB",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      },
+      "catalogCategory": "SSD-накопители"
+    },
+    {
+      "productId": 45,
+      "catalogName": "Corsair RM750e 750W 80+ Gold",
+      "facts": {
+        "psu_watts": {
+          "value": 750,
+          "source": "https://assets.corsair.com/image/upload/corsairmedia/sys_master/productcontent/49_002627_AA_WW_RMe_Series_Web_QSG_F.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "English page 1, TOTAL POWER: 750W."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://assets.corsair.com/image/upload/corsairmedia/sys_master/productcontent/49_002627_AA_WW_RMe_Series_Web_QSG_F.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Cover: fully modular ATX power supply; RM750e power table."
+        }
+      },
+      "notes": [
+        "Год и артикул RM750e не указаны. Подтверждены общие для семейства 750 Вт и ATX; длина и кабели зависят от ревизии."
+      ],
+      "unknownFields": [
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 46,
+      "catalogName": "Corsair RM850x 850W 80+ Gold",
+      "facts": {
+        "psu_watts": {
+          "value": 850,
+          "source": "https://www.corsair.com/ww/en/p/psu/cp-9020200-na/rmx-series-rm850x-850-watt-80-plus-gold-fully-modular-atx-psu-cp-9020200-na",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Continuous Power W 850 Watts."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://www.corsair.com/ww/en/p/psu/cp-9020200-na/rmx-series-rm850x-850-watt-80-plus-gold-fully-modular-atx-psu-cp-9020200-na",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: PSU Form Factor ATX."
+        }
+      },
+      "notes": [
+        "Ревизия RM850x неизвестна. Источник CP-9020200 подтверждает общие 850 Вт и ATX; его кабели и длина не перенесены на неуточнённую ревизию."
+      ],
+      "unknownFields": [
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 47,
+      "catalogName": "be quiet! Straight Power 11 750W",
+      "facts": {
+        "psu_watts": {
+          "value": 750,
+          "source": "https://www.bequiet.com/en/press/26537",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official launch lists Straight Power 11 variants, including 750W."
+        }
+      },
+      "notes": [
+        "Официальный пресс-релиз подтверждает вариант 750 Вт. Старые страницы продукта перенаправляются на главную, а ссылка на datasheet не загрузилась; ATX, геометрия и кабели пока неизвестны."
+      ],
+      "unknownFields": [
+        "psu_form_factor",
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 48,
+      "catalogName": "be quiet! Pure Power 12 M 650W",
+      "facts": {
+        "psu_watts": {
+          "value": 650,
+          "source": "https://www.bequiet.com/en/powersupply/4074",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General data: continuous power 650W (peak720W is not used)."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://www.bequiet.com/en/powersupply/4074",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Product text: ATX 3.0 PSU."
+        }
+      },
+      "notes": [
+        "Проверена модель Pure Power 12 M 650W; это отдельная серия от Pure Power 12 без M.",
+        "Официальные разъёмы: ATX 20+4 pin ×1, CPU P4+4 ×1, CPU P4 ×1, PCIe 6+2 pin ×2; описание указывает один 12VHPWR с пределом 450 Вт. Текущая таблица также называет его 12V-2x6. Разъёмы сохранены только здесь: проверка через Set<String> не учитывает количество и мощность кабелей."
+      ],
+      "unknownFields": [
+        "length_mm",
+        "power_connectors"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 49,
+      "catalogName": "DeepCool PQ850M 850W 80+ Gold",
+      "facts": {
+        "psu_watts": {
+          "value": 850,
+          "source": "https://global.deepcool.com/EVENTS.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "PQ850M listed as 850W - 80 PLUS GOLD MODULAR POWER SUPPLY."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://deepcool.com/products/PowerSupplyUnits/powersupplyunits/PQ850M-80-PLUS-Gold-Modular-Power-Supply/2021/14032.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Technical Spec: Type ATX12V V2.4."
+        }
+      },
+      "notes": [
+        "На официальных страницах PQ850M подтверждены 850 Вт и ATX12V. В PQ_M.pdf встречается неоднозначная таблица DQ850-F21, поэтому мощность подтверждена отдельным официальным списком PQ850M.",
+        "Официальная страница показывает ATX 20+4 pin ×1, CPU 4+4 pin ×2 и PCIe 6+2 pin ×3. Количество сохранено в примечании: проверка через Set<String> не учитывает число разъёмов и кабелей."
+      ],
+      "unknownFields": [
+        "length_mm",
+        "power_connectors"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 50,
+      "catalogName": "Seasonic Focus GX-750 750W",
+      "facts": {
+        "psu_watts": {
+          "value": 750,
+          "source": "https://seasonic.com/focus-gx/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "750W specification block: Total continuous power750W."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://seasonic.com/focus-gx/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "750W specification block: Form Factor ATX/EPS."
+        }
+      },
+      "notes": [
+        "FOCUS GX-750 имеет несколько поколений. Подтверждены общие номинал 750 Вт и ATX; типы и количество кабелей GPU зависят от поколения."
+      ],
+      "unknownFields": [
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 51,
+      "catalogName": "Cooler Master MWE Gold 650W",
+      "facts": {
+        "psu_watts": {
+          "value": 650,
+          "source": "https://www.coolermaster.com/en-global/products/mwe-gold-650-v2.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official MWE Gold650-V2 product identity; 650 is the model's rated-power class.",
+          "note": "Catalog explicitly identifies650W; no cable counts transferred from V2."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://legacy.coolermaster.com/en-global/products/mwe-gold-650-full-modular/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official legacy title: MWE Gold650 Full Modular ATX PSU."
+        }
+      },
+      "notes": [
+        "Не указаны V1/V2/V3 и Modular/Non-Modular. Официальные страницы исходной модели и V2 подтверждают семейство 650 Вт и ATX; характеристики отдельных ревизий исключены."
+      ],
+      "unknownFields": [
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 52,
+      "catalogName": "ASUS ROG Strix 1000W Gold",
+      "facts": {
+        "psu_watts": {
+          "value": 1000,
+          "source": "https://rog.asus.com/us/power-supply-units/rog-strix/rog-strix-1000g-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Total Output1000W."
+        },
+        "psu_form_factor": {
+          "value": "ATX",
+          "source": "https://rog.asus.com/us/power-supply-units/rog-strix/rog-strix-1000g-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Intel Form Factor ATX12V."
+        }
+      },
+      "notes": [
+        "Официальная таблица ROG-STRIX-1000G содержит одновременно Gold/Platinum, разные габариты и два набора кабелей. Совпадают только 1000 Вт и ATX; кабели и длина неизвестны."
+      ],
+      "unknownFields": [
+        "power_connectors",
+        "length_mm"
+      ],
+      "catalogCategory": "Блоки питания"
+    },
+    {
+      "productId": 53,
+      "catalogName": "Fractal Design Meshify 2 Black",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://assets.fractal-design.com/files/uxzbxy2o/production/1b5e72d86317371ecfa754c2f99957b7ae3ce173.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Product sheet p5: E-ATX(max285mm),ATX,mATX,Mini-ITX.",
+          "note": "E-ATX omitted because width limit is not modelled."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://assets.fractal-design.com/files/uxzbxy2o/production/1b5e72d86317371ecfa754c2f99957b7ae3ce173.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Product sheet p5: Power supply type ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 185,
+          "source": "https://assets.fractal-design.com/files/uxzbxy2o/production/1b5e72d86317371ecfa754c2f99957b7ae3ce173.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Product sheet p6: CPU cooler max height185mm."
+        }
+      },
+      "notes": [
+        "Meshify 2 имеет разные компоновки: в product sheet GPU 315 мм для Storage и 491 мм для Open, либо 467 мм с передним вентилятором. Обновлённая страница указывает 470 мм. Без выбранной компоновки единый предел GPU не задан.",
+        "Проверены обычные форматы ATX, Micro-ATX и Mini-ITX. E-ATX до 285 мм требует отдельной проверки ширины и разводки; это ограничение текущая схема не представляет."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 54,
+      "catalogName": "Fractal Design Pop Air RGB",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://www.fractal-design.com/products/cases/pop-series/pop-air/pop-air-rgb-black-tg-clear-tint/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Compatibility: ATX,Micro ATX,Mini ITX."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://www.fractal-design.com/products/cases/pop-series/pop-air/pop-air-rgb-black-tg-clear-tint/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Compatibility: PSU ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 170,
+          "source": "https://www.fractal-design.com/products/cases/pop-series/pop-air/pop-air-rgb-black-tg-clear-tint/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Compatibility: CPU cooler max height170mm."
+        }
+      },
+      "notes": [
+        "Предел GPU 405 мм относится к штатному переднему вентилятору. Передний радиатор уменьшает допустимую длину; его положение в сборке неизвестно."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 55,
+      "catalogName": "NZXT H5 Flow",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://support.nzxt.com/hc/en-us/articles/37734705208347-H5-2022-Series-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "2022 motherboard table lists ATX,Micro-ATX,Mini-ITX.",
+          "note": "2024 manual also lists these three formats; additionalSource: https://cdn-g.nzxt.com/dl/1724123146-h5-flow-h5-flow-rgb-2024-digital-manual_240401_v1.pdf"
+        }
+      },
+      "notes": [
+        "Год H5 Flow неизвестен. В версии 2022: кулер 165 мм и GPU 365 мм без передних вентиляторов/радиатора. В версии 2024: кулер 175 мм и GPU 425 мм. Геометрия остаётся неизвестной до уточнения артикула.",
+        "ATX, Micro-ATX и Mini-ITX подтверждены у обоих поколений. E-ATX появился в версии 2024 и не перенесён."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm",
+        "max_cooler_height_mm",
+        "supported_psu_form_factors"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 56,
+      "catalogName": "NZXT H7 Flow",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://support.nzxt.com/hc/en-us/articles/47607864027547-H7-Series-2022-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "2022-2023 motherboard table: ATX,Micro-ATX,Mini-ITX.",
+          "note": "Those formats are also present in2024; additionalSource: https://support.nzxt.com/hc/en-us/articles/40379376386203-H7-Flow-2024-Specs"
+        },
+        "max_cooler_height_mm": {
+          "value": 185,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47607864027547-H7-Series-2022-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "2022-2023 CPU cooler limit185mm.",
+          "note": "2024 also specifies185mm; additionalSource: https://support.nzxt.com/hc/en-us/articles/40379376386203-H7-Flow-2024-Specs"
+        }
+      },
+      "notes": [
+        "Год H7 Flow неизвестен. Предел GPU различается: 400 мм у версии 2022/2023 и 410 мм у версии 2024.",
+        "Высота воздушного кулера 185 мм подтверждена у обоих поколений. Проверены ATX, Micro-ATX и Mini-ITX; E-ATX имеет разные ограничения ширины 272/277 мм и требует отдельного уточнения."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm",
+        "supported_psu_form_factors"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 57,
+      "catalogName": "Corsair 4000D Airflow",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://www.corsair.com/uk/en/explorer/diy-builder/cases/corsair-4000-5000-and-7000-series-pc-cases/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "4000D AIRFLOW comparison: Mini-ITX,Micro-ATX,ATX,E-ATX.",
+          "note": "Only ordinary formats retained; E-ATX is width-restricted."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://www.corsair.com/ww/en/p/pc-cases/cc-9011200-ww/40",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Case Power Supply ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 170,
+          "source": "https://www.corsair.com/ww/en/p/pc-cases/cc-9011200-ww/40",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Maximum CPU Cooler Height170mm."
+        }
+      },
+      "notes": [
+        "GPU до 360 мм заявлен при верхнем расположении AIO; передний AIO уменьшает доступное место. Без позиции радиатора безусловный предел GPU не задан.",
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX ограничен размером 305×277 мм и требует отдельной проверки ширины/разводки."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 58,
+      "catalogName": "Corsair 5000D Airflow",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://www.corsair.com/us/en/p/pc-cases/cc-9011210-ww/5000d-airflow-tempered-glass-mid-tower-atx-pc-case-black-cc-9011210-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Mini-ITX,MicroATX,ATX,E-ATX305×277mm.",
+          "note": "Safe subset excludes width-restricted E-ATX."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://www.corsair.com/us/en/p/pc-cases/cc-9011210-ww/5000d-airflow-tempered-glass-mid-tower-atx-pc-case-black-cc-9011210-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Case Power Supply ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 170,
+          "source": "https://www.corsair.com/us/en/p/pc-cases/cc-9011210-ww/5000d-airflow-tempered-glass-mid-tower-atx-pc-case-black-cc-9011210-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Tech Specs: Maximum CPU Cooler Height170mm."
+        }
+      },
+      "notes": [
+        "Ранняя официальная инструкция 5000D указывает GPU 370 мм, текущая страница 420 мм. Без уточнения компоновки предел GPU не задан.",
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×277 мм требует отдельной проверки ширины и разводки."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 59,
+      "catalogName": "be quiet! Pure Base 500DX",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://bert.bequiet.com/en/case/1854",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General data: motherboard ATX,M-ATX,Mini-ITX."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://bert.bequiet.com/en/case/1854",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General data: PSU form factor ATX PS/2."
+        },
+        "max_cooler_height_mm": {
+          "value": 190,
+          "source": "https://bert.bequiet.com/en/case/1854",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Cooling: max construction height of CPU cooler190mm."
+        }
+      },
+      "notes": [
+        "Номинальный предел GPU 369 мм может уменьшиться при установке переднего радиатора. Без его положения предел для конкретной сборки неизвестен."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 60,
+      "catalogName": "be quiet! Silent Base 802",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://www.bequiet.com/en//case/2050",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General data: ATX,M-ATX,Mini-ITX; E-ATX is305×275mm.",
+          "note": "Only ordinary formats retained."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://www.bequiet.com/en//case/2050",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General data: PSU form factor ATX PS/2."
+        },
+        "max_cooler_height_mm": {
+          "value": 185,
+          "source": "https://www.bequiet.com/en//case/2050",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Cooling: max CPU cooler height185mm."
+        }
+      },
+      "notes": [
+        "Предел GPU: 432 мм без корзины HDD и 287 мм с корзиной; её положение неизвестно.",
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×275 мм требует отдельной проверки ширины и разводки."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 61,
+      "catalogName": "Lian Li LANCOOL 215",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://lian-li.com/product/lancool-215/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Specifications: ATX,M-ATX,ITX; E-ATX under280mm.",
+          "note": "Safe subset omits width-restricted E-ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 166,
+          "source": "https://lian-li.com/product/lancool-215/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Specifications: CPU Clearance166mm."
+        }
+      },
+      "notes": [
+        "Номинальный предел GPU 370 мм требует дополнительной проверки при переднем AIO. Тип блока питания в найденной таблице явно не назван.",
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX шириной менее 280 мм требует отдельного уточнения."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm",
+        "supported_psu_form_factors"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 62,
+      "catalogName": "Lian Li O11 Dynamic",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://lian-li.com/product/pc-o11-dynamic/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "M/B Type: E-ATX,ATX,Micro-ATX,Mini-ITX.",
+          "note": "Safe subset for current ATX-family boards."
+        },
+        "max_cooler_height_mm": {
+          "value": 155,
+          "source": "https://lian-li.com/product/pc-o11-dynamic/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Specifications: CPU Cooling≤155mm."
+        },
+        "max_gpu_length_mm": {
+          "value": 420,
+          "source": "https://lian-li.com/product/pc-o11-dynamic/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Specifications: VGA length≤420mm.",
+          "note": "The separate GPU height≤159mm and cable bend clearance must still be checked."
+        }
+      },
+      "notes": [
+        "Проверен исходный O11 DYNAMIC, без суффиксов EVO, XL или Mini. Кроме длины GPU ≤420 мм требуется высота GPU ≤159 мм и место для изгиба кабеля; текущий код эти условия не проверяет.",
+        "Безопасный поднабор охватывает ATX, Micro-ATX и Mini-ITX. E-ATX требует отдельной проверки ширины и разводки."
+      ],
+      "unknownFields": [
+        "supported_psu_form_factors"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 63,
+      "catalogName": "DeepCool CH510 Mesh Digital",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://jp.deepcool.com/products/Cases/CH510-MESH-DIGITAL-Mid-Tower-ATX-Case/2022/16218.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Technical Spec: Mini-ITX,Micro-ATX,ATX,E-ATX."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://jp.deepcool.com/products/Cases/CH510-MESH-DIGITAL-Mid-Tower-ATX-Case/2022/16218.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Technical Spec: ATX PS2(max170mm length).",
+          "note": "PSU length is an independent condition; current schema does not store case PSU length."
+        },
+        "max_cooler_height_mm": {
+          "value": 175,
+          "source": "https://jp.deepcool.com/products/Cases/CH510-MESH-DIGITAL-Mid-Tower-ATX-Case/2022/16218.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Technical Spec: CPU cooler height limit175mm."
+        }
+      },
+      "notes": [
+        "Проверен CH510 MESH DIGITAL, без подмены обычным CH510. Предел GPU 380 мм номинальный; передний радиатор в модели совместимости не представлен.",
+        "Проверены ATX, Micro-ATX и Mini-ITX; E-ATX требует отдельного уточнения ширины/разводки. Для ATX PS2 указан предел длины БП 170 мм, который текущая схема не хранит."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 64,
+      "catalogName": "Phanteks Eclipse G360A",
+      "facts": {
+        "max_cooler_height_mm": {
+          "value": 162,
+          "source": "https://phanteks.com.tw/assets/manuals/PH-EC360ATG2.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Installation guide p1: CPU cooler height162mm."
+        }
+      },
+      "notes": [
+        "Официальная инструкция G360A версии 1.1 доступна на региональном сайте производителя. GPU 400 мм номинально; передний радиатор может занять часть внутреннего объёма.",
+        "В найденной инструкции нет полного явного списка форматов плат и типа ATX PSU. Эти поля не верифицировались по магазинам."
+      ],
+      "unknownFields": [
+        "supported_form_factors",
+        "supported_psu_form_factors",
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 65,
+      "catalogName": "Phanteks Enthoo Pro 2",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://phanteks.com/product/enthoo-pro-2-tg/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Mainboard Support includes ATX,Micro-ATX,Mini-ITX."
+        },
+        "max_cooler_height_mm": {
+          "value": 195,
+          "source": "https://phanteks.com/product/enthoo-pro-2-tg/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Clearance: CPU cooler195mm."
+        }
+      },
+      "notes": [
+        "Проверен Enthoo Pro II, без Server Edition. Номинальные GPU 503 мм требуют отдельной проверки при радиаторах и компоновке с несколькими системами.",
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX, SSI-EEB и XL-ATX требуют проверки ширины, высоты и разводки."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm",
+        "supported_psu_form_factors"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 66,
+      "catalogName": "Cooler Master MasterBox NR600",
+      "facts": {
+        "supported_form_factors": {
+          "value": [
+            "ATX",
+            "Micro-ATX",
+            "Mini-ITX"
+          ],
+          "source": "https://www.coolermaster.com/en-global/products/MCB-NR600-KGNN-S00.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Motherboard Support: Mini-ITX,Micro-ATX,ATX."
+        },
+        "supported_psu_form_factors": {
+          "value": [
+            "ATX"
+          ],
+          "source": "https://www.coolermaster.com/en-global/products/MCB-NR600-KGNN-S00.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Power Supply Support: Bottom Mount,ATX."
+        },
+        "max_cooler_height_mm": {
+          "value": 166,
+          "source": "https://www.coolermaster.com/en-global/products/MCB-NR600-KGNN-S00.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Clearance CPU Cooler166mm.",
+          "note": "Both with ODD and without ODD specifications publish 166mm. Additional source: https://www.coolermaster.com/en-global/products/masterbox-nr600-with-odd.html"
+        }
+      },
+      "notes": [
+        "Каталог не уточняет ODD. У официальных NR600 with ODD и without ODD одинаковы форматы ATX/Micro-ATX/Mini-ITX, PSU ATX и предел кулера 166 мм.",
+        "Номинальные GPU 410 мм не перенесены: расположение переднего радиатора в сборке неизвестно. Поддержка радиаторов различается между ODD-версиями."
+      ],
+      "unknownFields": [
+        "max_gpu_length_mm"
+      ],
+      "catalogCategory": "Корпуса"
+    },
+    {
+      "productId": 68,
+      "catalogName": "Noctua NH-D15",
+      "facts": {
+        "height_mm": {
+          "value": 165,
+          "source": "https://noctua.at/pub/media/blfa_files/infosheet/noctua_nh_d15_datasheet_en_web_4.pdf",
+          "verification": "IMPORTED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Previous official datasheet and indexed product page specify 165mm; current specifications publish 168mm.",
+          "note": "Conflicting official dimensions and unknown catalog EAN/revision: do not use as a verified compatibility limit. Current source: https://www.noctua.at/en/products/nh-d15/specifications"
+        },
+        "supported_sockets": {
+          "value": [
+            "AM5",
+            "AM4",
+            "LGA1700",
+            "LGA1200",
+            "LGA1150",
+            "LGA1151",
+            "LGA1155",
+            "LGA1156"
+          ],
+          "source": "https://www.noctua.at/en/products/nh-d15/specifications",
+          "verification": "IMPORTED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Current datasheet lists these sockets.",
+          "note": "NOT unconditional for oldstock: AM4kit since2019; LGA1700kit since2021. Verifybox/mountingkit beforeuse."
+        }
+      },
+      "notes": [
+        "У прежнего официального datasheet и индексированной страницы NH-D15 высота 165 мм. Новая страница Specifications и актуальный FAQ указывают 168 мм; артикул/EAN каталога неизвестен. Значение 165 мм оставлено IMPORTED до уточнения ревизии.",
+        "В двухвентиляторном режиме RAM выше 32 мм требует подъёма переднего вентилятора и увеличивает полную высоту. Это условие код пока не моделирует.",
+        "Крепления AM4/AM5 включены с 2019 года, LGA1700 с 2021 года; возраст коробки неизвестен. Современные сокеты не получают безусловный VERIFIED.",
+        "Noctua применяет NSPR. Значение cooling_watts не выводится из маркетингового TDP или NSPR."
+      ],
+      "unknownFields": [
+        "cooling_watts",
+        "height_mm"
+      ],
+      "catalogCategory": "Охлаждение"
+    },
+    {
+      "productId": 69,
+      "catalogName": "be quiet! Dark Rock Pro 4",
+      "facts": {
+        "height_mm": {
+          "value": 163,
+          "source": "https://bequiet.com/en/cpucooler/1378",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Current Generaldata and heatsinkspeclist height163mm.",
+          "note": "Nominalstockfanposition; checkRAMandfanposition."
+        },
+        "supported_sockets": {
+          "value": [
+            "AM5",
+            "AM4",
+            "LGA1700",
+            "LGA1200",
+            "LGA2066",
+            "LGA1150",
+            "LGA1151",
+            "LGA1155",
+            "LGA2011",
+            "LGA2011-3"
+          ],
+          "source": "https://bequiet.com/en/cpucooler/1378",
+          "verification": "IMPORTED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Current socket list lists1700/1200/2066/1150/1151/1155/2011(-3),AM5/AM4.",
+          "note": "LGA1700kit includedfromApril2022 only; earlierstockneedsupgrade. See https://bequiet.com/en/insidebequiet/3461"
+        }
+      },
+      "notes": [
+        "Текущая официальная страница публикует высоту 163 мм. Это значение производителя, без собственного округления 162,8 мм.",
+        "Крепление LGA1700 включено с апреля 2022 года; для старых коробок нужен отдельный комплект. Маркетинговые 250 Вт TDP не приравниваются к электрической максимальной мощности CPU."
+      ],
+      "unknownFields": [
+        "cooling_watts"
+      ],
+      "catalogCategory": "Охлаждение"
+    },
+    {
+      "productId": 70,
+      "catalogName": "DeepCool AK620",
+      "facts": {
+        "height_mm": {
+          "value": 160,
+          "source": "https://www.deepcool.com/products/Cooling/cpuaircoolers/AK620-High-Performance-CPU-Cooler-1700-AM5/2021/13067.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Technical Spec: ProductDimensions129×138×160mm(L×W×H).",
+          "note": "Defaultfanposition; raisingfanforRAMrequiresmorecaseclearance."
+        },
+        "supported_sockets": {
+          "value": [
+            "AM5",
+            "AM4",
+            "LGA2066",
+            "LGA2011-3",
+            "LGA2011",
+            "LGA1700",
+            "LGA1200",
+            "LGA1151",
+            "LGA1150",
+            "LGA1155"
+          ],
+          "source": "https://www.deepcool.com/products/Cooling/cpuaircoolers/AK620-High-Performance-CPU-Cooler-1700-AM5/2021/13067.shtml",
+          "verification": "IMPORTED",
+          "checkedAt": "2026-10-25",
+          "evidence": "ApplicationFor lists these Intel/AMD sockets.",
+          "note": "SitehasmanualwithoutLGA1700brackets; actual mountingkitmustbeverified."
+        }
+      },
+      "notes": [
+        "AK620: 160 мм в штатной позиции вентиляторов; зазор RAM 43 мм, либо 59 мм с одним вентилятором.",
+        "Официальная страница отдельно предлагает инструкцию без креплений LGA1700. Комплектация каталога не уточнена; поддержка LGA1700 не безусловная.",
+        "Маркетинговая тепловая способность не перенесена в cooling_watts."
+      ],
+      "unknownFields": [
+        "cooling_watts"
+      ],
+      "catalogCategory": "Охлаждение"
+    },
+    {
+      "productId": 71,
+      "catalogName": "NZXT Kraken 360 RGB",
+      "facts": {
+        "supported_sockets": {
+          "value": [
+            "LGA1700",
+            "LGA1200",
+            "LGA1150",
+            "LGA1151",
+            "LGA1155",
+            "LGA1156",
+            "AM5",
+            "AM4"
+          ],
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Kraken(2023) CPU SocketCompatibility: LGA1700/1200/115X,AM5/AM4.",
+          "note": "Verifiedstandardmountingsubset; radiatorfitmustbecheckedseparately."
+        }
+      },
+      "notes": [
+        "Kraken 360 RGB соответствует Kraken RGB (2023), RL-KR360-B1/W1. Не подменять моделями Plus, Core или Elite.",
+        "Радиатор 394×121×30 мм плюс вентиляторы 26 мм: текущая схема не проверяет расположение и полный занимаемый объём. Высота крышки помпы 55,97 мм не записана как height_mm.",
+        "Для TR4/sTRX4 нужен отдельный кронштейн; они не входят в список штатных креплений."
+      ],
+      "unknownFields": [
+        "height_mm",
+        "cooling_watts"
+      ],
+      "catalogCategory": "Охлаждение"
+    },
+    {
+      "productId": 72,
+      "catalogName": "Corsair iCUE H150i Elite Capellix",
+      "facts": {
+        "supported_sockets": {
+          "value": [
+            "LGA1700",
+            "LGA1200",
+            "LGA1150",
+            "LGA1151",
+            "LGA1155",
+            "LGA1156",
+            "LGA1366",
+            "LGA2011",
+            "LGA2066",
+            "AM5",
+            "AM4",
+            "sTRX4",
+            "sTR4"
+          ],
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww",
+          "verification": "IMPORTED",
+          "checkedAt": "2026-10-25",
+          "evidence": "TechSpecs CPU Socket list plus explicitLGA1700sparepartfootnote.",
+          "note": "LGA1700 requiresCW-8960091orCW-8960093 purchasedseparately; kitunverified."
+        }
+      },
+      "notes": [
+        "Проверен исходный H150i ELITE CAPELLIX CW-9060048-WW, без XT. Официальная страница требует для LGA1700 покупку CW-8960091 или CW-8960093; комплект каталога неизвестен.",
+        "Обозначение радиатора 360 мм не гарантирует установку в любом корпусе. Поле Product Height 119,6 мм на странице не используется как height_mm воздушного кулера."
+      ],
+      "unknownFields": [
+        "height_mm",
+        "cooling_watts"
+      ],
+      "catalogCategory": "Охлаждение"
+    }
+  ]
+}

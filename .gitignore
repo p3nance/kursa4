@@ -1,4 +1,7 @@
 .gradle
+.gradle-user/
+.env
+*.local.env
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -41,3 +44,19 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Local database backups may contain personal data.
+/backups/
+
+# Private local configuration and user-requested exclusions.
+base.env
+config.local.properties
+.codex/
+*.[mM][dD]
+*.markdown
+
+# Local design reviews, research evidence, and operational reports.
+/design/
+/docs/
+/knowledge/evidence/
+/database/tests/verify-key-revocation.py

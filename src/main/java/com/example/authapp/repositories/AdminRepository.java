@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -18,14 +17,12 @@ import java.util.Map;
 import config.Config;
 
 public class AdminRepository {
-    private static final String SUPABASE_URL  = Config.SUPABASE_URL;
-    private static final String SUPABASE_KEY  = Config.SUPABASE_ANON_KEY;
+    private static final String SUPABASE_URL = config.Config.SUPABASE_URL;
+    private static final String SUPABASE_KEY = config.Config.SUPABASE_ANON_KEY;
 
-    private static final String SUPABASE_SERVICE_ROLE_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQyMzgxNSwiZXhwIjoyMDcyOTk5ODE1fQ.WQaeTsuXb3rdOvKuadz7Hnq3daQ3uBC0nlBnxRXhRZo";
 
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
+
+        private static final Gson gson = new Gson();
 
     // ============ ТОВАРЫ ============
 
@@ -35,20 +32,20 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Accept", "application/json")
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 throw new Exception("Ошибка получения товаров: " + response.statusCode());
             }
 
             List<ProductDTO> products = new ArrayList<>();
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 ProductDTO dto = gson.fromJson(jsonArray.get(i), ProductDTO.class);
@@ -63,52 +60,12 @@ public class AdminRepository {
         }
     }
 
+    /** Archive stock availability; historical order lines and cart references stay intact. */
     public static void deleteProduct(int productId) throws Exception {
-        try {
-            deleteRelated("/rest/v1/order_items?product_id=eq." + productId, "order_items");
-            deleteRelated("/rest/v1/cart_items?product_id=eq."  + productId, "cart_items");
-
-            String url = SUPABASE_URL + "/rest/v1/products?id=eq." + productId;
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Prefer", "return=minimal")
-                    .DELETE()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка удаления товара: HTTP " + response.statusCode() + " — " + response.body());
-            }
-
-            System.out.println("✅ Товар удалён (id=" + productId + ")");
-
-        } catch (Exception e) {
-            throw new Exception("Ошибка удаления товара: " + e.getMessage());
-        }
-    }
-
-    private static void deleteRelated(String endpoint, String tableName) throws Exception {
-        String url = SUPABASE_URL + endpoint;
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
-                .header("apikey", SUPABASE_KEY)
-                .header("Prefer", "return=minimal")
-                .DELETE()
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200 && response.statusCode() != 204) {
-            throw new Exception("Ошибка очистки " + tableName + ": HTTP " + response.statusCode() + " — " + response.body());
-        }
-
-        System.out.println("✅ Зависимые записи удалены из " + tableName);
+        config.SessionManager.ensureValidSession();
+        com.example.authapp.network.SupabaseHttp.send(com.example.authapp.network.SupabaseHttp.request(
+                "/rest/v1/products?id=eq." + productId).header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString("{\"stock\":0}")).build());
     }
 
     public static void addProduct(String name, String description, double price,
@@ -127,16 +84,16 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 201) {
-                throw new Exception("Ошибка добавления товара: " + response.statusCode() + " " + response.body());
+                throw new Exception("Ошибка добавления товара: " + response.statusCode());
             }
 
         } catch (Exception e) {
@@ -160,16 +117,16 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка обновления товара: " + response.statusCode() + " " + response.body());
+                throw new Exception("Ошибка обновления товара: " + response.statusCode());
             }
 
         } catch (Exception e) {
@@ -188,17 +145,17 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .header("Prefer", "return=minimal")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка обновления остатка: " + response.statusCode() + " " + response.body());
+                throw new Exception("Ошибка обновления остатка: " + response.statusCode());
             }
 
             System.out.println("✅ Остаток товара id=" + productId + " обновлён → " + newStock);
@@ -218,14 +175,14 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .header("Prefer", "return=minimal")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 204 && response.statusCode() != 200) {
                 throw new Exception("Ошибка обновления изображения: " + response.statusCode());
@@ -244,20 +201,20 @@ public class AdminRepository {
             String url = SUPABASE_URL + "/rest/v1/profiles?select=*";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Accept", "application/json")
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 throw new Exception("Ошибка получения пользователей: " + response.statusCode());
             }
 
             List<UserDTO> users = new ArrayList<>();
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 UserDTO dto = gson.fromJson(jsonArray.get(i), UserDTO.class);
@@ -278,15 +235,15 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() == 200 && !response.body().equals("[]")) {
-                JsonArray arr = JsonParser.parseString(response.body()).getAsJsonArray();
+                JsonArray arr = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
                 for (int i = 0; i < arr.size(); i++) {
                     JsonObject obj = arr.get(i).getAsJsonObject();
                     String id    = obj.has("id")    && !obj.get("id").isJsonNull()    ? obj.get("id").getAsString()    : null;
@@ -311,12 +268,12 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 throw new Exception("Ошибка загрузки заказов: " + response.statusCode());
@@ -325,7 +282,7 @@ public class AdminRepository {
             // ✅ Загружаем MAP uuid→email одним запросом, чтобы не делать N+1
             Map<String, String> emailMap = resolveUserEmails();
 
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
             List<OrderDTO> orders = new ArrayList<>();
 
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -359,7 +316,6 @@ public class AdminRepository {
                 dto.items = getOrderItemsAdmin(dto.orderId);
                 orders.add(dto);
 
-                System.out.println("✅ Заказ загружен: ID=" + dto.orderId + ", email=" + dto.userId + ", статус=" + dto.status);
             }
 
             System.out.println("✅ Загружено заказов: " + orders.size());
@@ -378,19 +334,19 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 return new ArrayList<>();
             }
 
             List<OrderItemDTO> items = new ArrayList<>();
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 OrderItemDTO item = gson.fromJson(jsonArray.get(i), OrderItemDTO.class);
@@ -416,20 +372,19 @@ public class AdminRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .header("Prefer", "return=minimal")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             System.out.println("📥 Статус ответа: " + response.statusCode());
-            System.out.println("📥 Тело ответа: "   + response.body());
 
             if (response.statusCode() != 200 && response.statusCode() != 204) {
-                throw new Exception("Ошибка обновления статуса: HTTP " + response.statusCode() + " - " + response.body());
+                throw new Exception("Ошибка обновления статуса: HTTP " + response.statusCode());
             }
 
             System.out.println("✅ Статус заказа успешно обновлен!");
@@ -443,85 +398,15 @@ public class AdminRepository {
 
     // ============ БЛОКИРОВКА ============
 
-    public static void blockUser(String userId) throws Exception {
-        try {
-            String url = SUPABASE_URL + "/auth/v1/admin/users/" + userId;
-            JsonObject jsonBody = new JsonObject();
-            jsonBody.addProperty("ban_duration", "1000000h");
-
-            String jsonString = jsonBody.toString();
-            System.out.println("📝 JSON Body: " + jsonString);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_SERVICE_ROLE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PUT", HttpRequest.BodyPublishers.ofString(jsonString))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println("📊 HTTP Статус: " + response.statusCode());
-            System.out.println("📄 Ответ: "       + response.body());
-
-            if (response.statusCode() != 200) {
-                throw new Exception("Ошибка блокировки пользователя: HTTP " + response.statusCode());
-            }
-            updateUserBlockStatus(userId, true);
-
-        } catch (Exception e) {
-            System.err.println("════════════════════════════════════════");
-            System.err.println("❌ ОШИБКА ПРИ БЛОКИРОВКЕ");
-            System.err.println("📌 Сообщение: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println("════════════════════════════════════════");
-            throw new Exception("Ошибка при блокировке пользователя: " + e.getMessage());
-        }
-    }
-
-    public static void unblockUser(String userId) throws Exception {
-        try {
-            String url = SUPABASE_URL + "/auth/v1/admin/users/" + userId;
-            JsonObject jsonBody = new JsonObject();
-            jsonBody.addProperty("ban_duration", "0ms");
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_SERVICE_ROLE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PUT", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            updateUserBlockStatus(userId, false);
-
-            if (response.statusCode() != 200) {
-                throw new Exception("Ошибка разблокировки пользователя: HTTP " + response.statusCode());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("════════════════════════════════════════");
-            throw new Exception("Ошибка при разблокировке пользователя: " + e.getMessage());
-        }
-    }
-
-    private static void updateUserBlockStatus(String userId, boolean isBlocked) throws Exception {
-        String url = SUPABASE_URL + "/rest/v1/profiles?id=eq." + userId;
-
-        JsonObject jsonBody = new JsonObject();
-        jsonBody.addProperty("is_blocked", isBlocked);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
-                .header("apikey", SUPABASE_KEY)
-                .header("Content-Type", "application/json")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
-                .build();
-
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    public static void blockUser(String userId) throws Exception { setUserBlocked(userId, true); }
+    public static void unblockUser(String userId) throws Exception { setUserBlocked(userId, false); }
+    private static void setUserBlocked(String userId, boolean blocked) throws Exception {
+        config.SessionManager.ensureValidSession();
+        java.util.UUID.fromString(userId);
+        String body = new org.json.JSONObject().put("p_user_id", userId).put("p_blocked", blocked).toString();
+        com.example.authapp.network.SupabaseHttp.send(com.example.authapp.network.SupabaseHttp.request(
+                "/rest/v1/rpc/set_user_blocked").header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build());
     }
 
     // ============ ПРОМОКОДЫ ============

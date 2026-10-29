@@ -1,5 +1,8 @@
 package controllers;
 
+import com.example.authapp.ui.Ui;
+import java.util.concurrent.*;
+
 import com.example.authapp.dto.ProductDTO;
 import com.example.authapp.dto.UserDTO;
 import com.example.authapp.dto.OrderDTO;
@@ -33,10 +36,19 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class AdminController implements Initializable {
+    @FXML private Label screenStatus;
+    private volatile boolean disposed, active=true, loading;
+    private final ExecutorService worker=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"secondary-data");t.setDaemon(true);return t;});
+    private void runAsync(Runnable job){
+        if(disposed)return;var lease=config.SessionManager.captureSession();
+        worker.submit(()->{try(var scope=com.example.authapp.network.SupabaseHttp.forSession(lease)){if(!disposed)job.run();}
+            catch(RuntimeException ex){loading=false;report("Сессия изменилась. Откройте раздел текущего аккаунта снова.");}});
+    }
+    private void report(String text){Platform.runLater(()->{if(!disposed&&screenStatus!=null)screenStatus.setText(text);});}
+
 
     // ============ ОБЩИЕ ЭЛЕМЕНТЫ ============
     @FXML private TabPane adminTabs;
-    @FXML private Button  exitAdminBtn;
 
     // ============ ТОВАРЫ ============
     @FXML private Button              addProductBtn;
@@ -70,12 +82,12 @@ public class AdminController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            System.out.println("🎨 AdminController инициализирован");
+            System.out.println(" AdminController инициализирован");
             setupUI();
-            loadAdminData();
             refreshService = new AdminRefreshService(this);
+            loadAdminData();
         } catch (Exception e) {
-            System.err.println("❌ Ошибка инициализации: " + e.getMessage());
+            System.err.println(" Ошибка инициализации: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -92,12 +104,6 @@ public class AdminController implements Initializable {
     // ✅ Настройка UI элементов
     // ============================================
     private void setupUI() {
-        if (exitAdminBtn != null) {
-            exitAdminBtn.setOnAction(e -> {
-                if (refreshService != null) refreshService.stop();
-                if (mainController != null) mainController.showMainContent();
-            });
-        }
 
         if (addProductBtn != null) {
             addProductBtn.setOnAction(e -> showAddProductDialog());
@@ -115,7 +121,7 @@ public class AdminController implements Initializable {
                     ObservableList<UserDTO> filtered = FXCollections.observableArrayList();
                     String searchText = newVal.toLowerCase();
                     for (UserDTO user : usersData) {
-                        if (user.email.toLowerCase().contains(searchText) ||
+                        if ((user.email != null && user.email.toLowerCase().contains(searchText)) ||
                                 (user.name    != null && user.name.toLowerCase().contains(searchText)) ||
                                 (user.surname != null && user.surname.toLowerCase().contains(searchText))) {
                             filtered.add(user);
@@ -157,29 +163,32 @@ public class AdminController implements Initializable {
     // ✅ Загрузка всех данных
     // ============================================
     private void loadAdminData() {
-        new Thread(() -> {
+        if(loading||disposed)return;loading=true;report("Обновляем данные…");
+        runAsync(() -> {
             try {
-                loadProducts();
-                loadUsers();
-                loadOrders();
-                loadPromoCodes();
-                Platform.runLater(() -> {
-                    if (refreshService != null) refreshService.start();
+                loadProductsNow();
+                loadUsersNow();
+                loadOrdersNow();
+                loadPromoCodesNow();
+                Platform.runLater(() -> { if (disposed) return;
+                    loading=false;
+                    if(screenStatus!=null && screenStatus.getText().equals("Обновляем данные…"))screenStatus.setText("Данные обновлены");
+                    if (refreshService != null && active) refreshService.start();
                 });
             } catch (Exception e) {
-                System.err.println("❌ Ошибка загрузки данных: " + e.getMessage());
+                System.err.println(" Ошибка загрузки данных: " + e.getMessage());
             }
-        }).start();
+        });
     }
 
     // ============================================
     // ✅ ТОВАРЫ
     // ============================================
 
-    private void loadProducts() {
+    private void loadProductsNow() {
         try {
             List<ProductDTO> products = AdminRepository.getAllProducts();
-            Platform.runLater(() -> {
+            Platform.runLater(() -> { if (disposed) return;
                 if (productsTable != null) {
                     if (!productsTableSetup) {
                         setupProductsTable();
@@ -191,7 +200,8 @@ public class AdminController implements Initializable {
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
+                loading=false;report("Не удалось загрузить данные. Проверьте соединение и доступ к разделу.");
+            System.err.println(" Ошибка загрузки товаров: " + e.getMessage());
         }
     }
 
@@ -213,6 +223,9 @@ public class AdminController implements Initializable {
         TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
         priceCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().price).asObject());
         priceCol.setPrefWidth(100);
+        priceCol.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+        });
 
         TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
         stockCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().stock).asObject());
@@ -220,9 +233,9 @@ public class AdminController implements Initializable {
 
         TableColumn<ProductDTO, Void> imageCol = new TableColumn<>("Фото");
         imageCol.setCellFactory(col -> new TableCell<>() {
-            private final Button uploadBtn = new Button("📷");
+            private final Button uploadBtn = new Button("Фото");
             {
-                uploadBtn.setStyle("-fx-font-size: 12px; -fx-padding: 4px 8px;");
+                uploadBtn.getStyleClass().add("admin-setup-products-table-upload-btn");
                 uploadBtn.setOnAction(e -> {
                     if (getIndex() >= 0) uploadProductImage(getTableView().getItems().get(getIndex()));
                 });
@@ -233,7 +246,7 @@ public class AdminController implements Initializable {
                 setGraphic(empty ? null : uploadBtn);
             }
         });
-        imageCol.setPrefWidth(60);
+        imageCol.setMinWidth(80);imageCol.setPrefWidth(80);
 
         TableColumn<ProductDTO, Void> actionCol = new TableColumn<>("Действия");
         actionCol.setCellFactory(col -> new TableCell<>() {
@@ -247,15 +260,13 @@ public class AdminController implements Initializable {
                 actions.setAlignment(Pos.CENTER);
 
                 Button editBtn = new Button("Редактировать");
-                editBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white;" +
-                        " -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                editBtn.getStyleClass().add("admin-setup-products-table-edit-btn");
                 editBtn.setOnAction(e -> {
                     if (getIndex() >= 0) showEditProductDialog(getTableView().getItems().get(getIndex()));
                 });
 
-                Button deleteBtn = new Button("🗑");
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;" +
-                        " -fx-padding: 4px 8px; -fx-font-size: 12px;");
+                Button deleteBtn = new Button("Архив");
+                deleteBtn.getStyleClass().add("admin-setup-products-table-delete-btn");
                 deleteBtn.setOnAction(e -> {
                     if (getIndex() >= 0) deleteProduct(getTableView().getItems().get(getIndex()));
                 });
@@ -264,16 +275,17 @@ public class AdminController implements Initializable {
                 setGraphic(actions);
             }
         });
-        actionCol.setPrefWidth(80);
+        actionCol.setPrefWidth(210);
 
         productsTable.getColumns().addAll(idCol, nameCol, categoryCol, priceCol, stockCol, imageCol, actionCol);
-        System.out.println("✅ Таблица товаров настроена");
+        System.out.println(" Таблица товаров настроена");
     }
 
     private void showAddProductDialog() {
         Dialog<ProductDTO> dialog = new Dialog<>();
+        Ui.theme(dialog);
         dialog.setTitle("Добавить товар");
-        dialog.setHeaderText("📦 Введите данные товара");
+        dialog.setHeaderText(" Введите данные товара");
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
@@ -319,25 +331,26 @@ public class AdminController implements Initializable {
     }
 
     private void saveProduct(ProductDTO product) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.addProduct(product.name, product.description, product.price,
                         product.stock, product.category, product.manufacturer, "");
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Товар добавлен!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успех", "Товар добавлен!");
                     loadProducts();
                     if (mainController != null) mainController.reloadProducts();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     private void showEditProductDialog(ProductDTO product) {
         Dialog<ProductDTO> dialog = new Dialog<>();
+        Ui.theme(dialog);
         dialog.setTitle("Редактировать товар");
-        dialog.setHeaderText("✏️ Редактирование товара #" + product.id);
+        dialog.setHeaderText(" Редактирование товара #" + product.id);
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
@@ -399,41 +412,42 @@ public class AdminController implements Initializable {
     }
 
     private void updateProduct(ProductDTO product) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
-                System.out.println("✏️ Обновление товара: " + product.name);
+                System.out.println(" Обновление товара: " + product.name);
                 AdminRepository.updateProduct(product.id, product.name, product.description,
                         product.price, product.stock, product.category, product.manufacturer);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Товар обновлен!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успех", "Товар обновлен!");
                     loadProducts();
                     if (mainController != null) mainController.reloadProducts();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", "Ошибка обновления: " + e.getMessage()));
-                System.err.println("❌ Ошибка обновления: " + e.getMessage());
+                Platform.runLater(() -> showAlert(" Ошибка", "Ошибка обновления: " + e.getMessage()));
+                System.err.println(" Ошибка обновления: " + e.getMessage());
             }
-        }).start();
+        });
     }
 
     private void deleteProduct(ProductDTO product) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Удалить?");
-        confirm.setContentText("Удалить товар '" + product.name + "'?");
+        Ui.theme(confirm);
+        confirm.setTitle("Убрать товар из продажи");
+        confirm.setContentText("Убрать товар «" + product.name + "» из продажи? История заказов сохранится.");
 
-        if (confirm.showAndWait().get() == ButtonType.OK) {
-            new Thread(() -> {
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            runAsync(() -> {
                 try {
                     AdminRepository.deleteProduct(product.id);
-                    Platform.runLater(() -> {
+                    Platform.runLater(() -> { if (disposed) return;
                         productsData.remove(product);
-                        showAlert("✅ Успех", "Товар удален!");
+                        showAlert(" Успех", "Товар убран из продажи.");
                         if (mainController != null) mainController.reloadProducts();
                     });
                 } catch (Exception e) {
-                    Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                    Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
                 }
-            }).start();
+            });
         }
     }
 
@@ -445,21 +459,21 @@ public class AdminController implements Initializable {
 
         File selectedFile = fileChooser.showOpenDialog(productsTable.getScene().getWindow());
         if (selectedFile != null) {
-            new Thread(() -> {
+            runAsync(() -> {
                 try {
                     String fileName = SupabaseStorageService.generateFileName(product.id, selectedFile.getName());
                     String imageUrl = SupabaseStorageService.uploadImage(selectedFile, fileName);
                     AdminRepository.updateProductImage(product.id, imageUrl);
-                    Platform.runLater(() -> {
+                    Platform.runLater(() -> { if (disposed) return;
                         product.imageUrl = imageUrl;
                         loadProducts();
-                        showAlert("✅ Успех", "Изображение загружено!");
+                        showAlert(" Успех", "Изображение загружено!");
                         if (mainController != null) mainController.reloadProducts();
                     });
                 } catch (Exception e) {
-                    Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                    Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
                 }
-            }).start();
+            });
         }
     }
 
@@ -467,10 +481,10 @@ public class AdminController implements Initializable {
     // ✅ ПОЛЬЗОВАТЕЛИ
     // ============================================
 
-    private void loadUsers() {
+    private void loadUsersNow() {
         try {
             List<UserDTO> users = AdminRepository.getAllUsers();
-            Platform.runLater(() -> {
+            Platform.runLater(() -> { if (disposed) return;
                 if (usersTable != null) {
                     if (!usersTableSetup) {
                         setupUsersTable();
@@ -482,7 +496,8 @@ public class AdminController implements Initializable {
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки пользователей: " + e.getMessage());
+                loading=false;report("Не удалось загрузить данные. Проверьте соединение и доступ к разделу.");
+            System.err.println(" Ошибка загрузки пользователей: " + e.getMessage());
         }
     }
 
@@ -507,9 +522,9 @@ public class AdminController implements Initializable {
         statusCol.setCellValueFactory(cd -> {
             UserDTO user = cd.getValue();
             String status = user.is_admin   ? "Админ"
-                    : user.is_blocked       ? "🔒 Заблокирован"
+                    : user.is_blocked       ? " Заблокирован"
                     : user.is_manager       ? "Менеджер"
-                    : "✅ Активен";
+                    : " Активен";
             return new SimpleStringProperty(status);
         });
         statusCol.setPrefWidth(130);
@@ -525,10 +540,8 @@ public class AdminController implements Initializable {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
-                Button blockBtn = new Button(user.is_blocked ? "🔓 Разбл." : "🔒 Блок.");
-                blockBtn.setStyle(user.is_blocked
-                        ? "-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;"
-                        : "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-padding: 6px 12px; -fx-font-size: 11px;");
+                Button blockBtn = new Button(user.is_blocked ? " Разбл." : " Блок.");
+                blockBtn.getStyleClass().addAll("admin-block-action", user.is_blocked ? "admin-unblock" : "admin-block");
                 blockBtn.setOnAction(e -> {
                     if (user.is_blocked) unblockUser(user.id, user.email);
                     else                 blockUser(user.id, user.email);
@@ -544,41 +557,41 @@ public class AdminController implements Initializable {
     }
 
     private void blockUser(String userId, String email) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.blockUser(userId);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успешно", "Пользователь заблокирован!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успешно", "Пользователь заблокирован!");
                     loadUsers();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     private void unblockUser(String userId, String email) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.unblockUser(userId);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успешно", "Пользователь разблокирован!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успешно", "Пользователь разблокирован!");
                     loadUsers();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     // ============================================
     // ✅ ЗАКАЗЫ
     // ============================================
 
-    private void loadOrders() {
+    private void loadOrdersNow() {
         try {
             List<OrderDTO> orders = AdminRepository.getAllOrders();
-            Platform.runLater(() -> {
+            Platform.runLater(() -> { if (disposed) return;
                 if (ordersTable != null) {
                     if (!ordersTableSetup) {
                         setupOrdersTable();
@@ -590,7 +603,8 @@ public class AdminController implements Initializable {
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки заказов: " + e.getMessage());
+                loading=false;report("Не удалось загрузить данные. Проверьте соединение и доступ к разделу.");
+            System.err.println(" Ошибка загрузки заказов: " + e.getMessage());
         }
     }
 
@@ -601,7 +615,7 @@ public class AdminController implements Initializable {
         idCol.setCellValueFactory(cd -> new SimpleIntegerProperty(cd.getValue().orderId).asObject());
         idCol.setPrefWidth(60);
 
-        TableColumn<OrderDTO, String> userCol = new TableColumn<>("Email");
+        TableColumn<OrderDTO, String> userCol = new TableColumn<>("Пользователь");
         userCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().userId != null ? cd.getValue().userId : "-"));
         userCol.setPrefWidth(150);
@@ -609,6 +623,9 @@ public class AdminController implements Initializable {
         TableColumn<OrderDTO, Double> sumCol = new TableColumn<>("Сумма");
         sumCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().totalAmount).asObject());
         sumCol.setPrefWidth(100);
+        sumCol.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+        });
 
         TableColumn<OrderDTO, String> statusCol = new TableColumn<>("Статус");
         statusCol.setCellValueFactory(cd -> new SimpleStringProperty(getOrderStatus(cd.getValue().status)));
@@ -621,9 +638,9 @@ public class AdminController implements Initializable {
 
         TableColumn<OrderDTO, Void> actionCol = new TableColumn<>("Действия");
         actionCol.setCellFactory(col -> new TableCell<>() {
-            private final Button completeBtn = new Button("✅");
-            private final Button pendingBtn  = new Button("⏳");
-            private final Button cancelBtn   = new Button("❌");
+            private final Button completeBtn = new Button("Готов");
+            private final Button pendingBtn  = new Button("В работу");
+            private final Button cancelBtn   = new Button("Отмена");
             private final HBox actions = new HBox(5, completeBtn, pendingBtn, cancelBtn);
             {
                 actions.setAlignment(Pos.CENTER);
@@ -641,54 +658,51 @@ public class AdminController implements Initializable {
 
                 // ✅ Кнопка "Завершён"
                 completeBtn.setDisable("completed".equalsIgnoreCase(order.status));
-                completeBtn.setStyle("completed".equalsIgnoreCase(order.status)
-                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
-                        : "-fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                completeBtn.getStyleClass().removeAll("admin-order-action", "admin-order-complete");
+                completeBtn.getStyleClass().addAll("admin-order-action", "admin-order-complete");
                 completeBtn.setOnAction(e -> updateOrderStatus(order.orderId, "completed"));
 
                 // ⏳ Кнопка "В ожидании"
                 pendingBtn.setDisable("pending".equalsIgnoreCase(order.status));
-                pendingBtn.setStyle("pending".equalsIgnoreCase(order.status)
-                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
-                        : "-fx-background-color: #fbbf24; -fx-text-fill: #000; -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                pendingBtn.getStyleClass().removeAll("admin-order-action", "admin-order-pending");
+                pendingBtn.getStyleClass().addAll("admin-order-action", "admin-order-pending");
                 pendingBtn.setOnAction(e -> updateOrderStatus(order.orderId, "pending"));
 
                 // ❌ Кнопка "Отменён"
                 cancelBtn.setDisable("cancelled".equalsIgnoreCase(order.status));
-                cancelBtn.setStyle("cancelled".equalsIgnoreCase(order.status)
-                        ? "-fx-background-color: #9ca3af; -fx-padding: 6px 10px;"
-                        : "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                cancelBtn.getStyleClass().removeAll("admin-order-action", "admin-order-cancel");
+                cancelBtn.getStyleClass().addAll("admin-order-action", "admin-order-cancel");
                 cancelBtn.setOnAction(e -> updateOrderStatus(order.orderId, "cancelled"));
 
                 setGraphic(actions);
             }
         });
-        actionCol.setPrefWidth(120);
+        actionCol.setPrefWidth(250);
 
         ordersTable.getColumns().addAll(idCol, userCol, sumCol, statusCol, dateCol, actionCol);
     }
 
     private void updateOrderStatus(int orderId, String newStatus) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.updateOrderStatusAdmin(orderId, newStatus);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успешно", "Статус заказа обновлен!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успешно", "Статус заказа обновлен!");
                     loadOrders();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     private String getOrderStatus(String status) {
-        if (status == null) return "❓ Неизвестно";
+        if (status == null) return " Неизвестно";
         switch (status.toLowerCase()) {
             case "pending":   return "⏳ В ожидании";
-            case "completed": return "✅ Завершен";
-            case "cancelled": return "❌ Отменен";
-            default:          return "❓ Неизвестно";
+            case "completed": return " Завершен";
+            case "cancelled": return " Отменен";
+            default:          return " Неизвестно";
         }
     }
 
@@ -696,10 +710,10 @@ public class AdminController implements Initializable {
     // ✅ ПРОМОКОДЫ
     // ============================================
 
-    private void loadPromoCodes() {
+    private void loadPromoCodesNow() {
         try {
             List<PromoCodeDTO> promoCodes = AdminRepository.getAllPromoCodes();
-            Platform.runLater(() -> {
+            Platform.runLater(() -> { if (disposed) return;
                 if (promoCodesTable != null) {
                     if (!promoCodesTableSetup) {
                         setupPromoCodesTable();
@@ -711,7 +725,8 @@ public class AdminController implements Initializable {
                 }
             });
         } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки промокодов: " + e.getMessage());
+                loading=false;report("Не удалось загрузить данные. Проверьте соединение и доступ к разделу.");
+            System.err.println(" Ошибка загрузки промокодов: " + e.getMessage());
         }
     }
 
@@ -744,7 +759,7 @@ public class AdminController implements Initializable {
 
         TableColumn<PromoCodeDTO, String> statusCol = new TableColumn<>("Статус");
         statusCol.setCellValueFactory(cd -> new SimpleStringProperty(
-                cd.getValue().isActive ? "✅ Активен" : "❌ Неактивен"));
+                cd.getValue().isActive ? " Активен" : " Неактивен"));
         statusCol.setPrefWidth(100);
 
         TableColumn<PromoCodeDTO, Void> actionCol = new TableColumn<>("Действия");
@@ -758,9 +773,8 @@ public class AdminController implements Initializable {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
-                Button deleteBtn = new Button("🗑");
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white;" +
-                        " -fx-padding: 6px 10px; -fx-font-size: 11px;");
+                Button deleteBtn = new Button("Архив");
+                deleteBtn.getStyleClass().add("admin-setup-promo-codes-table-delete-btn");
                 deleteBtn.setOnAction(e -> deletePromoCode(promo.id));
 
                 actions.getChildren().add(deleteBtn);
@@ -770,13 +784,14 @@ public class AdminController implements Initializable {
         actionCol.setPrefWidth(100);
 
         promoCodesTable.getColumns().addAll(idCol, codeCol, discountCol, maxUsesCol, usedCol, expiryCol, statusCol, actionCol);
-        System.out.println("✅ Таблица промокодов настроена");
+        System.out.println(" Таблица промокодов настроена");
     }
 
     private void showAddPromoCodeDialog() {
         Dialog<PromoCodeDTO> dialog = new Dialog<>();
+        Ui.theme(dialog);
         dialog.setTitle("Создать промокод");
-        dialog.setHeaderText("➕ Новый промокод");
+        dialog.setHeaderText(" Новый промокод");
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
@@ -829,23 +844,24 @@ public class AdminController implements Initializable {
     }
 
     private void createPromoCode(PromoCodeDTO dto) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
-                System.out.println("➕ Создание промокода: " + dto.code);
+                System.out.println(" Создание промокода: " + dto.code);
                 AdminRepository.createPromoCode(dto);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Промокод создан!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успех", "Промокод создан!");
                     loadPromoCodes();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", "Ошибка создания промокода: " + e.getMessage()));
-                System.err.println("❌ Ошибка создания промокода: " + e.getMessage());
+                Platform.runLater(() -> showAlert(" Ошибка", "Ошибка создания промокода: " + e.getMessage()));
+                System.err.println(" Ошибка создания промокода: " + e.getMessage());
             }
-        }).start();
+        });
     }
 
     private void deletePromoCode(int promoId) {
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        Ui.theme(confirmAlert);
         confirmAlert.setTitle("Удаление промокода");
         confirmAlert.setHeaderText("Вы уверены?");
         confirmAlert.setContentText("Промокод будет деактивирован.");
@@ -853,27 +869,27 @@ public class AdminController implements Initializable {
         var result = confirmAlert.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.deletePromoCode(promoId);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успешно", "Промокод деактивирован!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успешно", "Промокод деактивирован!");
                     loadPromoCodes();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     // ============================================
     // ✅ ПУБЛИЧНЫЕ МЕТОДЫ ДЛЯ ОБНОВЛЕНИЯ
     // ============================================
 
-    public void refreshProductsList()   { loadProducts(); }
-    public void refreshUsersList()      { loadUsers(); }
-    public void refreshOrdersList()     { loadOrders(); }
-    public void refreshPromoCodesList() { loadPromoCodes(); }
+    public void refreshProductsList() { if(active)runAsync(this::loadProductsNow); }
+    public void refreshUsersList() { if(active)runAsync(this::loadUsersNow); }
+    public void refreshOrdersList() { if(active)runAsync(this::loadOrdersNow); }
+    public void refreshPromoCodesList() { if(active)runAsync(this::loadPromoCodesNow); }
 
     public void stopRefreshService() {
         if (refreshService != null) refreshService.stop();
@@ -901,17 +917,26 @@ public class AdminController implements Initializable {
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Ui.theme(alert);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.showAndWait();
+        if (!disposed) alert.showAndWait();
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
+        Ui.theme(alert);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.showAndWait();
+        if (!disposed) alert.showAndWait();
     }
+
+    public void setActive(boolean value){active=value;if(!value)stopRefreshService();else if(!disposed)loadAdminData();}
+    public void dispose(){disposed=true;active=false;stopRefreshService();worker.shutdownNow();}
+    private void loadProducts(){runAsync(this::loadProductsNow);}
+    private void loadUsers(){runAsync(this::loadUsersNow);}
+    private void loadOrders(){runAsync(this::loadOrdersNow);}
+    private void loadPromoCodes(){runAsync(this::loadPromoCodesNow);}
 }

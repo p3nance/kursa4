@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "terms": [
+    {
+      "term": "CPU",
+      "aliases": [
+        "процессор",
+        "центральный процессор",
+        "цп"
+      ],
+      "definition": "Процессор выполняет инструкции программ. Его возможности влияют на вычисления и взаимодействие компонентов.",
+      "simpleExplanation": "Отвечает за вычисления и выполнение программ.",
+      "category": "Процессор",
+      "relatedTerms": [
+        "GPU",
+        "RAM"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "GPU",
+      "aliases": [
+        "видеокарта",
+        "графический процессор"
+      ],
+      "definition": "Графический процессор выполняет графические вычисления. Дискретная видеокарта устанавливается в слот платы.",
+      "simpleExplanation": "Обрабатывает графику; выбор зависит от программ и разрешения.",
+      "category": "Графика",
+      "relatedTerms": [
+        "CPU",
+        "RAM"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "RAM",
+      "aliases": [
+        "оперативная память",
+        "озу"
+      ],
+      "definition": "Оперативная память хранит данные работающих программ для быстрого доступа.",
+      "simpleExplanation": "Это рабочая память компьютера.",
+      "category": "Память",
+      "relatedTerms": [
+        "CPU",
+        "Материнская плата"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "Материнская плата",
+      "aliases": [
+        "motherboard",
+        "системная плата",
+        "материнка"
+      ],
+      "definition": "Основная плата соединяет компоненты. Поддержка оборудования зависит от её интерфейсов и характеристик.",
+      "simpleExplanation": "Определяет, какие детали можно подключить.",
+      "category": "Платформа",
+      "relatedTerms": [
+        "Сокет",
+        "RAM"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "PSU",
+      "aliases": [
+        "блок питания",
+        "бп"
+      ],
+      "definition": "Блок питания обеспечивает электрическое питание компонентов системы.",
+      "simpleExplanation": "Выбирается с учётом мощности, качества и необходимых кабелей.",
+      "category": "Питание",
+      "relatedTerms": [
+        "CPU",
+        "GPU"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "Сокет",
+      "aliases": [
+        "socket",
+        "процессорный разъем"
+      ],
+      "definition": "Разъём CPU на плате. Совпадение сокета само по себе не подтверждает поддержку конкретной модели.",
+      "simpleExplanation": "Помимо разъёма проверьте список поддержки CPU и BIOS.",
+      "category": "Платформа",
+      "relatedTerms": [
+        "CPU",
+        "Материнская плата"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "TDP",
+      "aliases": [
+        "теплопакет",
+        "thermal design power"
+      ],
+      "definition": "Параметр теплового проектирования процессора. В турборежимах электрическое потребление может превышать этот уровень.",
+      "simpleExplanation": "Для выбора питания уточняйте также максимальное потребление конкретной модели.",
+      "category": "Питание",
+      "relatedTerms": [
+        "CPU",
+        "PSU"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/support/articles/000055611/processors.html?wapkw=tdp",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "NVMe",
+      "aliases": [
+        "нвме",
+        "nvm express"
+      ],
+      "definition": "Набор спецификаций взаимодействия с энергонезависимой памятью. В компьютерах SSD часто используют NVMe поверх PCIe.",
+      "simpleExplanation": "Это протокол, а не форма накопителя; проверьте поддержку интерфейса платой.",
+      "category": "Накопители",
+      "relatedTerms": [
+        "SSD"
+      ],
+      "source": "https://nvmexpress.org/SPECIFICATIONS/",
+      "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "SSD",
+      "aliases": [
+        "твердотельный накопитель",
+        "ссд"
+      ],
+      "definition": "Накопитель для постоянного хранения данных. Возможны разные форм-факторы и интерфейсы.",
+      "simpleExplanation": "Хранит систему, программы и файлы.",
+      "category": "Накопители",
+      "relatedTerms": [
+        "NVMe"
+      ],
+      "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
+      "reviewedAt": "2026-10-25"
+    }
+  ]
+}

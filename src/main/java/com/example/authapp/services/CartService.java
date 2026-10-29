@@ -6,253 +6,90 @@ import com.example.authapp.models.Product;
 import com.example.authapp.models.PromoCode;
 import com.example.authapp.dto.CartItemDTO;
 import com.example.authapp.repositories.CartRepository;
+import com.example.authapp.network.SupabaseHttp;
 import config.SessionManager;
+import java.util.ArrayList;
 import java.util.List;
 
+/** Each multi-request operation pins one account/epoch and publishes atomically. */
 public class CartService {
-
-    // ✅ ДОБАВЛЕНО: Хранение примененного промокода
-    private PromoCode appliedPromoCode = null;
-
+    private volatile PromoCode appliedPromoCode;
     public void loadUserCart() throws Exception {
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            return;
-        }
-
-        try {
-            List<CartItemDTO> cartItems = CartRepository.loadCartFromSupabase(userId);
-            // Очищаем текущую корзину в памяти
-            Cart.getInstance().clear();
-            // Загружаем товары из БД в память ОДНИМ ВЫЗОВОМ
-            for (CartItemDTO dto : cartItems) {
-                Product product = new Product(
-                        dto.productId,
-                        dto.productName,
-                        "", // description
-                        dto.price,
-                        1, // stock
-                        dto.productImage,
-                        "", // category
-                        "" // manufacturer
-                );
-                Cart.getInstance().addProduct(product, dto.quantity);
+        if(SessionManager.getUserId()==null)return;
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            List<CartItemDTO> rows=CartRepository.loadCartFromSupabase(lease.userId());
+            List<CartItem> loaded=new ArrayList<>();
+            for(CartItemDTO dto:rows){
+                Product product=new Product(dto.productId,dto.productName,"",dto.price,1,dto.productImage,"","");
+                loaded.add(new CartItem(product,dto.quantity));
             }
-        } catch (Exception e) {
-            System.err.println("⚠️ Ошибка загрузки корзины: " + e.getMessage());
-        }
+            SessionManager.runIfCurrent(lease,()->Cart.getInstance().replaceItems(loaded));
+        } catch(Exception ex){throw new Exception("Не удалось загрузить корзину. Проверьте текущий аккаунт и повторите действие.",ex);}
     }
-
-    public void addProductToCart(Product product, int quantity) throws Exception {
-        if (product == null) {
-            throw new IllegalArgumentException("Товар не может быть null");
-        }
-
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("Количество должно быть больше 0");
-        }
-
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            throw new Exception("Пользователь не авторизован");
-        }
-
-        try {
-            // Проверяем, есть ли уже такой товар в БД
-            List<CartItemDTO> existingItems = CartRepository.loadCartFromSupabase(userId);
-            CartItemDTO existingItem = null;
-            for (CartItemDTO item : existingItems) {
-                if (item.productId == product.getId()) {
-                    existingItem = item;
-                    break;
-                }
+    public void addProductToCart(Product product,int quantity) throws Exception {
+        if(product==null)throw new IllegalArgumentException("Товар не может быть null");
+        if(quantity<=0)throw new IllegalArgumentException("Количество должно быть больше 0");
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            List<CartItemDTO> rows=CartRepository.loadCartFromSupabase(lease.userId());
+            CartItemDTO existing=rows.stream().filter(item->item.productId==product.getId()).findFirst().orElse(null);
+            if(existing!=null){
+                int next=Math.addExact(existing.quantity,quantity);
+                if(next>product.getStock())throw new IllegalArgumentException("Недостаточно товара в наличии с учётом вашей корзины");
+                CartRepository.updateCartItemInSupabase(existing.cartItemId,next);
+            }else{
+                if(quantity>product.getStock())throw new IllegalArgumentException("Недостаточно товара в наличии");
+                CartRepository.addCartItemToSupabase(lease.userId(),new CartItemDTO(0,product.getId(),product.getName(),product.getPrice(),quantity,product.getImageUrl()));
             }
-
-            if (existingItem != null) {
-                // Обновляем количество существующего товара
-                int newQuantity = existingItem.quantity + quantity;
-                CartRepository.updateCartItemInSupabase(existingItem.cartItemId, newQuantity);
-            } else {
-                // Создаем новую запись в БД
-                CartItemDTO newItem = new CartItemDTO(
-                        0, // id сгенерируется автоматически
-                        product.getId(),
-                        product.getName(),
-                        product.getPrice(),
-                        quantity,
-                        product.getImageUrl()
-                );
-                CartRepository.addCartItemToSupabase(userId, newItem);
-            }
-
-            Cart.getInstance().addProduct(product, quantity);
-        } catch (Exception e) {
-            throw new Exception("Ошибка добавления в корзину: " + e.getMessage());
-        }
+            SessionManager.runIfCurrent(lease,()->Cart.getInstance().addProduct(product,quantity));
+        }catch(Exception ex){throw new Exception("Не удалось добавить товар. Проверьте корзину текущего аккаунта перед повтором.",ex);}
     }
-
-    public void addProductToCart(Product product) throws Exception {
-        addProductToCart(product, 1);
-    }
-
+    public void addProductToCart(Product product) throws Exception {addProductToCart(product,1);}
     public void removeFromCart(Product product) throws Exception {
-        if (product == null) {
-            throw new IllegalArgumentException("Товар не может быть null");
-        }
-
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            throw new Exception("Пользователь не авторизован");
-        }
-
-        try {
-            // Находим товар в БД и удаляем его полностью
-            List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
-            for (CartItemDTO item : items) {
-                if (item.productId == product.getId()) {
-                    CartRepository.removeCartItemFromSupabase(item.cartItemId);
-                    break;
-                }
-            }
-
-            // Удаляем из локальной корзины
-            Cart.getInstance().removeProduct(product);
-        } catch (Exception e) {
-            throw new Exception("Ошибка удаления из корзины: " + e.getMessage());
-        }
+        if(product==null)throw new IllegalArgumentException("Товар не может быть null");
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            for(CartItemDTO row:CartRepository.loadCartFromSupabase(lease.userId()))if(row.productId==product.getId()){CartRepository.removeCartItemFromSupabase(row.cartItemId);break;}
+            SessionManager.runIfCurrent(lease,()->Cart.getInstance().removeProduct(product));
+        }catch(Exception ex){throw new Exception("Не удалось удалить товар. Обновите корзину текущего аккаунта.",ex);}
     }
-
-    public void updateCartItemQuantity(Product product, int newQuantity) throws Exception {
-        if (newQuantity <= 0) {
-            removeFromCart(product);
-            return;
-        }
-
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            throw new Exception("Пользователь не авторизован");
-        }
-
-        try {
-            // Находим товар в БД и обновляем его количество
-            List<CartItemDTO> items = CartRepository.loadCartFromSupabase(userId);
-            for (CartItemDTO item : items) {
-                if (item.productId == product.getId()) {
-                    CartRepository.updateCartItemInSupabase(item.cartItemId, newQuantity);
-                    break;
-                }
-            }
-
-            // Обновляем локальную корзину
-            Cart cart = Cart.getInstance();
-            cart.removeProduct(product);
-            cart.addProduct(product, newQuantity);
-        } catch (Exception e) {
-            throw new Exception("Ошибка обновления количества: " + e.getMessage());
-        }
+    public void updateCartItemQuantity(Product product,int quantity) throws Exception {
+        if(product==null)throw new IllegalArgumentException("Товар не может быть null");
+        if(quantity<=0){removeFromCart(product);return;}
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            boolean found=false;
+            for(CartItemDTO row:CartRepository.loadCartFromSupabase(lease.userId()))if(row.productId==product.getId()){CartRepository.updateCartItemInSupabase(row.cartItemId,quantity);found=true;break;}
+            if(!found)throw new IllegalStateException("Позиция больше не существует. Обновите корзину.");
+            SessionManager.runIfCurrent(lease,()->{Cart cart=Cart.getInstance();cart.removeProduct(product);cart.addProduct(product,quantity);});
+        }catch(Exception ex){throw new Exception("Не удалось изменить количество. Обновите корзину текущего аккаунта.",ex);}
     }
-
-    public double getCartTotal() {
-        return Cart.getInstance().getTotal();
-    }
-
-    public int getCartSize() {
-        return Cart.getInstance().getTotalQuantity();
-    }
-
-    public int getCartItemsCount() {
-        return Cart.getInstance().getUniqueItemsCount();
-    }
-
-    public List<CartItem> getCartItems() {
-        return Cart.getInstance().getItems();
-    }
-
     public void clearCart() throws Exception {
-        String userId = SessionManager.getUserId();
-        if (userId == null || userId.isEmpty()) {
-            throw new Exception("Пользователь не авторизован");
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            CartRepository.clearUserCart(lease.userId());
+            SessionManager.runIfCurrent(lease,()->{Cart.getInstance().clear();appliedPromoCode=null;});
+        }catch(Exception ex){throw new Exception("Не удалось очистить корзину текущего аккаунта.",ex);}
+    }
+    public double getCartTotal(){return Cart.getInstance().getTotal();}
+    public int getCartSize(){return Cart.getInstance().getTotalQuantity();}
+    public int getCartItemsCount(){return Cart.getInstance().getUniqueItemsCount();}
+    public List<CartItem> getCartItems(){return Cart.getInstance().getItems();}
+    public Cart getCurrentCart(){return Cart.getInstance();}
+    public double applyDiscount(String code) throws Exception {
+        if(code==null||code.isBlank())throw new IllegalArgumentException("Промокод не может быть пустым");
+        var lease=SessionManager.requireSession();
+        try(var scope=SupabaseHttp.forSession(lease)){
+            PromoCode promo=new com.example.authapp.repositories.PromoCodeRepository().validatePromoCode(code);
+            SessionManager.assertCurrent(lease);
+            return com.example.authapp.network.Money.discount(getCartTotal(),promo.getDiscountPercent()).doubleValue();
         }
-
-        try {
-            CartRepository.clearUserCart(userId);
-            Cart.getInstance().clear();
-            appliedPromoCode = null; // ✅ Сбрасываем промокод
-        } catch (Exception e) {
-            throw new Exception("Ошибка очистки корзины: " + e.getMessage());
-        }
     }
-
-    public Cart getCurrentCart() {
-        return Cart.getInstance();
-    }
-
-    // ✅ СТАРЫЙ МЕТОД (для обратной совместимости)
-    public double applyDiscount(String promoCode) throws Exception {
-        if (promoCode == null || promoCode.isEmpty()) {
-            throw new IllegalArgumentException("Промокод не может быть пустым");
-        }
-
-        double discountPercent = 0;
-        if (promoCode.equalsIgnoreCase("SALE10")) {
-            discountPercent = 10;
-        } else if (promoCode.equalsIgnoreCase("SALE20")) {
-            discountPercent = 20;
-        } else if (promoCode.equalsIgnoreCase("WELCOME")) {
-            discountPercent = 5;
-        } else {
-            throw new Exception("Неверный промокод: " + promoCode);
-        }
-
-        double total = getCartTotal();
-        double discount = total * (discountPercent / 100.0);
-        return discount;
-    }
-
-    public int getProductQuantity(Product product) {
-        for (CartItem item : Cart.getInstance().getItems()) {
-            if (item.getProduct().getId() == product.getId()) {
-                return item.getQuantity();
-            }
-        }
-        return 0;
-    }
-
-    public boolean isProductInCart(Product product) {
-        return getProductQuantity(product) > 0;
-    }
-
-    // ============================================
-    // ✅ НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ПРОМОКОДАМИ
-    // ============================================
-
-    /**
-     * ✅ Устанавливает примененный промокод
-     */
-    public void setAppliedPromoCode(PromoCode promoCode) {
-        this.appliedPromoCode = promoCode;
-        System.out.println("✅ Промокод сохранен в CartService: " + (promoCode != null ? promoCode.getCode() : "null"));
-    }
-
-    /**
-     * ✅ Получает примененный промокод
-     */
-    public PromoCode getAppliedPromoCode() {
-        return this.appliedPromoCode;
-    }
-
-    /**
-     * ✅ Проверяет, применен ли промокод
-     */
-    public boolean hasAppliedPromoCode() {
-        return this.appliedPromoCode != null;
-    }
-
-    /**
-     * ✅ Сбрасывает примененный промокод
-     */
-    public void clearAppliedPromoCode() {
-        this.appliedPromoCode = null;
-        System.out.println("🗑 Промокод очищен");
-    }
+    public int getProductQuantity(Product product){return Cart.getInstance().getItems().stream().filter(item->item.getProduct().getId()==product.getId()).mapToInt(CartItem::getQuantity).sum();}
+    public boolean isProductInCart(Product product){return getProductQuantity(product)>0;}
+    public void setAppliedPromoCode(PromoCode value){appliedPromoCode=value;}
+    public PromoCode getAppliedPromoCode(){return appliedPromoCode;}
+    public boolean hasAppliedPromoCode(){return appliedPromoCode!=null;}
+    public void clearAppliedPromoCode(){appliedPromoCode=null;}
 }

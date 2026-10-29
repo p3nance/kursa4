@@ -1,223 +1,74 @@
 package controllers;
 
-import config.SessionManager;
 import com.example.authapp.repositories.UserRepository;
+import com.example.authapp.ui.Ui;
+import config.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import java.util.concurrent.*;
 
-public class AuthController {
-
+/** A local form; the Auth service remains the authority for account state. */
+public final class AuthController {
     private static MainController mainController;
-
-    public static void setMainController(MainController mc) {
-        mainController = mc;
-    }
-
-    @FXML private Button authSubmitBtn;
-    @FXML private Button authSwitchBtn;
-    @FXML private Button authBackBtn;
+    @FXML private Button authSubmitBtn, authSwitchBtn, authBackBtn;
     @FXML private TextField authEmail;
-    @FXML private PasswordField authPassword;
-    @FXML private PasswordField authConfirmPassword;
-    @FXML private Label authSubTitle;
-    @FXML private Label authErrorLabel;
-
-    private boolean registerMode = false;
-
-    @FXML
-    public void initialize() {
-        setLoginMode();
-        authSubmitBtn.setOnAction(e -> handleAuthSubmit());
-        authSwitchBtn.setOnAction(e -> handleAuthSwitch());
-        authBackBtn.setOnAction(e -> {
-            if (mainController != null)
-                mainController.showMainContent();
+    @FXML private PasswordField authPassword, authConfirmPassword;
+    @FXML private Label authSubTitle, authErrorLabel, authTitle, confirmLabel;
+    private boolean registerMode, disposed;
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> { Thread t = new Thread(r,"account-auth"); t.setDaemon(true); return t; });
+    public static void setMainController(MainController controller) { mainController=controller; }
+    @FXML private void initialize() {
+        authConfirmPassword.managedProperty().bind(authConfirmPassword.visibleProperty());
+        confirmLabel.managedProperty().bind(confirmLabel.visibleProperty());
+        authErrorLabel.managedProperty().bind(authErrorLabel.visibleProperty());
+        authSubmitBtn.setOnAction(e -> submit());
+        authPassword.setOnAction(e -> submit()); authConfirmPassword.setOnAction(e -> submit());
+        authSwitchBtn.setOnAction(e -> { registerMode=!registerMode; updateMode(); });
+        authBackBtn.setOnAction(e -> { if(mainController!=null)mainController.showMainContent(); });
+        updateMode();
+    }
+    private void updateMode() {
+        authTitle.setText(registerMode ? "Создать аккаунт" : "Вход в TechStore");
+        authSubTitle.setText(registerMode ? "Сохраняйте профиль и следите за заказами в одном месте." : "Войдите, чтобы управлять корзиной и заказами.");
+        authSubmitBtn.setText(registerMode ? "Создать аккаунт" : "Войти");
+        authSwitchBtn.setText(registerMode ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться");
+        authConfirmPassword.setVisible(registerMode);confirmLabel.setVisible(registerMode);
+        authErrorLabel.setVisible(false);authPassword.clear();authConfirmPassword.clear();
+    }
+    private void submit() {
+        if(authSubmitBtn.isDisabled()||disposed)return;
+        String email=authEmail.getText().trim(),password=authPassword.getText(); boolean registering=registerMode;
+        if(email.isBlank()||password.isBlank()){message("Заполните email и пароль.","error");return;}
+        if(registering && (!password.equals(authConfirmPassword.getText())||password.length()<6)){
+            message(password.length()<6 ? "Пароль должен содержать не менее 6 символов." : "Пароли не совпадают.","error");return;
+        }
+        busy(true);message(registering ? "Создаём аккаунт…" : "Входим в аккаунт…","neutral");
+        worker.submit(() -> {
+            try {
+                boolean success=registering ? SessionManager.register(email,password) : SessionManager.login(email,password);
+                boolean confirmation=success && SessionManager.isRegistrationAwaitingConfirmation();
+                var completedSession=SessionManager.captureSession();
+                if(success && !confirmation){
+                    try(var scope=com.example.authapp.network.SupabaseHttp.forSession(completedSession)){
+                        if(!java.util.Objects.equals(email,SessionManager.getUserEmail()))throw new IllegalStateException("Сессия изменилась");
+                        if(registering)UserRepository.createUserProfile(completedSession.userId(),email,"","");
+                    }
+                }
+                Platform.runLater(() -> {
+                    if(disposed)return;busy(false);
+                    if(!completedSession.equals(SessionManager.captureSession())){message("Сессия изменилась. Повторите вход.","neutral");return;}
+                    if(!success){message(registering ? "Не удалось создать аккаунт. Проверьте данные и попробуйте снова." : "Не удалось войти. Проверьте данные и доступ к аккаунту.","error");return;}
+                    authPassword.clear();authConfirmPassword.clear();
+                    if(confirmation){message("Проверьте почту и подтвердите адрес, затем войдите в аккаунт.","success");return;}
+                    message(registering ? "Аккаунт создан." : "Вы вошли в аккаунт.","success");
+                    if(mainController!=null){mainController.refreshSessionUi();mainController.showMainContent();}
+                });
+            } catch(Exception exception){Platform.runLater(() -> {if(!disposed){busy(false);message("Не удалось завершить запрос. Проверьте соединение и попробуйте снова.","error");}});}
         });
     }
-
-    private void setLoginMode() {
-        registerMode = false;
-        authSubTitle.setText("Пожалуйста, авторизуйтесь или создайте аккаунт");
-        authSubmitBtn.setText("Вход");
-        authSwitchBtn.setText("Регистрация");
-        authConfirmPassword.setVisible(false);
-        authErrorLabel.setVisible(false);
-        authEmail.clear();
-        authPassword.clear();
-        authConfirmPassword.clear();
-    }
-
-    private void setRegisterMode() {
-        registerMode = true;
-        authSubTitle.setText("Регистрация нового пользователя");
-        authSubmitBtn.setText("Зарегистрироваться");
-        authSwitchBtn.setText("← Назад к входу");
-        authConfirmPassword.setVisible(true);
-        authErrorLabel.setVisible(false);
-        authEmail.clear();
-        authPassword.clear();
-        authConfirmPassword.clear();
-    }
-
-    private void handleAuthSwitch() {
-        if (!registerMode) {
-            setRegisterMode();
-        } else {
-            setLoginMode();
-        }
-    }
-
-    private void handleAuthSubmit() {
-        String email = authEmail.getText().trim();
-        String password = authPassword.getText();
-
-        if (email.isEmpty() || password.isEmpty()) {
-            showError("❌ Пожалуйста, заполните все поля");
-            return;
-        }
-
-        if (registerMode) {
-            // ✅ РЕГИСТРАЦИЯ
-            String confirm = authConfirmPassword.getText();
-            if (!password.equals(confirm)) {
-                showError("❌ Пароли не совпадают!");
-                return;
-            }
-
-            if (password.length() < 6) {
-                showError("❌ Пароль должен быть не менее 6 символов");
-                return;
-            }
-
-            authSubmitBtn.setDisable(true);
-            authSubmitBtn.setText("Регистрация...");
-
-            new Thread(() -> {
-                try {
-                    System.out.println("🔑 Регистрация пользователя: " + email);
-
-                    // 1️⃣ Регистрируем в Supabase Auth
-                    boolean success = SessionManager.register(email, password);
-
-                    if (success) {
-                        System.out.println("✅ Пользователь успешно зарегистрирован в Auth");
-
-                        // 2️⃣ Получаем userId и email из сессии
-                        String userId = SessionManager.getUserId();
-                        String userEmail = SessionManager.getUserEmail();
-
-                        System.out.println("📝 User ID: " + userId);
-                        System.out.println("📧 Email: " + userEmail);
-
-                        if (userId != null && !userId.isEmpty()) {
-                            try {
-                                // 3️⃣ СОЗДАЕМ ПРОФИЛЬ В ТАБЛИЦЕ profiles
-                                UserRepository.createUserProfile(userId, userEmail, "", "");
-                                System.out.println("✅ Профиль успешно создан в базе данных");
-
-                                Platform.runLater(() -> {
-                                    authSubmitBtn.setDisable(false);
-                                    authSubmitBtn.setText("Зарегистрироваться");
-                                    showSuccess("✅ Регистрация успешна!");
-
-                                    new Thread(() -> {
-                                        try {
-                                            Thread.sleep(1500);
-                                            Platform.runLater(() -> {
-                                                if (mainController != null) {
-                                                    mainController.showMainContent();
-                                                }
-                                            });
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }).start();
-                                });
-
-                            } catch (Exception e) {
-                                System.err.println("❌ Ошибка создания профиля: " + e.getMessage());
-                                e.printStackTrace();
-                                Platform.runLater(() -> {
-                                    authSubmitBtn.setDisable(false);
-                                    authSubmitBtn.setText("Зарегистрироваться");
-                                    showError("❌ Ошибка создания профиля: " + e.getMessage());
-                                });
-                            }
-                        } else {
-                            Platform.runLater(() -> {
-                                authSubmitBtn.setDisable(false);
-                                authSubmitBtn.setText("Зарегистрироваться");
-                                showError("❌ Не удалось получить ID пользователя");
-                            });
-                        }
-
-                    } else {
-                        Platform.runLater(() -> {
-                            authSubmitBtn.setDisable(false);
-                            authSubmitBtn.setText("Зарегистрироваться");
-                            showError("❌ Ошибка регистрации! Возможно, пользователь уже существует");
-                        });
-                    }
-
-                } catch (Exception e) {
-                    System.err.println("❌ Общая ошибка регистрации: " + e.getMessage());
-                    e.printStackTrace();
-                    Platform.runLater(() -> {
-                        authSubmitBtn.setDisable(false);
-                        authSubmitBtn.setText("Зарегистрироваться");
-                        showError("❌ Ошибка: " + e.getMessage());
-                    });
-                }
-
-            }).start();
-
-        } else {
-            // ✅ ВХОД
-            authSubmitBtn.setDisable(true);
-            authSubmitBtn.setText("Вход...");
-
-            new Thread(() -> {
-                try {
-                    System.out.println("🔐 Попытка входа: " + email);
-                    boolean success = SessionManager.login(email, password);
-
-                    Platform.runLater(() -> {
-                        authSubmitBtn.setDisable(false);
-                        authSubmitBtn.setText("Вход");
-
-                        if (success) {
-                            System.out.println("✅ Пользователь успешно авторизован");
-                            if (mainController != null) {
-                                mainController.showMainContent();
-                            }
-                        } else {
-                            showError("❌ Ошибка авторизации! Проверьте email и пароль или пользователь заблокирован");
-                        }
-                    });
-
-                } catch (Exception e) {
-                    System.err.println("❌ Ошибка при входе: " + e.getMessage());
-                    Platform.runLater(() -> {
-                        authSubmitBtn.setDisable(false);
-                        authSubmitBtn.setText("Вход");
-                        showError("❌ Ошибка: " + e.getMessage());
-                    });
-                }
-
-            }).start();
-        }
-    }
-
-    private void showError(String msg) {
-        authErrorLabel.setText(msg);
-        authErrorLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 12;");
-        authErrorLabel.setVisible(true);
-    }
-
-    private void showSuccess(String msg) {
-        authErrorLabel.setText(msg);
-        authErrorLabel.setStyle("-fx-text-fill: #10b981; -fx-font-size: 12;");
-        authErrorLabel.setVisible(true);
-    }
+    private void busy(boolean value){authSubmitBtn.setDisable(value);authSwitchBtn.setDisable(value);authEmail.setDisable(value);authPassword.setDisable(value);authConfirmPassword.setDisable(value);authSubmitBtn.setText(value ? "Подождите…" : registerMode ? "Создать аккаунт" : "Войти");}
+    private void message(String text,String tone){authErrorLabel.setText(text);authErrorLabel.getStyleClass().setAll("secondary-status",tone);authErrorLabel.setVisible(true);}
+    public void setActive(boolean active){if(active)authEmail.requestFocus();}
+    public void dispose(){disposed=true;worker.shutdownNow();}
 }

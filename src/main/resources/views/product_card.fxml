@@ -2,52 +2,13 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.geometry.Insets?>
-
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      styleClass="product-card"
-      spacing="8"
-      alignment="TOP_CENTER"
-      prefWidth="220"
-      minHeight="260">
-
-    <!-- Изображение -->
-    <ImageView fx:id="productImage"
-               fitWidth="180" fitHeight="110"
-               preserveRatio="true"/>
-
-    <!-- Название -->
-    <Label fx:id="productName"
-           text="Название товара"
-           styleClass="product-card-title"
-           wrapText="true"
-           prefHeight="40" minHeight="40"/>
-
-    <!-- Производитель -->
-    <Label fx:id="productManufacturer"
-           text="Производитель"
-           styleClass="product-card-manufacturer"
-           prefHeight="20" minHeight="20"/>
-
-    <!-- Цена -->
-    <Label fx:id="productPrice"
-           text="0 ₽"
-           styleClass="product-card-price"
-           prefHeight="24" minHeight="24"/>
-
-    <!-- Распорка -->
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="8" prefWidth="260" minWidth="180" prefHeight="330" styleClass="product-card" stylesheets="@styles/theme.css, @styles/shell.css">
+  <StackPane prefHeight="150" styleClass="product-image"><ImageView fx:id="productImage" fitWidth="220" fitHeight="140" preserveRatio="true"/></StackPane>
+  <VBox spacing="8" VBox.vgrow="ALWAYS" styleClass="product-copy">
+    <Label fx:id="productManufacturer" text="Производитель" styleClass="product-category"/>
+    <Label fx:id="productName" text="Название товара" wrapText="true" styleClass="section-title"/>
     <Region VBox.vgrow="ALWAYS"/>
-
-    <!-- Кнопки -->
-    <HBox spacing="5" alignment="CENTER" prefHeight="35" minHeight="35">
-        <Button fx:id="detailsButton"
-                text="Подробнее"
-                styleClass="product-card-more-btn"
-                HBox.hgrow="ALWAYS"
-                maxWidth="Infinity"/>
-        <Button fx:id="addToCartButton"
-                text="🛒"
-                styleClass="product-card-cart-btn"/>
-    </HBox>
-
+    <Label fx:id="productPrice" text="Цена" styleClass="product-price"/>
+    <HBox spacing="8"><Button fx:id="detailsButton" text="Подробнее" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="btn"/><Button fx:id="addToCartButton" text="В корзину" styleClass="btn-primary"/></HBox>
+  </VBox>
 </VBox>

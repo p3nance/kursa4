@@ -1,137 +1,81 @@
 package com.example.authapp.services;
 
+import com.example.authapp.network.SupabaseHttp;
 import config.Config;
-
+import config.SessionManager;
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Locale;
+import java.util.UUID;
 
-public class SupabaseStorageService {
-
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final String BUCKET_NAME = "product-images"; // Название вашего bucket в Supabase
-
+public final class SupabaseStorageService {
+    private static final String BUCKET = "product-images";
+    private static final int MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+    private SupabaseStorageService() {}
     public static String uploadImage(File file, String fileName) throws Exception {
-        try {
-            // Читаем файл в байты
-            byte[] fileBytes = Files.readAllBytes(file.toPath());
-
-            // Определяем Content-Type на основе расширения файла
-            String contentType = getContentType(fileName);
-
-            // URL для загрузки: /storage/v1/object/{bucket_name}/{file_path}
-            String uploadUrl = Config.SUPABASE_URL + "/storage/v1/object/" + BUCKET_NAME + "/" + fileName;
-
-
-            // Создаем запрос
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(uploadUrl))
-                    .header("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY)
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .header("Content-Type", contentType)
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
-                    .build();
-
-            // Отправляем запрос
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200 || response.statusCode() == 201) {
-                // Формируем публичный URL изображения
-                String publicUrl = Config.SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
-                return publicUrl;
-            } else {
-                throw new Exception("Ошибка загрузки изображения: " + response.statusCode() + " - " + response.body());
-            }
-
-        } catch (IOException e) {
-            System.err.println("❌ Ошибка чтения файла: " + e.getMessage());
-            throw new Exception("Ошибка чтения файла: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки в Supabase Storage: " + e.getMessage());
-            throw e;
-        }
+        SessionManager.ensureValidSession();
+        validateFileName(fileName);
+        if (file == null || !Files.isRegularFile(file.toPath())) throw new IllegalArgumentException("Файл изображения не найден");
+        if (Files.size(file.toPath()) > MAX_IMAGE_BYTES) throw new IllegalArgumentException("Изображение должно быть не больше 10 МБ");
+        byte[] bytes;
+        try (InputStream stream = Files.newInputStream(file.toPath())) { bytes = stream.readNBytes(MAX_IMAGE_BYTES + 1); }
+        if (bytes.length > MAX_IMAGE_BYTES) throw new IllegalArgumentException("Изображение должно быть не больше 10 МБ");
+        String contentType = contentType(fileName);
+        if (!matchesSignature(bytes, contentType)) throw new IllegalArgumentException("Содержимое файла не соответствует формату изображения");
+        SupabaseHttp.send(SupabaseHttp.request("/storage/v1/object/" + BUCKET + "/" + fileName)
+                .header("Content-Type", contentType).POST(HttpRequest.BodyPublishers.ofByteArray(bytes)).build());
+        return Config.SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/" + fileName;
     }
-
-    /**
-     * Удаляет изображение из Supabase Storage
-     * @param fileName Имя файла для удаления
-     */
     public static void deleteImage(String fileName) throws Exception {
-        try {
-            String deleteUrl = Config.SUPABASE_URL + "/storage/v1/object/" + BUCKET_NAME + "/" + fileName;
-
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(deleteUrl))
-                    .header("Authorization", "Bearer " + Config.SUPABASE_ANON_KEY)
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .DELETE()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200 || response.statusCode() == 204) {
-                System.out.println("✅ Изображение удалено");
-            } else {
-                System.err.println("⚠️ Не удалось удалить изображение: " + response.statusCode());
-            }
-
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка удаления изображения: " + e.getMessage());
-            throw e;
-        }
+        SessionManager.ensureValidSession();
+        validateFileName(fileName);
+        SupabaseHttp.send(SupabaseHttp.request("/storage/v1/object/" + BUCKET + "/" + fileName).DELETE().build());
     }
-
-    /**
-     * Определяет Content-Type на основе расширения файла
-     */
-    private static String getContentType(String fileName) {
-        String lowerName = fileName.toLowerCase();
-        if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
-            return "image/jpeg";
-        } else if (lowerName.endsWith(".png")) {
-            return "image/png";
-        } else if (lowerName.endsWith(".gif")) {
-            return "image/gif";
-        } else if (lowerName.endsWith(".webp")) {
-            return "image/webp";
-        }
-        return "application/octet-stream";
-    }
-
-    /**
-     * Извлекает имя файла из полного URL
-     * Например: "https://.../storage/v1/object/public/product-images/product_123.jpg" -> "product_123.jpg"
-     */
     public static String extractFileNameFromUrl(String imageUrl) {
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            return null;
-        }
-
-        String[] parts = imageUrl.split("/");
-        if (parts.length > 0) {
-            return parts[parts.length - 1];
-        }
-
-        return null;
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        String prefix = Config.SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/";
+        if (!imageUrl.startsWith(prefix)) return null;
+        try {
+            String path = URI.create(imageUrl).getPath();
+            String fileName = path.substring(path.lastIndexOf('/') + 1);
+            validateFileName(fileName); return fileName;
+        } catch (IllegalArgumentException e) { return null; }
     }
-
-    /**
-     * Генерирует уникальное имя файла на основе ID товара и текущего времени
-     */
     public static String generateFileName(int productId, String originalFileName) {
-        // Получаем расширение файла
-        String extension = "";
-        int dotIndex = originalFileName.lastIndexOf('.');
-        if (dotIndex > 0) {
-            extension = originalFileName.substring(dotIndex);
+        if (originalFileName == null) throw new IllegalArgumentException("Имя файла не задано");
+        int dot = originalFileName.lastIndexOf('.');
+        if (dot < 0) throw new IllegalArgumentException("Неизвестный формат изображения");
+        String extension = originalFileName.substring(dot).toLowerCase(Locale.ROOT);
+        String result = "product_" + productId + "_" + UUID.randomUUID() + extension;
+        validateFileName(result); contentType(result); return result;
+    }
+    public static void validateFileName(String fileName) {
+        if (fileName == null || !fileName.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,199}") || fileName.contains("..")) {
+            throw new IllegalArgumentException("Некорректное имя изображения");
         }
-
-        // Генерируем имя: product_{id}_{timestamp}{extension}
-        return "product_" + productId + "_" + System.currentTimeMillis() + extension;
+    }
+    private static String contentType(String fileName) {
+        String name = fileName.toLowerCase(Locale.ROOT);
+        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+        if (name.endsWith(".png")) return "image/png";
+        if (name.endsWith(".gif")) return "image/gif";
+        if (name.endsWith(".webp")) return "image/webp";
+        throw new IllegalArgumentException("Поддерживаются JPG, PNG, GIF и WebP");
+    }
+    private static boolean matchesSignature(byte[] data, String type) {
+        if (data.length < 12) return false;
+        return switch (type) {
+            case "image/jpeg" -> (data[0] & 255) == 255 && (data[1] & 255) == 216 && (data[2] & 255) == 255;
+            case "image/png" -> (data[0] & 255) == 137 && data[1] == 80 && data[2] == 78 && data[3] == 71
+                    && data[4] == 13 && data[5] == 10 && data[6] == 26 && data[7] == 10;
+            case "image/gif" -> new String(data, 0, 6, StandardCharsets.US_ASCII).matches("GIF8[79]a");
+            case "image/webp" -> new String(data, 0, 4, StandardCharsets.US_ASCII).equals("RIFF")
+                    && new String(data, 8, 4, StandardCharsets.US_ASCII).equals("WEBP");
+            default -> false;
+        };
     }
 }

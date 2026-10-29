@@ -1,5 +1,8 @@
 package controllers;
 
+import com.example.authapp.ui.Ui;
+import java.util.concurrent.*;
+
 import com.example.authapp.dto.ProductDTO;
 import com.example.authapp.repositories.AdminRepository;
 import com.example.authapp.services.SupabaseStorageService;
@@ -25,9 +28,18 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class ManagerController implements Initializable {
+    @FXML private Label screenStatus;
+    private volatile boolean disposed, active=true, loading;
+    private final ExecutorService worker=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"secondary-data");t.setDaemon(true);return t;});
+    private void runAsync(Runnable job){
+        if(disposed)return;var lease=config.SessionManager.captureSession();
+        worker.submit(()->{try(var scope=com.example.authapp.network.SupabaseHttp.forSession(lease)){if(!disposed)job.run();}
+            catch(RuntimeException ex){loading=false;report("Сессия изменилась. Откройте раздел текущего аккаунта снова.");}});
+    }
+    private void report(String text){Platform.runLater(()->{if(!disposed&&screenStatus!=null)screenStatus.setText(text);});}
+
 
     // ============ ШАПКА ============
-    @FXML private Button    exitManagerBtn;
     @FXML private Label     managerEmailLabel;
 
     // ============ ТОВАРЫ ============
@@ -43,11 +55,11 @@ public class ManagerController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            System.out.println("🗂️ ManagerController инициализирован");
+            System.out.println(" ManagerController инициализирован");
             setupUI();
             loadProducts();
         } catch (Exception e) {
-            System.err.println("❌ Ошибка инициализации ManagerController: " + e.getMessage());
+            System.err.println(" Ошибка инициализации ManagerController: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -66,11 +78,6 @@ public class ManagerController implements Initializable {
             managerEmailLabel.setText(email != null ? email : "Менеджер");
         }
 
-        if (exitManagerBtn != null) {
-            exitManagerBtn.setOnAction(e -> {
-                if (mainController != null) mainController.showMainContent();
-            });
-        }
 
         if (addProductBtn != null) {
             addProductBtn.setOnAction(e -> showAddProductDialog());
@@ -102,10 +109,12 @@ public class ManagerController implements Initializable {
     // ============================================
 
     public void loadProducts() {
-        new Thread(() -> {
+        if(loading||disposed)return;loading=true;report("Обновляем товары…");
+        runAsync(() -> {
             try {
                 List<ProductDTO> products = AdminRepository.getAllProducts();
-                Platform.runLater(() -> {
+                loading=false;report("Каталог товаров");
+                Platform.runLater(() -> { if (disposed) return;
                     if (productsTable != null) {
                         if (!tableSetup) {
                             setupProductsTable();
@@ -117,9 +126,10 @@ public class ManagerController implements Initializable {
                     }
                 });
             } catch (Exception e) {
-                System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
+                loading=false;report("Не удалось загрузить данные. Проверьте соединение и доступ к разделу.");
+                System.err.println(" Ошибка загрузки товаров: " + e.getMessage());
             }
-        }).start();
+        });
     }
 
     // ============================================
@@ -149,7 +159,10 @@ public class ManagerController implements Initializable {
 
         TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
         priceCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().price).asObject());
-        priceCol.setPrefWidth(90);
+        priceCol.setPrefWidth(100);
+        priceCol.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+        });
 
         // ✅ Остаток с цветовой индикацией
         TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Остаток");
@@ -158,11 +171,10 @@ public class ManagerController implements Initializable {
             @Override
             protected void updateItem(Integer stock, boolean empty) {
                 super.updateItem(stock, empty);
-                if (empty || stock == null) { setText(null); setStyle(""); return; }
+                getStyleClass().removeAll("stock-empty", "stock-low", "stock-available");
+                if (empty || stock == null) { setText(null); return; }
                 setText(stock + " шт.");
-                if      (stock == 0) setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
-                else if (stock <= 5) setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
-                else                 setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
+                getStyleClass().add(stock == 0 ? "stock-empty" : stock <= 5 ? "stock-low" : "stock-available");
             }
         });
         stockCol.setPrefWidth(90);
@@ -179,40 +191,34 @@ public class ManagerController implements Initializable {
                 HBox actions = new HBox(5);
                 actions.setAlignment(Pos.CENTER);
 
-                Button editBtn = new Button("✏️");
+                Button editBtn = new Button("Изменить");
                 editBtn.setTooltip(new Tooltip("Редактировать"));
-                editBtn.setStyle(btnStyle("#3b82f6"));
+                editBtn.getStyleClass().addAll("manager-action", "manager-action-edit");
                 editBtn.setOnAction(e -> showEditProductDialog(p));
 
-                Button restockBtn = new Button("➕");
+                Button restockBtn = new Button("Склад");
                 restockBtn.setTooltip(new Tooltip("Пополнить склад"));
-                restockBtn.setStyle(btnStyle("#10b981"));
+                restockBtn.getStyleClass().addAll("manager-action", "manager-action-restock");
                 restockBtn.setOnAction(e -> showRestockDialog(p));
 
-                Button photoBtn = new Button("📷");
+                Button photoBtn = new Button("Фото");
                 photoBtn.setTooltip(new Tooltip("Загрузить фото"));
-                photoBtn.setStyle(btnStyle("#6366f1"));
+                photoBtn.getStyleClass().addAll("manager-action", "manager-action-photo");
                 photoBtn.setOnAction(e -> uploadProductImage(p));
 
-                Button deleteBtn = new Button("🗑");
+                Button deleteBtn = new Button("Архив");
                 deleteBtn.setTooltip(new Tooltip("Удалить товар"));
-                deleteBtn.setStyle(btnStyle("#ef4444"));
+                deleteBtn.getStyleClass().addAll("manager-action", "manager-action-delete");
                 deleteBtn.setOnAction(e -> deleteProduct(p));
 
                 actions.getChildren().addAll(editBtn, restockBtn, photoBtn, deleteBtn);
                 setGraphic(actions);
             }
         });
-        actionCol.setPrefWidth(190);
+        actionCol.setPrefWidth(310);
 
         productsTable.getColumns().addAll(idCol, nameCol, categoryCol, manufacturerCol, priceCol, stockCol, actionCol);
-        System.out.println("✅ Таблица товаров (менеджер) настроена");
-    }
-
-    private String btnStyle(String color) {
-        return "-fx-background-color: " + color + "; -fx-text-fill: white;" +
-                " -fx-padding: 5 10; -fx-font-size: 13px;" +
-                " -fx-background-radius: 5; -fx-border-width: 0; -fx-cursor: hand;";
+        System.out.println(" Таблица товаров (менеджер) настроена");
     }
 
     // ============================================
@@ -221,7 +227,8 @@ public class ManagerController implements Initializable {
 
     private void showAddProductDialog() {
         Dialog<ProductDTO> dialog = new Dialog<>();
-        dialog.setTitle("➕ Добавить товар");
+        Ui.theme(dialog);
+        dialog.setTitle(" Добавить товар");
         dialog.setHeaderText("Заполните данные нового товара");
 
         GridPane grid = buildProductForm(null);
@@ -243,7 +250,7 @@ public class ManagerController implements Initializable {
             if (btn == ButtonType.OK) {
                 try {
                     String name = nameField.getText().trim();
-                    if (name.isEmpty()) { showAlert("❌ Ошибка", "Укажите название!"); return null; }
+                    if (name.isEmpty()) { showAlert(" Ошибка", "Укажите название!"); return null; }
                     double price = Double.parseDouble(priceField.getText().trim());
                     int    stock = Integer.parseInt(stockField.getText().trim());
                     String cat   = categoryField.getText().trim();
@@ -251,7 +258,7 @@ public class ManagerController implements Initializable {
                     String desc  = descArea.getText().trim();
                     return new ProductDTO(0, name, desc, price, stock, "", cat, mfr);
                 } catch (NumberFormatException ex) {
-                    showAlert("❌ Ошибка", "Проверьте формат цены и остатка!");
+                    showAlert(" Ошибка", "Проверьте формат цены и остатка!");
                     return null;
                 }
             }
@@ -264,19 +271,19 @@ public class ManagerController implements Initializable {
     }
 
     private void saveNewProduct(ProductDTO product) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.addProduct(product.name, product.description, product.price,
                         product.stock, product.category, product.manufacturer, "");
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Товар «" + product.name + "» добавлен!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успех", "Товар «" + product.name + "» добавлен!");
                     loadProducts();
                     if (mainController != null) mainController.reloadProducts();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     // ============================================
@@ -285,7 +292,8 @@ public class ManagerController implements Initializable {
 
     private void showEditProductDialog(ProductDTO product) {
         Dialog<ProductDTO> dialog = new Dialog<>();
-        dialog.setTitle("✏️ Редактировать товар #" + product.id);
+        Ui.theme(dialog);
+        dialog.setTitle(" Редактировать товар #" + product.id);
         dialog.setHeaderText("Редактирование: " + product.name);
 
         GridPane grid = buildProductForm(product);
@@ -306,7 +314,7 @@ public class ManagerController implements Initializable {
             if (btn == ButtonType.OK) {
                 try {
                     String name = nameField.getText().trim();
-                    if (name.isEmpty()) { showAlert("❌ Ошибка", "Укажите название!"); return null; }
+                    if (name.isEmpty()) { showAlert(" Ошибка", "Укажите название!"); return null; }
                     double price = Double.parseDouble(priceField.getText().trim());
                     int    stock = Integer.parseInt(stockField.getText().trim());
                     String cat   = categoryField.getText().trim();
@@ -320,7 +328,7 @@ public class ManagerController implements Initializable {
                     product.description  = desc;
                     return product;
                 } catch (NumberFormatException ex) {
-                    showAlert("❌ Ошибка", "Проверьте формат цены и остатка!");
+                    showAlert(" Ошибка", "Проверьте формат цены и остатка!");
                     return null;
                 }
             }
@@ -333,19 +341,19 @@ public class ManagerController implements Initializable {
     }
 
     private void updateProduct(ProductDTO product) {
-        new Thread(() -> {
+        runAsync(() -> {
             try {
                 AdminRepository.updateProduct(product.id, product.name, product.description,
                         product.price, product.stock, product.category, product.manufacturer);
-                Platform.runLater(() -> {
-                    showAlert("✅ Успех", "Товар «" + product.name + "» обновлён!");
+                Platform.runLater(() -> { if (disposed) return;
+                    showAlert(" Успех", "Товар «" + product.name + "» обновлён!");
                     loadProducts();
                     if (mainController != null) mainController.reloadProducts();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
             }
-        }).start();
+        });
     }
 
     // ============================================
@@ -354,7 +362,8 @@ public class ManagerController implements Initializable {
 
     private void showRestockDialog(ProductDTO product) {
         Dialog<Integer> dialog = new Dialog<>();
-        dialog.setTitle("➕ Пополнение склада");
+        Ui.theme(dialog);
+        dialog.setTitle(" Пополнение склада");
         dialog.setHeaderText("Товар: " + product.name + "\nТекущий остаток: " + product.stock + " шт.");
 
         GridPane grid = new GridPane();
@@ -375,10 +384,10 @@ public class ManagerController implements Initializable {
             if (btn == ButtonType.OK) {
                 try {
                     int add = Integer.parseInt(addField.getText().trim());
-                    if (add <= 0) { showAlert("❌ Ошибка", "Количество должно быть > 0!"); return null; }
+                    if (add <= 0) { showAlert(" Ошибка", "Количество должно быть > 0!"); return null; }
                     return product.stock + add;
                 } catch (NumberFormatException e) {
-                    showAlert("❌ Ошибка", "Введите целое число!");
+                    showAlert(" Ошибка", "Введите целое число!");
                     return null;
                 }
             }
@@ -387,19 +396,19 @@ public class ManagerController implements Initializable {
 
         dialog.showAndWait().ifPresent(newStock -> {
             if (newStock != null) {
-                new Thread(() -> {
+                runAsync(() -> {
                     try {
                         AdminRepository.updateProductStock(product.id, newStock);
-                        Platform.runLater(() -> {
-                            showAlert("✅ Успешно",
+                        Platform.runLater(() -> { if (disposed) return;
+                            showAlert(" Успешно",
                                     "Остаток «" + product.name + "»:\n" +
                                             product.stock + " → " + newStock + " шт.");
                             loadProducts();
                         });
                     } catch (Exception e) {
-                        Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                        Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
                     }
-                }).start();
+                });
             }
         });
     }
@@ -416,21 +425,21 @@ public class ManagerController implements Initializable {
 
         File file = fc.showOpenDialog(productsTable.getScene().getWindow());
         if (file != null) {
-            new Thread(() -> {
+            runAsync(() -> {
                 try {
                     String fileName = SupabaseStorageService.generateFileName(product.id, file.getName());
                     String imageUrl = SupabaseStorageService.uploadImage(file, fileName);
                     AdminRepository.updateProductImage(product.id, imageUrl);
-                    Platform.runLater(() -> {
+                    Platform.runLater(() -> { if (disposed) return;
                         product.imageUrl = imageUrl;
-                        showAlert("✅ Успех", "Фото товара загружено!");
+                        showAlert(" Успех", "Фото товара загружено!");
                         loadProducts();
                         if (mainController != null) mainController.reloadProducts();
                     });
                 } catch (Exception e) {
-                    Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                    Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
                 }
-            }).start();
+            });
         }
     }
 
@@ -440,24 +449,25 @@ public class ManagerController implements Initializable {
 
     private void deleteProduct(ProductDTO product) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("🗑 Удалить товар?");
+        Ui.theme(confirm);
+        confirm.setTitle("Убрать товар из продажи");
         confirm.setHeaderText("Товар: " + product.name);
-        confirm.setContentText("Это действие необратимо. Товар будет удалён со склада и из всех корзин.");
+        confirm.setContentText("Остаток товара станет нулевым, он будет недоступен для покупки. История заказов сохранится.");
 
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                new Thread(() -> {
+                runAsync(() -> {
                     try {
                         AdminRepository.deleteProduct(product.id);
-                        Platform.runLater(() -> {
+                        Platform.runLater(() -> { if (disposed) return;
                             productsData.remove(product);
-                            showAlert("✅ Успех", "Товар «" + product.name + "» удалён!");
+                            showAlert(" Успех", "Товар «" + product.name + "» убран из продажи.");
                             if (mainController != null) mainController.reloadProducts();
                         });
                     } catch (Exception e) {
-                        Platform.runLater(() -> showAlert("❌ Ошибка", e.getMessage()));
+                        Platform.runLater(() -> showAlert(" Ошибка", e.getMessage()));
                     }
-                }).start();
+                });
             }
         });
     }
@@ -514,9 +524,13 @@ public class ManagerController implements Initializable {
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Ui.theme(alert);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.showAndWait();
+        if (!disposed) alert.showAndWait();
     }
+
+    public void setActive(boolean value){active=value;if(value&&!disposed)loadProducts();}
+    public void dispose(){disposed=true;active=false;worker.shutdownNow();}
 }

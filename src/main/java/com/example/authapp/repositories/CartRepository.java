@@ -7,18 +7,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CartRepository {
-    private static final String SUPABASE_URL = "https://qsthuhzkciimucarscco.supabase.co";
-    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
+    private static final String SUPABASE_URL = config.Config.SUPABASE_URL;
+    private static final String SUPABASE_KEY = config.Config.SUPABASE_ANON_KEY;
     private static final String TABLE_NAME = "cart_items";
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
+        private static final Gson gson = new Gson();
 
     public static List<CartItemDTO> loadCartFromSupabase(String userId) throws Exception {
         try {
@@ -28,19 +26,19 @@ public class CartRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 System.err.println("❌ Ошибка: " + response.statusCode());
                 return new ArrayList<>();
             }
 
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
             List<CartItemDTO> items = new ArrayList<>();
 
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -71,18 +69,18 @@ public class CartRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 201) {
                 System.err.println("❌ Ошибка добавления: " + response.statusCode());
-                System.err.println("   Ответ: " + response.body());
-                throw new Exception("Ошибка добавления товара: " + response.statusCode() + " " + response.body());
+
+                throw new Exception("Ошибка добавления товара: " + response.statusCode());
             }
 
         } catch (Exception e) {
@@ -97,13 +95,13 @@ public class CartRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200 && response.statusCode() != 204) {
                 System.err.println("❌ Ошибка обновления: " + response.statusCode());
@@ -122,12 +120,12 @@ public class CartRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .DELETE()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 204) {
                 System.err.println("❌ Ошибка удаления: " + response.statusCode());
@@ -147,12 +145,12 @@ public class CartRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .DELETE()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 204) {
                 System.err.println("❌ Ошибка очистки: " + response.statusCode());

@@ -1,29 +1,52 @@
 package config;
 
-public class Config {
-    public static final String SUPABASE_URL = "https://qsthuhzkciimucarscco.supabase.co";
-    public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
-    public static final String SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQyMzgxNSwiZXhwIjoyMDcyOTk5ODE1fQ.WQaeTsuXb3rdOvKuadz7Hnq3daQ3uBC0nlBnxRXhRZo";
+import com.google.gson.JsonParser;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+/** Public client configuration. Privileged credentials belong on a server. */
+public final class Config {
+    private Config() {}
+    private static final java.util.Properties LOCAL = loadLocalSettings();
+
+    private static java.util.Properties loadLocalSettings() {
+        java.util.Properties settings = new java.util.Properties();
+        java.nio.file.Path path = java.nio.file.Path.of("config.local.properties");
+        if (java.nio.file.Files.exists(path)) {
+            try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                settings.load(reader);
+            } catch (java.io.IOException e) {
+                throw new IllegalStateException("Не удалось прочитать config.local.properties", e);
+            }
+        }
+        return settings;
+    }
+    public static final String SUPABASE_URL = setting("techstore.supabase.url", "SUPABASE_URL", "https://qsthuhzkciimucarscco.supabase.co").replaceAll("/+$", "");
+    public static final String SUPABASE_ANON_KEY = validatePublicKey(setting("techstore.supabase.key", "SUPABASE_PUBLISHABLE_KEY", ""));
+
+    private static String setting(String property, String environment, String fallback) {
+        String value = System.getProperty(property, System.getenv(environment));
+        if (value == null || value.isBlank()) value = LOCAL.getProperty(environment);
+        return value == null || value.isBlank() ? fallback : value.trim();
+    }
+    public static String validatePublicKey(String key) {
+        if (key == null || key.isBlank()) throw new IllegalArgumentException("Укажите SUPABASE_PUBLISHABLE_KEY через переменную окружения, -Dtechstore.supabase.key или config.local.properties");
+        if (key.startsWith("sb_secret_")) throw new IllegalArgumentException("Секретный ключ Supabase запрещён в клиенте");
+        if (key.startsWith("sb_publishable_")) return key;
+        try {
+            String[] parts = key.split("\\.");
+            String role = JsonParser.parseString(new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8))
+                    .getAsJsonObject().get("role").getAsString();
+            if (!"anon".equals(role)) throw new IllegalArgumentException("В клиенте разрешён только публичный ключ Supabase");
+            return key;
+        } catch (IllegalArgumentException e) { throw e; }
+        catch (Exception e) { throw new IllegalArgumentException("Некорректный публичный ключ Supabase"); }
+    }
     public static void validateConfig() {
-        if (SUPABASE_URL.contains("your-project") || SUPABASE_ANON_KEY.contains("your-key")) {
-            System.err.println("⚠️ ВНИМАНИЕ: Настройки Supabase не настроены!");
-            System.err.println("1. Зайдите в Supabase Dashboard");
-            System.err.println("2. Создайте проект или выберите существующий");
-            System.err.println("3. В Settings → API найдите URL и anon/public key");
-            System.err.println("4. В Authentication → Settings включите Email provider");
-            System.err.println("5. Замените значения в config.Config.java");
-        } else {
-            System.out.println("✅ Конфигурация Supabase инициализирована");
+        java.net.URI uri = java.net.URI.create(SUPABASE_URL);
+        if (!"https".equals(uri.getScheme()) && !("http".equals(uri.getScheme()) && ("localhost".equals(uri.getHost()) || "127.0.0.1".equals(uri.getHost())))) {
+            throw new IllegalArgumentException("Supabase URL должен использовать HTTPS (HTTP разрешён только локально)");
         }
     }
-
-    public static String getConfigInfo() {
-        return String.format(
-                "Supabase Config:\nURL: %s\nKey: %s",
-                SUPABASE_URL,
-                SUPABASE_ANON_KEY.length() > 10 ?
-                        SUPABASE_ANON_KEY.substring(0, 10) + "..." :
-                        SUPABASE_ANON_KEY
-        );
-    }
+    public static String getConfigInfo() { return "Supabase URL: " + SUPABASE_URL; }
 }

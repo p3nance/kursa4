@@ -1,25 +1,22 @@
 package com.example.authapp.repositories;
 import config.Config;
+import config.SessionManager;
+import com.example.authapp.network.SupabaseHttp;
+import java.util.Objects;
 import com.example.authapp.dto.UserDTO;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class UserRepository {
-    private static final String SUPABASE_URL = System.getenv("SUPABASE_URL") != null
-            ? System.getenv("SUPABASE_URL")
-            : "https://qsthuhzkciimucarscco.supabase.co";
-    private static final String SUPABASE_KEY = System.getenv("SUPABASE_KEY") != null
-            ? System.getenv("SUPABASE_KEY")
-            : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
+    private static final String SUPABASE_URL = config.Config.SUPABASE_URL;
+    private static final String SUPABASE_KEY = config.Config.SUPABASE_ANON_KEY;
     private static final String TABLE_NAME = "profiles";
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
+        private static final Gson gson = new Gson();
 
     /**
      * ✅ СОЗДАЕТ НОВЫЙ ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (с пустыми полями)
@@ -27,7 +24,10 @@ public class UserRepository {
      * Все остальные поля пользователь заполнит в личном кабинете
      */
     public static void createUserProfile(String userId, String email, String name, String surname) throws Exception {
-        try {
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
+            if (!Objects.equals(userId, lease.userId())) throw new IllegalStateException("Можно получить или изменить только свой профиль");
+            if (!Objects.equals(email, SessionManager.getUserEmail())) throw new IllegalStateException("Можно получить или изменить только свой профиль");
             String url = String.format("%s/rest/v1/%s", SUPABASE_URL, TABLE_NAME);
 
             JsonObject jsonObject = new JsonObject();
@@ -38,29 +38,29 @@ public class UserRepository {
             jsonObject.addProperty("phone", "");
             jsonObject.addProperty("city", "");
             jsonObject.addProperty("address", "");
-            jsonObject.addProperty("is_admin", false);
+
 
             String jsonBody = jsonObject.toString();
 
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .header("Prefer", "return=representation")
                     .method("POST", HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             // ✅ Статус 201 (Created) или 200 (OK)
             if (response.statusCode() == 201 || response.statusCode() == 200) {
             } else {
                 System.err.println("❌ Ошибка создания профиля!");
                 System.err.println("   Статус: " + response.statusCode());
-                System.err.println("   Тело ответа: " + response.body());
-                throw new Exception("Ошибка создания профиля: " + response.statusCode() + " - " + response.body());
+
+                throw new Exception("Ошибка создания профиля: " + response.statusCode());
             }
         } catch (Exception e) {
             System.err.println("❌ Ошибка создания профиля: " + e.getMessage());
@@ -74,17 +74,19 @@ public class UserRepository {
      * Поддерживает поля: id, name, surname, email, phone, city, address
      */
     public static UserDTO getUserProfileByEmail(String email) throws Exception {
-        try {
-            String url = String.format("%s/rest/v1/%s?email=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, email);
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
+            if (!Objects.equals(email, SessionManager.getUserEmail())) throw new IllegalStateException("Можно получить или изменить только свой профиль");
+            String url = String.format("%s/rest/v1/%s?id=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, SupabaseHttp.queryValue(lease.userId()));
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() == 200) {
                 String body = response.body();
@@ -114,20 +116,22 @@ public class UserRepository {
      * ✅ Получает профиль пользователя по ID
      */
     public static UserDTO getUserProfile(String userId) throws Exception {
-        try {
-            String url = String.format("%s/rest/v1/%s?id=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, userId);
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
+            if (!Objects.equals(userId, lease.userId())) throw new IllegalStateException("Можно получить или изменить только свой профиль");
+            String url = String.format("%s/rest/v1/%s?id=eq.%s&select=*", SUPABASE_URL, TABLE_NAME, SupabaseHttp.queryValue(lease.userId()));
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() == 200 && !response.body().equals("[]")) {
-                JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+                JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
                 if (jsonArray.size() > 0) {
                     UserDTO user = gson.fromJson(jsonArray.get(0), UserDTO.class);
                     return user;
@@ -144,8 +148,10 @@ public class UserRepository {
 
     public static void updateUserProfile(String email, String name, String surname,
                                          String phone, String city, String address) throws Exception {
-        try {
-            String url = String.format("%s/rest/v1/%s?email=eq.%s", SUPABASE_URL, TABLE_NAME, email);
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
+            if (!Objects.equals(email, SessionManager.getUserEmail())) throw new IllegalStateException("Можно получить или изменить только свой профиль");
+            String url = String.format("%s/rest/v1/%s?id=eq.%s", SUPABASE_URL, TABLE_NAME, SupabaseHttp.queryValue(lease.userId()));
 
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("name", name != null ? name : "");
@@ -158,20 +164,20 @@ public class UserRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() == 200 || response.statusCode() == 204) {
             } else {
                 System.err.println("❌ Ошибка обновления профиля!");
                 System.err.println("   Статус: " + response.statusCode());
-                System.err.println("   Тело ответа: " + response.body());
-                throw new Exception("Ошибка обновления: " + response.statusCode() + " - " + response.body());
+
+                throw new Exception("Ошибка обновления: " + response.statusCode());
             }
         } catch (Exception e) {
             System.err.println("❌ Ошибка обновления профиля: " + e.getMessage());
@@ -180,57 +186,26 @@ public class UserRepository {
         }
     }
     public static void verifyPassword(String email, String password) throws Exception {
-        String url = config.Config.SUPABASE_URL + "/auth/v1/token?grant_type=password";
-
-        org.json.JSONObject body = new org.json.JSONObject();
-        body.put("email", email);
-        body.put("password", password);
-
-        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                .uri(java.net.URI.create(url))
-                .header("apikey", config.Config.SUPABASE_ANON_KEY)
-                .header("Content-Type", "application/json")
-                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body.toString()))
-                .build();
-
-        java.net.http.HttpResponse<String> response =
-                java.net.http.HttpClient.newHttpClient()
-                        .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new Exception("Неверный текущий пароль");
+        var lease = config.SessionManager.requireSession();
+        try (var scope = com.example.authapp.network.SupabaseHttp.forSession(lease)) {
+        config.SessionManager.ensureValidSession(lease);
+        if (!java.util.Objects.equals(email, config.SessionManager.getUserEmail())) throw new IllegalStateException("Можно изменить только свой пароль");
+        String body = new org.json.JSONObject().put("email", email).put("password", password).toString();
+        com.example.authapp.network.SupabaseHttp.send(com.example.authapp.network.SupabaseHttp.request(
+                "/auth/v1/token?grant_type=password").header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build());
         }
-
-        System.out.println("✅ Текущий пароль подтверждён");
     }
-
-    /**
-     * ✅ Смена пароля через Supabase Admin API (service_role)
-     */
+    /** Self-service password update using the signed-in user's token. */
     public static void updatePassword(String userId, String newPassword) throws Exception {
-        String serviceRoleKey = config.Config.SUPABASE_SERVICE_ROLE_KEY;
-        String url = config.Config.SUPABASE_URL + "/auth/v1/admin/users/" + userId;
-
-        org.json.JSONObject body = new org.json.JSONObject();
-        body.put("password", newPassword);
-
-        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                .uri(java.net.URI.create(url))
-                .header("Authorization", "Bearer " + serviceRoleKey)
-                .header("apikey", serviceRoleKey)
-                .header("Content-Type", "application/json")
-                .method("PUT", java.net.http.HttpRequest.BodyPublishers.ofString(body.toString()))
-                .build();
-
-        java.net.http.HttpResponse<String> response =
-                java.net.http.HttpClient.newHttpClient()
-                        .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new Exception("HTTP " + response.statusCode() + " — " + response.body());
+        var lease = config.SessionManager.requireSession();
+        try (var scope = com.example.authapp.network.SupabaseHttp.forSession(lease)) {
+        config.SessionManager.ensureValidSession(lease);
+        if (!java.util.Objects.equals(userId, lease.userId())) throw new IllegalStateException("Можно изменить только свой пароль");
+        String body = new org.json.JSONObject().put("password", newPassword).toString();
+        com.example.authapp.network.SupabaseHttp.send(com.example.authapp.network.SupabaseHttp.request(
+                "/auth/v1/user").header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body)).build());
         }
-
-        System.out.println("✅ Пароль изменён для userId=" + userId);
     }
-
 }

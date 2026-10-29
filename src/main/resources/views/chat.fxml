@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane fx:id="chatRoot" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.ChatController" styleClass="chat-root" stylesheets="@styles/theme.css, @styles/chat.css">
+  <top>
+    <HBox spacing="20" alignment="CENTER_LEFT" styleClass="chat-header">
+      <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
+        <Label text="ПОМОЩНИК TECHSTORE" styleClass="chat-eyebrow"/>
+        <Label text="Соберём компьютер под ваши задачи" wrapText="true" styleClass="chat-title"/>
+        <Label text="От первого вопроса до подходящих комплектующих." styleClass="chat-subtitle" wrapText="true"/>
+      </VBox>
+      <Button text="Новый диалог" wrapText="true" onAction="#clear" styleClass="btn, chat-reset"/>
+    </HBox>
+  </top>
+  <center>
+    <HBox fx:id="contentRow" spacing="28" styleClass="chat-layout">
+      <VBox HBox.hgrow="ALWAYS" minWidth="0" minHeight="0">
+        <ScrollPane fx:id="conversation" fitToWidth="true" minHeight="0" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" styleClass="chat-scroll">
+          <VBox alignment="TOP_CENTER" fillWidth="true" styleClass="chat-conversation-width">
+            <VBox fx:id="messages" spacing="22" minWidth="0" maxWidth="900" fillWidth="true" styleClass="chat-messages"/>
+          </VBox>
+        </ScrollPane>
+        <Button fx:id="newMessagesButton" text="Новые сообщения ↓" onAction="#scrollToBottom" visible="false" managed="false" styleClass="chat-new-messages"/>
+        <VBox spacing="9" minWidth="0" alignment="TOP_CENTER" styleClass="chat-compose">
+          <VBox spacing="7" minWidth="0" maxWidth="900" styleClass="chat-compose-box">
+            <TextArea fx:id="input" promptText="Задайте вопрос или расскажите, какой ПК хотите собрать…" wrapText="true" prefRowCount="2" styleClass="chat-input"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+              <Label text="Enter — отправить · Shift+Enter — новая строка" wrapText="true" styleClass="chat-compose-hint" HBox.hgrow="ALWAYS"/>
+              <Region HBox.hgrow="ALWAYS"/>
+              <Button fx:id="cancelButton" text="Отмена" onAction="#cancel" visible="false" managed="false" styleClass="btn"/>
+              <Button fx:id="sendButton" onAction="#send" accessibleText="Отправить сообщение" styleClass="btn, btn-primary, chat-send"/>
+            </HBox>
+          </VBox>
+          <HBox spacing="10" minWidth="0" maxWidth="900" alignment="CENTER_LEFT">
+            <Label fx:id="status" text="Помощник готов" wrapText="true" styleClass="chat-footnote" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="retryButton" text="Повторить" onAction="#retry" visible="false" managed="false" styleClass="chat-retry"/>
+          </HBox>
+          <Label text="История хранится до выхода из аккаунта или закрытия приложения." wrapText="true" maxWidth="900" alignment="CENTER" styleClass="chat-history-note"/>
+        </VBox>
+      </VBox>
+      <VBox fx:id="contextPane" spacing="18" minWidth="220" prefWidth="240" maxWidth="240">
+        <VBox spacing="10" styleClass="chat-context-card">
+          <Label text="Ваш запрос" styleClass="chat-card-title"/>
+          <Label text="Бюджет системного блока" styleClass="chat-context-label"/>
+          <Label fx:id="budgetValue" text="Не указан" wrapText="true" styleClass="chat-budget"/>
+          <Label text="Основные задачи" styleClass="chat-context-label"/>
+          <Label fx:id="taskValue" text="Не выбраны" wrapText="true" styleClass="chat-context-tag"/>
+          <Label text="Включено в подбор" styleClass="chat-context-label"/>
+          <Label text="Системный блок" styleClass="chat-context-tag"/>
+          <Separator/>
+          <Button text="Изменить запрос" onAction="#changeRequest" styleClass="chat-link"/>
+        </VBox>
+        <VBox spacing="12" styleClass="chat-side-note">
+          <Label text="Как помогает помощник" wrapText="true" styleClass="chat-author"/>
+          <Label text="Ищет товары в каталоге" wrapText="true" styleClass="chat-caption"/>
+          <Label text="Подбирает состав сборки" wrapText="true" styleClass="chat-caption"/>
+          <Label text="Объясняет характеристики" wrapText="true" styleClass="chat-caption"/>
+          <Separator/>
+          <Label fx:id="catalogValue" text="Каталог загружается" wrapText="true" styleClass="chat-caption"/>
+          <Label text="Если данных недостаточно, помощник сообщит об этом." wrapText="true" styleClass="chat-caption"/>
+        </VBox>
+      </VBox>
+    </HBox>
+  </center>
+</BorderPane>

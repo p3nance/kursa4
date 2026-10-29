@@ -61,12 +61,15 @@ public class PhoneFormatter {
         phoneField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal && !phoneField.getText().isEmpty()) {
                 if (!isCompletePhone(phoneField.getText())) {
-                    phoneField.setStyle("-fx-border-color: #fbbf24; -fx-border-width: 2;");
+                    phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-incomplete"), true);
+                    phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-complete"), false);
                 } else {
-                    phoneField.setStyle("-fx-border-color: #10b981; -fx-border-width: 2;");
+                    phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-incomplete"), false);
+                    phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-complete"), true);
                 }
             } else if (newVal) {
-                phoneField.setStyle("");
+                phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-incomplete"), false);
+                phoneField.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("phone-complete"), false);
             }
         });
     }

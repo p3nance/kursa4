@@ -1,63 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="controllers.CartController"
-            stylesheets="@styles/styles.css"
-            style="-fx-background-color: #f5f5f5;">
-    <top>
-        <VBox spacing="10" style="-fx-padding: 22; -fx-background-color: #fff; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
-            <Label text="🛒 Корзина" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
-        </VBox>
-    </top>
-
-    <center>
-        <HBox spacing="20" style="-fx-padding: 20 20 20 0;">
-            <!-- Main content area with cart items -->
-            <VBox HBox.hgrow="ALWAYS" spacing="15">
-                <ScrollPane fitToWidth="true" style="-fx-background-color: #f5f5f5; -fx-padding: 0;">
-                    <VBox fx:id="cartItemsContainer" spacing="15" style="-fx-padding: 15;"/>
-                </ScrollPane>
-            </VBox>
-
-            <!-- Right sidebar with summary -->
-            <VBox spacing="15" style="-fx-min-width: 350; -fx-padding: 0;"
-                  alignment="TOP_CENTER">
-                <!-- Summary card -->
-                <VBox spacing="12" style="-fx-background-color: #fff; -fx-border-radius: 12; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(24,32,64,0.08), 8, 0, 0, 2);">
-                    <!-- Promo Code Section -->
-                    <Label text="Промокод" style="-fx-font-size: 13px; -fx-text-fill: #64748b; -fx-font-weight: bold;"/>
-                    <HBox spacing="8" alignment="CENTER_LEFT">
-                        <TextField fx:id="promoCodeField" promptText="Введите код" prefWidth="200" style="-fx-font-size: 12px;"/>
-                        <Button fx:id="applyPromoButton" text="Применить" styleClass="button" style="-fx-padding: 8 16; -fx-font-size: 12px;"/>
-                    </HBox>
-
-                    <!-- Discount Info -->
-                    <Separator style="-fx-padding: 10 0; -fx-border-color: #e5e7eb; -fx-border-width: 0.5 0 0 0;"/>
-
-                    <!-- Price breakdown -->
-                    <VBox spacing="8" style="-fx-padding: 10 0;">
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Скидка:" style="-fx-font-size: 13px; -fx-text-fill: #64748b;"/>
-                            <Label fx:id="discountLabel" text="0,00 ₽" style="-fx-font-size: 13px; -fx-text-fill: #22c55e; -fx-font-weight: bold;"/>
-                        </HBox>
-                        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
-                            <Label text="Итого:" style="-fx-font-size: 16px; -fx-text-fill: #1e293b; -fx-font-weight: bold;"/>
-                            <Label fx:id="totalLabel" text="0,00 ₽" style="-fx-font-size: 18px; -fx-text-fill: #2563eb; -fx-font-weight: bold;"/>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Action Buttons -->
-                    <VBox spacing="10" style="-fx-padding: 15 0 0 0;">
-                        <Button fx:id="checkoutButton" text="✓ Оформить заказ" styleClass="button-success" 
-                               style="-fx-font-size: 14px; -fx-padding: 12 20; -fx-text-fill: #fff; -fx-background-color: #2563eb; -fx-background-radius: 8; -fx-font-weight: bold;"
-                               maxWidth="Infinity"/>
-                        <Button fx:id="continueShopping" text="← Вернуться к покупкам" styleClass="button" 
-                               style="-fx-font-size: 12px; -fx-padding: 10 20; -fx-text-fill: #64748b; -fx-background-color: #f1f5f9; -fx-background-radius: 8;"
-                               maxWidth="Infinity"/>
-                    </VBox>
-                </VBox>
-            </VBox>
-        </HBox>
-    </center>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CartController" styleClass="secondary-page" stylesheets="@styles/theme.css, @styles/secondary.css">
+ <top><VBox spacing="10" styleClass="secondary-page-heading"><Label text="ВАШИ ПОКУПКИ" styleClass="secondary-eyebrow"/><Label text="Корзина" styleClass="page-title"/><Label fx:id="cartCountLabel" text="Выбранные товары появятся здесь" styleClass="page-subtitle"/></VBox></top>
+ <center><ScrollPane fitToWidth="true" styleClass="secondary-scroll"><VBox spacing="18" styleClass="secondary-content"><Label fx:id="cartStatus" visible="false" wrapText="true" styleClass="secondary-status"/>
+   <GridPane fx:id="cartGrid" hgap="22" vgap="22"><VBox fx:id="cartItemsContainer" spacing="12" GridPane.hgrow="ALWAYS"/>
+   <VBox fx:id="cartSummary" GridPane.columnIndex="1" GridPane.valignment="TOP" maxWidth="480" spacing="18" styleClass="surface, cart-summary"><Label text="Сводка заказа" styleClass="secondary-section-title"/><Label text="Промокод" styleClass="field-label"/><HBox spacing="9"><TextField fx:id="promoCodeField" promptText="Введите код" HBox.hgrow="ALWAYS"/><Button fx:id="applyPromoButton" text="Применить" styleClass="btn"/></HBox><Label fx:id="discountLabel" text="Скидка: 0 ₽" visible="false" styleClass="secondary-success"/><Separator/><HBox alignment="CENTER_LEFT"><Label text="Итого" styleClass="secondary-section-title"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="totalLabel" text="0 ₽" styleClass="cart-total"/></HBox><Button fx:id="checkoutButton" text="Проверить и оформить заказ" maxWidth="Infinity" styleClass="btn, btn-primary"/><Button fx:id="continueShopping" text="Продолжить покупки" maxWidth="Infinity" styleClass="btn"/><Label text="Итоговые цены, наличие и скидка проверяются при оформлении." wrapText="true" styleClass="secondary-muted"/></VBox></GridPane>
+ </VBox></ScrollPane></center>
 </BorderPane>

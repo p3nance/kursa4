@@ -25,14 +25,14 @@ public class PromoCodeService {
      * ✅ Расчет скидки
      */
     public double calculateDiscount(double totalPrice, PromoCode promo) {
-        return totalPrice * (promo.getDiscountPercent() / 100.0);
+        return com.example.authapp.network.Money.discount(totalPrice, promo.getDiscountPercent()).doubleValue();
     }
 
     /**
      * ✅ Расчет финальной цены
      */
     public double calculateFinalPrice(double totalPrice, PromoCode promo) {
-        return totalPrice - calculateDiscount(totalPrice, promo);
+        return com.example.authapp.network.Money.amount(totalPrice).subtract(com.example.authapp.network.Money.discount(totalPrice, promo.getDiscountPercent())).doubleValue();
     }
 
     /**

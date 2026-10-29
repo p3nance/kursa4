@@ -1,0 +1,72 @@
+.chat-root { -fx-background-color: #f6f7fa; -fx-padding: 32; }
+.chat-header { -fx-padding: 0 0 25 0; }
+.chat-eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #3564ee; }
+.chat-title { -fx-font-size: 27px; -fx-font-weight: bold; -fx-text-fill: #1b2437; }
+.chat-subtitle, .chat-copy { -fx-font-size: 13px; -fx-text-fill: #65748b; -fx-line-spacing: 3; }
+.chat-layout { -fx-padding: 0; }
+.chat-scroll, .chat-scroll > .viewport, .chat-conversation-width { -fx-background-color: transparent; }
+.chat-scroll { -fx-padding: 0; -fx-background-insets: 0; -fx-border-width: 0; }
+.chat-scroll > .scroll-bar:horizontal { -fx-pref-height: 0; -fx-max-height: 0; }
+.chat-scroll > .scroll-bar:vertical { -fx-pref-width: 8; -fx-background-color: transparent; }
+.chat-scroll > .scroll-bar:vertical .thumb { -fx-background-color: #dbe2ef; -fx-background-radius: 4; }
+.chat-messages { -fx-padding: 2 0 22 0; }
+.chat-user-row { -fx-padding: 0 0 1 32; }
+.chat-user-bubble { -fx-background-color: #eaf0ff; -fx-border-color: #dfe7fb; -fx-background-radius: 12 12 3 12; -fx-border-radius: 12 12 3 12; -fx-padding: 13 17; -fx-font-size: 13px; -fx-text-fill: #3c507f; -fx-line-spacing: 4; }
+.chat-bot-avatar { -fx-background-color: #e8efff; -fx-border-color: #d7e2ff; -fx-background-radius: 9; -fx-border-radius: 9; -fx-padding: 5; }
+.chat-bot-avatar .icon, .chat-welcome-mark .icon-shape { -fx-stroke: #3564ee; }
+.chat-author { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #28364d; }
+.chat-card { -fx-background-color: #fff; -fx-border-color: #e2e8f1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 18; }
+.chat-card-title { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1b2437; }
+.chat-caption { -fx-font-size: 11px; -fx-text-fill: #65748b; -fx-line-spacing: 3; }
+.chat-product-name { -fx-font-size: 12px; -fx-text-fill: #28364d; }
+.chat-product-row { -fx-padding: 11 0; -fx-border-color: transparent transparent #edf0f6 transparent; }
+.chat-row-price { -fx-font-size: 12px; -fx-text-fill: #52637f; }
+.chat-build-row { -fx-padding: 10 0; -fx-border-color: transparent transparent #edf0f6 transparent; }
+.chat-build-row .icon-shape { -fx-stroke: #8392aa; }
+.chat-count { -fx-font-size: 10px; -fx-text-fill: #3564ee; -fx-background-color: #edf2ff; -fx-background-radius: 5; -fx-padding: 4 8; }
+.chat-build-total-row { -fx-padding: 13 0 4 0; -fx-border-color: #edf0f6 transparent transparent transparent; }
+.chat-build-total { -fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #1b2437; }
+.chat-unverified { -fx-text-fill: #856329; -fx-font-size: 11px; -fx-line-spacing: 3; }
+.chat-unverified .icon-shape { -fx-stroke: #95692b; }
+.chat-verified { -fx-text-fill: #29846c; -fx-font-size: 11px; }
+.chat-verified .icon-shape { -fx-stroke: #29846c; }
+.chat-explanation { -fx-background-color: transparent; -fx-text-fill: #65748b; -fx-font-size: 11px; }
+.chat-explanation > .title { -fx-background-color: transparent; -fx-padding: 5 0; }
+.chat-explanation > .content { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 10 0 0 0; }
+.chat-simple { -fx-background-color: #f6f8fd; -fx-background-radius: 8; -fx-padding: 12; }
+.chat-source, .chat-source:visited { -fx-text-fill: #3564ee; -fx-font-size: 11px; -fx-padding: 0; }
+.chat-chip { -fx-background-color: #fff; -fx-border-color: #e0e7f2; -fx-background-radius: 15; -fx-border-radius: 15; -fx-padding: 7 11; -fx-min-height: 32; -fx-text-fill: #637795; -fx-font-size: 11px; -fx-cursor: hand; }
+.chat-chip:hover { -fx-border-color: #b7caf8; -fx-background-color: #f1f5ff; }
+.chat-link, .chat-retry, .chat-expand { -fx-background-color: transparent; -fx-text-fill: #3564ee; -fx-font-size: 11px; -fx-padding: 5 0; -fx-cursor: hand; }
+.chat-expand { -fx-text-fill: #65748b; }
+.chat-compose { -fx-padding: 12 0 0 0; }
+.chat-compose-box { -fx-background-color: #fff; -fx-border-color: #dce3ef; -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 11 14; }
+.chat-input, .chat-input .content, .chat-input .scroll-pane, .chat-input .scroll-pane .viewport { -fx-background-color: transparent; -fx-background-insets: 0; -fx-border-width: 0; -fx-padding: 0; }
+.chat-input { -fx-font-size: 13px; -fx-text-fill: #37445c; -fx-prompt-text-fill: #8693a8; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; }
+.chat-compose-hint, .chat-footnote, .chat-history-note { -fx-font-size: 10px; -fx-text-fill: #65748b; }
+.chat-history-note { -fx-font-size: 9px; -fx-alignment: center; }
+.chat-send { -fx-padding: 8; -fx-min-width: 34; -fx-min-height: 34; }
+.chat-send .icon-shape { -fx-stroke: #fff; }
+.chat-context-card { -fx-background-color: #fff; -fx-border-color: #e4e9f1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 20 18; }
+.chat-context-label { -fx-font-size: 11px; -fx-text-fill: #65748b; -fx-padding: 9 0 0 0; }
+.chat-budget { -fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #1b2437; }
+.chat-context-tag { -fx-background-color: #f3f5fa; -fx-border-color: #e9edf5; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 8; -fx-font-size: 11px; -fx-text-fill: #65748b; }
+.chat-side-note { -fx-padding: 0 7; }
+.chat-welcome { -fx-alignment: center; -fx-padding: 65 10; }
+.chat-welcome-mark { -fx-background-color: #eaf0ff; -fx-background-radius: 14; }
+.chat-welcome-title { -fx-font-size: 25px; -fx-font-weight: bold; -fx-text-fill: #1b2437; }
+.chat-welcome .chat-copy { -fx-alignment: center; -fx-text-alignment: center; }
+.chat-error { -fx-text-fill: #a54848; -fx-font-size: 12px; }
+.chat-new-messages { -fx-background-color: #edf2ff; -fx-background-radius: 12; -fx-text-fill: #3564ee; -fx-font-size: 11px; -fx-padding: 6 12; -fx-cursor: hand; }
+.chat-field-label { -fx-font-size: 12px; -fx-text-fill: #65748b; }
+.chat-chip:focused, .chat-link:focused, .chat-retry:focused, .chat-source:focused { -fx-border-color: #8ca8ff; -fx-border-radius: 7; }
+
+.chat-link, .chat-retry, .chat-build-more { -fx-border-color: transparent; -fx-background-color: transparent; }
+.chat-root:compact { -fx-padding: 20; }
+.chat-root:compact .chat-header { -fx-padding: 0 0 18 0; -fx-spacing: 12; }
+.chat-root:compact .chat-title { -fx-font-size: 21px; }
+.chat-root:compact .chat-card { -fx-padding: 15; }
+.chat-root:compact .chat-compose { -fx-padding: 10 0 0 0; }
+.chat-root:compact .chat-compose-box { -fx-padding: 10 12; }
+.chat-reset { -fx-min-width: 100; }
+.chat-table { -fx-min-width: 0; }

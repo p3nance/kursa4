@@ -4,20 +4,21 @@ import com.example.authapp.models.Product;
 import com.example.authapp.dto.ProductDTO;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.example.authapp.network.SupabaseHttp;
+import config.SessionManager;
 import com.google.gson.JsonParser;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProductRepository {
-    private static final String SUPABASE_URL = "https://qsthuhzkciimucarscco.supabase.co";
-    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzdGh1aHprY2lpbXVjYXJzY2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MjM4MTUsImV4cCI6MjA3Mjk5OTgxNX0.VnHrSq-S8NlSmzQ7_soRvrc7t3s3fEp_wu9tTwm9ZUI";
+    private static final String SUPABASE_URL = config.Config.SUPABASE_URL;
+    private static final String SUPABASE_KEY = config.Config.SUPABASE_ANON_KEY;
     static final String TABLE_NAME = "products";
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    static final Gson gson = new Gson();
+        static final Gson gson = new Gson();
 
     public static List<Product> loadProductsFromSupabase() throws Exception {
         try {
@@ -25,18 +26,18 @@ public class ProductRepository {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
             if (response.statusCode() != 200) {
                 throw new Exception("Ошибка получения товаров: " + response.statusCode());
             }
 
-            JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(com.example.authapp.network.SupabaseHttp.jsonBody(response)).getAsJsonArray();
             List<Product> products = new ArrayList<>();
 
             // Конвертируем каждый DTO в Product для UI
@@ -65,7 +66,8 @@ public class ProductRepository {
     }
 
     public static void addProductToSupabase(Product product) throws Exception {
-        try {
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
             // Конвертируем Product в ProductDTO для JSON
             ProductDTO dto = new ProductDTO(
                     product.getId(),
@@ -79,19 +81,21 @@ public class ProductRepository {
             );
 
             String url = String.format("%s/rest/v1/%s", SUPABASE_URL, TABLE_NAME);
-            String jsonBody = gson.toJson(dto);
+            JsonObject payload = gson.toJsonTree(dto).getAsJsonObject();
+            payload.remove("id"); // IDs are assigned by the database and cannot be changed by REST clients.
+            String jsonBody = payload.toString();
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
-            if (response.statusCode() != 201) {
+            if (response.statusCode() != 201 && response.statusCode() != 200) {
                 throw new Exception("Ошибка добавления товара: " + response.statusCode());
             }
         } catch (Exception e) {
@@ -100,7 +104,8 @@ public class ProductRepository {
     }
 
     public static void updateProductInSupabase(Product product) throws Exception {
-        try {
+        var lease = SessionManager.requireSession();
+        try (var scope = SupabaseHttp.forSession(lease)) {
             ProductDTO dto = new ProductDTO(
                     product.getId(),
                     product.getName(),
@@ -113,19 +118,21 @@ public class ProductRepository {
             );
 
             String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, TABLE_NAME, product.getId());
-            String jsonBody = gson.toJson(dto);
+            JsonObject payload = gson.toJsonTree(dto).getAsJsonObject();
+            payload.remove("id"); // IDs are assigned by the database and cannot be changed by REST clients.
+            String jsonBody = payload.toString();
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + com.example.authapp.network.SupabaseHttp.authorization())
                     .header("apikey", SUPABASE_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = com.example.authapp.network.SupabaseHttp.send(request);
 
-            if (response.statusCode() != 200) {
+            if (response.statusCode() != 200 && response.statusCode() != 204) {
                 throw new Exception("Ошибка обновления товара: " + response.statusCode());
             }
         } catch (Exception e) {
@@ -134,80 +141,11 @@ public class ProductRepository {
     }
 
     public static void deleteProductFromSupabase(int productId) throws Exception {
-        try {
-            String url = String.format("%s/rest/v1/%s?id=eq.%d", SUPABASE_URL, TABLE_NAME, productId);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .DELETE()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 204) {
-                throw new Exception("Ошибка удаления товара: " + response.statusCode());
-            }
-        } catch (Exception e) {
-            throw new Exception("Ошибка при удалении товара из Supabase: " + e.getMessage());
-        }
+        AdminRepository.deleteProduct(productId);
     }
 
-    public static void decreaseProductStock(int productId, int quantity) throws Exception {
-        try {
-            // Сначала получаем текущий stock
-            String getUrl = String.format("%s/rest/v1/%s?id=eq.%d&select=stock",
-                    SUPABASE_URL, "products", productId);
-
-            HttpRequest getRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(getUrl))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .GET()
-                    .build();
-
-            HttpResponse<String> getResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (getResponse.statusCode() != 200) {
-                throw new Exception("Ошибка получения stock товара: " + getResponse.statusCode());
-            }
-
-            JsonArray jsonArray = JsonParser.parseString(getResponse.body()).getAsJsonArray();
-            if (jsonArray.size() == 0) {
-                throw new Exception("Товар не найден");
-            }
-
-            int currentStock = jsonArray.get(0).getAsJsonObject().get("stock").getAsInt();
-            int newStock = currentStock - quantity;
-
-            if (newStock < 0) {
-                newStock = 0; // Не допускаем отрицательный stock
-            }
-
-            // Обновляем stock
-            String updateUrl = String.format("%s/rest/v1/%s?id=eq.%d",
-                    SUPABASE_URL, "products", productId);
-
-            String jsonBody = "{\"stock\":" + newStock + "}";
-
-            HttpRequest updateRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(updateUrl))
-                    .header("Authorization", "Bearer " + SUPABASE_KEY)
-                    .header("apikey", SUPABASE_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-            HttpResponse<String> updateResponse = httpClient.send(updateRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (updateResponse.statusCode() != 200 && updateResponse.statusCode() != 204) {
-                throw new Exception("Ошибка обновления stock: " + updateResponse.statusCode());
-            }
-
-        } catch (Exception e) {
-            throw new Exception("Ошибка уменьшения stock товара: " + e.getMessage());
-        }
+    public static void decreaseProductStock(int productId, int quantity) {
+        throw new UnsupportedOperationException("Остатки изменяются атомарно при оформлении заказа");
     }
 
     public List<Product> getAllProducts() throws Exception {

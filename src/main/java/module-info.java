@@ -16,5 +16,7 @@ module com.example.authapp {
 
 
     opens com.example.authapp to javafx.fxml;
+    opens controllers to javafx.fxml;
+    opens com.example.authapp.dto to com.google.gson, com.fasterxml.jackson.databind;
     exports com.example.authapp;
 }

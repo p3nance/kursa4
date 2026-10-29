@@ -1,0 +1,737 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-25",
+  "purpose": "Research staging for local verified compatibility data. Sources were opened/read on checkedAt; exceptions are explicitly left without VERIFIED facts.",
+  "products": [
+    {
+      "productId": 12,
+      "catalogName": "NVIDIA GeForce RTX 4060 8GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4060",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 8,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 13,
+      "catalogName": "NVIDIA GeForce RTX 4070 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4070",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 650,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 14,
+      "catalogName": "NVIDIA GeForce RTX 4070 SUPER 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4070 SUPER",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 650,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4070-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 15,
+      "catalogName": "NVIDIA GeForce RTX 4080 SUPER 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4080 SUPER",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 750,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4080-family/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 16,
+      "catalogName": "NVIDIA GeForce RTX 4090 24GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4090",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 24,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 850,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 17,
+      "catalogName": "AMD Radeon RX 7600 8GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7600",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 8,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 18,
+      "catalogName": "AMD Radeon RX 7700 XT 12GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7700 XT",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 12,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 700,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7700-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 19,
+      "catalogName": "AMD Radeon RX 7800 XT 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7800 XT",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 700,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7800-xt.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 20,
+      "catalogName": "NVIDIA GeForce RTX 4060 Ti 16GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "NVIDIA GeForce RTX 4060 Ti",
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory Specs / Standard Memory Config.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 550,
+          "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4060-4060ti/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Thermal and Power Specs / Required System Power.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 21,
+      "catalogName": "AMD Radeon RX 7900 XTX 24GB",
+      "identityScope": "GPU model and explicitly named VRAM variant; exact add-in-board manufacturer/SKU is unknown.",
+      "facts": {
+        "model_id": {
+          "value": "AMD Radeon RX 7900 XTX",
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product/model specification heading.",
+          "note": "GPU model identifier, not an add-in-board SKU; retain catalogName capacity when matching RTX 4060 Ti variants."
+        },
+        "capacity_gb": {
+          "value": 24,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "GPU Memory / Max Memory Size.",
+          "note": "VRAM capacity, not system RAM."
+        },
+        "min_psu_watts": {
+          "value": 800,
+          "source": "https://www.amd.com/en/products/graphics/desktops/radeon/7000-series/amd-radeon-rx-7900xtx.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Requirements / Minimum PSU Recommendation.",
+          "note": "official_reference_guidance: manufacturer reference-system recommendation, not a guarantee for every AIB SKU or arbitrary system. Actual board maker and system configuration can require more."
+        }
+      },
+      "unknownFields": {
+        "max_power_watts": "Generic GPU model lacks exact board SKU. Official TGP/Typical Board Power is not a verified electrical maximum and is not promoted to this field.",
+        "length_mm": "Dimensions depend on exact AIB model; Founders Edition/reference dimensions are not universal.",
+        "required_power_connectors": "Connector requirements depend on exact AIB model; adapter alternatives also cannot be represented as a single mandatory set."
+      }
+    },
+    {
+      "productId": 32,
+      "catalogName": "Kingston Fury Beast 16GB (2x8) DDR4-3200",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.kingston.com/dataSheets/KF432C16BBK2_16.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF432C16BBK2/16 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      }
+    },
+    {
+      "productId": 33,
+      "catalogName": "Kingston Fury Beast 32GB (2x16) DDR4-3600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.kingston.com/datasheets/KF436C18BBK2_32.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. KF436C18BBK2/32 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      }
+    },
+    {
+      "productId": 34,
+      "catalogName": "G.Skill Trident Z5 RGB 32GB (2x16) DDR5-6000",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.gskill.com/specification/165/374/1735194233/F5-6000J2836G16GX2-TZ5RK-Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. F5-6000J2836G16GX2-TZ5RK is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      }
+    },
+    {
+      "productId": 35,
+      "catalogName": "Corsair Vengeance 32GB (2x16) DDR5-5600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 32,
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b5600z36/vengeance-32gb-2x16gb-ddr5-dram-5600mt-s-c36-amd-expo-memory-kit-cmk32gx5m2b5600z36",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. CMK32GX5M2B5600Z36 is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      }
+    },
+    {
+      "productId": 36,
+      "catalogName": "Patriot Viper Steel 16GB (2x8) DDR4-3600",
+      "identityScope": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU.",
+      "facts": {
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official memory type / matching kit description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        },
+        "capacity_gb": {
+          "value": 16,
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official total kit capacity / matching kit description.",
+          "note": "Total kit capacity, not capacity of one module. Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        },
+        "module_count": {
+          "value": 2,
+          "source": "https://viper.patriotmemory.com/ru/products/viper-steel-ddr4-performance-memory-ram-viper-gaming-by-patriot-memory",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official kit of two / 2x8GB or 2x16GB description.",
+          "note": "Only properties already explicit in the catalog name and shared by matching official family/kit examples. PVS416G360C7K / PVS416G360C8K is a research example, not an assigned SKU."
+        }
+      },
+      "unknownFields": {
+        "model_id": "No exact memory kit SKU in catalog; timings, color, revision and XMP/EXPO variants cannot be uniquely resolved.",
+        "height_mm": "No exact SKU; physical cooler clearance is not verified.",
+        "max_power_watts": "No exact SKU or manufacturer electrical maximum established."
+      }
+    },
+    {
+      "productId": 40,
+      "catalogName": "Samsung 990 PRO 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Samsung 990 PRO 1TB",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      }
+    },
+    {
+      "productId": 41,
+      "catalogName": "Samsung 990 PRO 2TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Samsung 990 PRO 2TB",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 2000,
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      }
+    },
+    {
+      "productId": 42,
+      "catalogName": "Kingston NV2 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "Kingston NV2 1TB",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official 1TB capacity and SNV2S/1000G part list.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://www.kingston.com/datasheets/snv2s_en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      }
+    },
+    {
+      "productId": 43,
+      "catalogName": "Crucial MX500 1TB SATA",
+      "facts": {},
+      "identityScope": "Catalog name/description suggests MX500 1TB 2.5-inch SATA. Official source could not be opened successfully in this session, so no VERIFIED fact is added.",
+      "unknownFields": {
+        "model_id": "Candidate CT1000MX500SSD1 is indexed in the official product flyer, but the document could not be opened.",
+        "storage_interface": "Official search index suggests SATA 6Gb/s; not promoted from an inaccessible source.",
+        "capacity_gb": "Official search index suggests 1TB decimal / 1000GB; source not opened.",
+        "form_factor": "Catalog description and official search index suggest 2.5-inch 7mm; source not opened."
+      },
+      "research": {
+        "candidateSource": "https://content.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-en.pdf",
+        "alternateCandidateSource": "https://assets.micron.com/adobe/assets/urn%3Aaaid%3Aaem%3A3c743a1f-9319-4b34-9b20-15cdad1ee2ce/renditions/original/as/crucial-mx500-ssd-productflyer-en.pdf.html",
+        "checkedAt": "2026-10-25",
+        "result": "Public official Crucial/Micron URLs were attempted. Browser fetches returned timeout/rejection; direct read returned unavailable server. Only search-index text was available; omitted rather than treating it as full document verification."
+      }
+    },
+    {
+      "productId": 44,
+      "catalogName": "WD Black SN850X 1TB NVMe",
+      "identityScope": "Named SSD family and capacity are identified. Exact regional SKU / heatsink variant is not assigned.",
+      "facts": {
+        "model_id": {
+          "value": "WD_BLACK SN850X 1TB",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official named SSD family and listed capacity.",
+          "note": "Family-plus-capacity identifier; not an assertion of a regional SKU or heatsink variant."
+        },
+        "storage_interface": {
+          "value": "NVMe",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official interface specification / product name identifies PCIe NVMe.",
+          "note": "Canonical storage protocol; PCIe generation/lanes are not collapsed into SATA or inferred from M.2 alone."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official marketed TB capacity and decimal unit definition.",
+          "note": "Decimal advertised capacity: 1TB = 1000GB; formatted usable space is lower."
+        },
+        "form_factor": {
+          "value": "M.2 2280",
+          "source": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official M.2 (2280) form factor / compatibility specification.",
+          "note": "M.2 describes physical form factor, NVMe describes protocol. Heatsink height is not established."
+        }
+      },
+      "unknownFields": {
+        "height_mm": "Heatsink/revision choice is not uniquely identified, or fractional dimensions do not fit integer attribute.",
+        "max_power_watts": "No compatible verified electrical maximum established; average/typical power is not a maximum."
+      }
+    }
+  ]
+}

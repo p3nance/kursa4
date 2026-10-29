@@ -1,86 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.geometry.Insets?>
-
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            stylesheets="@../styles/styles.css"
-            style="-fx-background-color: #f5f5f5;">
-
-    <!-- Шапка с кнопкой назад -->
-    <top>
-        <VBox styleClass="detail-header">
-            <Button fx:id="backButton"
-                    text="← Назад к товарам"
-                    styleClass="detail-back-btn"/>
-        </VBox>
-    </top>
-
-    <center>
-        <ScrollPane fitToWidth="true" styleClass="detail-scroll">
-            <VBox spacing="24" styleClass="detail-content">
-
-                <!-- Основной блок: изображение + инфо -->
-                <HBox spacing="32" styleClass="detail-card">
-
-                    <!-- Изображение слева -->
-                    <VBox alignment="TOP_CENTER" spacing="10" minWidth="400">
-                        <ImageView fx:id="largeImage"
-                                   fitWidth="400" fitHeight="300"
-                                   preserveRatio="true"/>
-                    </VBox>
-
-                    <!-- Информация справа -->
-                    <VBox spacing="14" HBox.hgrow="ALWAYS">
-
-                        <Label fx:id="productNameLabel"
-                               text="Название товара"
-                               styleClass="detail-product-name"
-                               wrapText="true"/>
-
-                        <Label fx:id="manufacturerLabel"
-                               text="Производитель:"
-                               styleClass="detail-meta"/>
-
-                        <Label fx:id="categoryLabel"
-                               text="Категория:"
-                               styleClass="detail-meta"/>
-
-                        <Label fx:id="priceLabel"
-                               text="0 ₽"
-                               styleClass="detail-price"/>
-
-                        <Separator/>
-
-                        <Label text="Описание:"
-                               styleClass="detail-section-title"/>
-
-                        <TextArea fx:id="descriptionArea"
-                                  wrapText="true"
-                                  editable="false"
-                                  prefRowCount="6"
-                                  styleClass="detail-description"/>
-
-                        <Separator/>
-
-                        <!-- Кнопки действий -->
-                        <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Button fx:id="addToCartButton"
-                                    text="🛒 Добавить в корзину"
-                                    styleClass="detail-cart-btn"
-                                    prefWidth="210"/>
-                            <Button fx:id="buyNowButton"
-                                    text="💳 Купить сейчас"
-                                    styleClass="detail-buy-btn"
-                                    prefWidth="210"/>
-                        </HBox>
-
-                    </VBox>
-                </HBox>
-
-            </VBox>
-        </ScrollPane>
-    </center>
-
-</BorderPane>
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fitToWidth="true" hbarPolicy="NEVER" stylesheets="@styles/theme.css, @styles/shell.css">
+  <VBox spacing="24" styleClass="catalog-page">
+    <Button fx:id="backButton" text="К каталогу" styleClass="btn-ghost"/>
+    <HBox spacing="30" styleClass="detail-surface">
+      <StackPane prefWidth="300" minWidth="180" prefHeight="260" styleClass="product-image"><ImageView fx:id="productImage" fitWidth="280" fitHeight="240" preserveRatio="true"/></StackPane>
+      <VBox spacing="16" HBox.hgrow="ALWAYS" minWidth="0">
+        <Label fx:id="productCategory" text="Комплектующие" styleClass="eyebrow"/><Label fx:id="productName" text="Карточка товара" wrapText="true" styleClass="page-title"/>
+        <Label fx:id="productManufacturer" text="Производитель" styleClass="text-muted"/><Label fx:id="productPrice" text="Цена" styleClass="detail-price"/>
+        <Button fx:id="addToCartButton" text="В корзину" styleClass="btn-primary"/>
+        <Separator/><Label text="Описание" styleClass="section-title"/><Label fx:id="productDescription" text="Описание пока не добавлено." wrapText="true" styleClass="detail-description"/>
+      </VBox>
+    </HBox>
+  </VBox>
+</ScrollPane>

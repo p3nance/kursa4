@@ -1,104 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.TilePane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.Pane?>
-
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-            fx:id="mainPane"
-            fx:controller="controllers.MainController">
-
-    <top>
-        <HBox fx:id="headerPane" spacing="16"
-              style="-fx-padding: 14 24; -fx-alignment: center; -fx-background-color: #1e40af;">
-
-            <Label text="💻 TechStore"
-                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;"/>
-
-            <HBox fx:id="searchBox"
-                  style="-fx-background-color: white; -fx-background-radius: 25;
-                         -fx-padding: 0 15; -fx-spacing: 10; -fx-alignment: center-left;"
-                  HBox.hgrow="ALWAYS">
-                <Label text="🔍" style="-fx-font-size: 16px;"/>
-                <TextField fx:id="searchField"
-                           promptText="Поиск товаров по названию..."
-                           style="-fx-font-size: 13px; -fx-border-width: 0;
-                                  -fx-background-color: transparent; -fx-padding: 8 0;"
-                           HBox.hgrow="ALWAYS"/>
-            </HBox>
-
-            <Button fx:id="configuratorBtn"
-                    text="🔧 Конфигуратор"
-                    style="-fx-background-color: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-                           -fx-text-fill: #ffffff;
-                           -fx-font-size: 13px;
-                           -fx-font-weight: bold;
-                           -fx-padding: 10 20;
-                           -fx-background-radius: 10;
-                           -fx-border-radius: 10;
-                           -fx-border-width: 1.5;
-                           -fx-border-color: #93c5fd;
-                           -fx-cursor: hand;
-                           -fx-effect: dropshadow(gaussian, rgba(29,78,216,0.5), 10, 0, 0, 3);"/>
-
-            <Button fx:id="profileBtn"
-                    text="👤 Мой кабинет"
-                    style="-fx-padding: 10 20;
-                           -fx-font-size: 13px;
-                           -fx-background-color: #10b981;
-                           -fx-text-fill: white;
-                           -fx-background-radius: 8;
-                           -fx-cursor: hand;
-                           -fx-font-weight: bold;"/>
-        </HBox>
-    </top>
-
-    <left>
-        <VBox fx:id="categoryPane"
-              style="-fx-background-color: #f3f4f6; -fx-border-width: 0 1 0 0; -fx-border-color: #d1d5db;"
-              spacing="0"
-              prefWidth="180">
-            <VBox fx:id="categoryItemsPane"
-                  spacing="6"
-                  alignment="CENTER"
-                  style="-fx-padding: 12 0 0 0;"/>
-            <Pane VBox.vgrow="ALWAYS"/>
-            <HBox alignment="CENTER" spacing="0" style="-fx-padding: 0 0 12 0;">
-                <Button fx:id="cartBtn"
-                        text="🛒 Корзина"
-                        style="-fx-background-color: linear-gradient(to right, #2563eb 85%, #3b82f6 100%);
-                               -fx-text-fill: #fff;
-                               -fx-background-radius: 13;
-                               -fx-font-weight: bold;
-                               -fx-font-size: 14px;
-                               -fx-padding: 10 16;
-                               -fx-cursor: hand;
-                               -fx-effect: dropshadow(gaussian, #2563eb22, 2,0,0,2);
-                               -fx-border-width: 0;"
-                        minWidth="130"
-                        maxWidth="160"
-                        wrapText="true"
-                        alignment="CENTER"/>
-            </HBox>
-        </VBox>
-    </left>
-
-    <center>
-        <ScrollPane fx:id="contentScroll"
-                    fitToWidth="true"
-                    style="-fx-background-color: #f5f5f5; -fx-background: #f5f5f5;">
-            <TilePane fx:id="productPane"
-                      prefColumns="4"
-                      hgap="16"
-                      vgap="16"
-                      style="-fx-background-color: #f5f5f5; -fx-padding: 24;"/>
-        </ScrollPane>
-    </center>
-
-</BorderPane>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.MainController" fx:id="shellRoot" styleClass="app-root" stylesheets="@styles/theme.css, @styles/shell.css">
+  <HBox>
+    <VBox fx:id="categoryPane" styleClass="shell-sidebar" prefWidth="220" minWidth="180" maxWidth="220">
+      <HBox alignment="CENTER_LEFT" spacing="10" styleClass="shell-brand"><Label text="t" styleClass="brand-mark"/><Label text="TechStore." styleClass="brand-name"/></HBox>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" minHeight="0" styleClass="nav-scroll"><VBox spacing="5" minWidth="0">
+      <Label text="ВАШ КОМПЬЮТЕР" styleClass="nav-section"/>
+      <Button fx:id="catalogBtn" text="Каталог" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      <Button fx:id="configuratorBtn" text="Конфигуратор" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      <Button fx:id="chatBtn" text="Помощник" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      <Separator styleClass="nav-separator"/>
+      <Button fx:id="cartBtn" text="Корзина" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      <Button fx:id="profileBtn" text="Личный кабинет" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      <VBox fx:id="staffNav" spacing="4" visible="false" managed="false">
+        <Separator styleClass="nav-separator"/><Label text="УПРАВЛЕНИЕ" styleClass="nav-section"/>
+        <Button fx:id="managerBtn" text="Товары" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+        <Button fx:id="adminBtn" text="Админ-панель" maxWidth="Infinity" styleClass="nav-item" wrapText="true"/>
+      </VBox>
+      </VBox></ScrollPane>
+      <VBox fx:id="sidebarHelp" spacing="9" styleClass="sidebar-help"><Label text="Не знаете, с чего начать?" wrapText="true" styleClass="help-title"/><Label text="Поможем выбрать детали под ваши задачи." wrapText="true" styleClass="text-muted"/><Button text="Открыть чат" onAction="#openChat" styleClass="btn-ghost, btn-small"/></VBox>
+      <HBox spacing="6" alignment="CENTER_LEFT" styleClass="sidebar-footer"><Label text="TechStore"/><Region HBox.hgrow="ALWAYS"/><Label text="Собрано под вас"/></HBox>
+    </VBox>
+    <BorderPane fx:id="mainPane" HBox.hgrow="ALWAYS" minWidth="0">
+      <top><HBox fx:id="headerPane" styleClass="shell-header" alignment="CENTER_LEFT" spacing="20">
+        <Label text="Магазин" styleClass="breadcrumb-muted"/><Label text="/" styleClass="breadcrumb-muted"/><Label fx:id="sectionName" text="Каталог" styleClass="breadcrumb-current"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox fx:id="searchBox" prefHeight="40" minHeight="40" maxHeight="40" alignment="CENTER_LEFT" spacing="8" styleClass="shell-search"><TextField fx:id="searchField" promptText="Поиск комплектующих" HBox.hgrow="ALWAYS"/></HBox>
+        <Separator orientation="VERTICAL" prefHeight="24"/><Button fx:id="accountBtn" text="Гость" styleClass="account-button"/>
+      </HBox></top>
+    </BorderPane>
+  </HBox>
+  <Label fx:id="toastLabel" visible="false" managed="false" wrapText="true" maxWidth="450" styleClass="shell-toast" StackPane.alignment="BOTTOM_RIGHT"><StackPane.margin><Insets right="24" bottom="24"/></StackPane.margin></Label>
+</StackPane>

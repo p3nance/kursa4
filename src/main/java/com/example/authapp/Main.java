@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+    private controllers.MainController controller;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -17,9 +18,11 @@ public class Main extends Application {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/main.fxml"));
             Parent root = loader.load();
+            controller = loader.getController();
+            com.example.authapp.ui.Ui.setUrlOpener(getHostServices()::showDocument);
 
             primaryStage.setTitle("TechStore");
-            primaryStage.setScene(new Scene(root, 1200, 800));
+            primaryStage.setScene(new Scene(root, 1440, 900));
             primaryStage.setMinWidth(900);
             primaryStage.setMinHeight(600);
             primaryStage.setResizable(true);
@@ -45,4 +48,5 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    @Override public void stop() { if(controller != null) controller.dispose(); }
 }

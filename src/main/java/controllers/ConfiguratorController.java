@@ -1,368 +1,305 @@
 package controllers;
 
-import config.SessionManager; // Не забудь импорт для проверки авторизации
-import com.example.authapp.models.Cart;
+import com.example.authapp.domain.ComponentCategory;
 import com.example.authapp.models.Product;
+import com.example.authapp.repositories.ProductRepository;
 import com.example.authapp.services.CartService;
-import javafx.animation.PauseTransition;
+import com.example.authapp.services.CompatibilityService;
+import com.example.authapp.services.LocalKnowledgeRepository;
+import com.example.authapp.ui.Ui;
+import config.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
-import javafx.util.Duration;
 
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-public class ConfiguratorController {
-
-    @FXML private BorderPane mainContent;
-    @FXML private Button backBtn;
-    @FXML private VBox categoriesContainer;
-
-    @FXML private Label totalPrice;
-    @FXML private HBox compatStatusBox;
-    @FXML private Label compatIcon;
-    @FXML private Label compatStatusText;
-
+/** Stateful workspace: the shell may hide it without discarding the selected build. */
+public final class ConfiguratorController {
+    @FXML private StackPane configuratorRoot;
+    @FXML private VBox mainContent, listColumn, summaryColumn, categoriesContainer, findingsBox;
+    @FXML private GridPane configColumns;
+    @FXML private Label totalPrice, selectedCount, budgetValue, remainingBudget, budgetRemainderLabel;
+    @FXML private Label compatStatusText, compatTitle, cartStatusText, overlayTitle, pickerCount;
+    @FXML private HBox compatStatusBox, cartStatusBox, budgetEditor;
+    @FXML private ProgressBar budgetProgress;
+    @FXML private ProgressIndicator addProgress;
     @FXML private ListView<String> componentsList;
-    @FXML private Button addBuildToCart;
-
-    // Плашка статуса корзины
-    @FXML private HBox cartStatusBox;
-    @FXML private Label cartStatusIcon;
-    @FXML private Label cartStatusText;
-
-    // Элементы оверлея
-    @FXML private VBox overlayPane;
-    @FXML private Label overlayTitle;
-    @FXML private Button closeOverlayBtn;
-    @FXML private Button clearSelectionBtn;
+    @FXML private Button addBuildToCart, clearBuildButton, closeOverlayBtn, clearSelectionBtn;
+    @FXML private Button applyBudgetButton, removeBudgetButton;
+    @FXML private TextField budgetField, pickerSearch;
+    @FXML private CheckBox onlyAvailable;
+    @FXML private StackPane overlayPane;
     @FXML private TilePane overlayProductsGrid;
 
-    private MainController mainController;
-    private final List<Product> allProducts = new ArrayList<>();
-    private final Map<String, Product> selectedComponents = new LinkedHashMap<>();
+    private MainController host;
+    private List<Product> catalog = List.of();
+    private Map<Integer, Product> currentProducts = Map.of();
+    private final EnumMap<ComponentCategory, Product> selected = new EnumMap<>(ComponentCategory.class);
+    private LocalKnowledgeRepository.Snapshot knowledge;
+    private CompatibilityService.Result assessment;
+    private ComponentCategory editingCategory;
+    private BigDecimal budget;
+    private boolean catalogLoaded, adding, disposed;
+    private long operation;
+    private Future<?> addTask;
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(task -> {
+        Thread thread = new Thread(task, "configured-build-cart"); thread.setDaemon(true); return thread;
+    });
+    private static final Map<String, String> CHECK_NAMES = Map.ofEntries(
+            Map.entry("socket", "Сокет процессора и платы"), Map.entry("cpu_support", "Поддержка процессора и BIOS"),
+            Map.entry("memory_type", "Поколение оперативной памяти"), Map.entry("memory_capacity", "Объём памяти"),
+            Map.entry("memory_slots", "Количество модулей памяти"), Map.entry("board_case", "Плата и корпус"),
+            Map.entry("storage_interface", "Интерфейс накопителя"), Map.entry("gpu_length", "Длина видеокарты"),
+            Map.entry("cooler_height", "Высота охлаждения"), Map.entry("cooler_socket", "Крепление охлаждения"),
+            Map.entry("cooler_power", "Мощность охлаждения"), Map.entry("psu_case", "Блок питания и корпус"),
+            Map.entry("gpu_min_psu", "Мощность блока питания для GPU"), Map.entry("gpu_connectors", "Разъёмы питания GPU"),
+            Map.entry("board_connectors", "Разъёмы питания платы"), Map.entry("power_budget", "Расчёт питания с запасом"));
 
-    private final String[] categoryNames = {
-            "Процессоры", "Материнские платы", "Видеокарты",
-            "Оперативная память", "SSD-накопители", "Блоки питания"
-    };
-
-    private String currentEditingCategory = null;
-
-    public void initialize() {
-        backBtn.setOnAction(e -> goBack());
-        addBuildToCart.setOnAction(e -> addBuildToCart());
-
-        closeOverlayBtn.setOnAction(e -> closeOverlay());
-        clearSelectionBtn.setOnAction(e -> {
-            if (currentEditingCategory != null) {
-                selectedComponents.put(currentEditingCategory, null);
-                renderCategories();
-                recalcBuild();
-                closeOverlay();
-            }
-        });
-
-        for (String cat : categoryNames) {
-            selectedComponents.put(cat, null);
-        }
-
-        compatStatusText.setWrapText(true);
-        compatStatusText.maxWidthProperty().bind(compatStatusBox.widthProperty().subtract(40));
-
-        cartStatusText.setWrapText(true);
+    @FXML private void initialize() {
+        addBuildToCart.setGraphic(Ui.icon("bag"));
+        clearBuildButton.setGraphic(Ui.icon("trash"));
+        closeOverlayBtn.setGraphic(Ui.icon("close"));
+        pickerSearch.textProperty().addListener((o, before, after) -> renderPicker());
+        onlyAvailable.selectedProperty().addListener((o, before, after) -> renderPicker());
+        budgetField.setOnAction(event -> saveBudget());
+        configuratorRoot.widthProperty().addListener((o, before, after) -> layoutColumns(after.doubleValue()));
+        configuratorRoot.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ESCAPE && overlayPane.isVisible()) { closePicker(); event.consume(); } });
+        layoutColumns(1100);
+        recalculate();
     }
 
-    public void setMainController(MainController mainController) {
-        this.mainController = mainController;
-    }
+    public void setMainController(MainController mainController) { host = mainController; }
 
-    private void goBack() {
-        if (mainController != null) mainController.showMainContent();
-    }
-
+    /** Updates prices and stock without losing selections or a user-entered budget. */
     public void setProducts(List<Product> products) {
-        this.allProducts.clear();
-        this.allProducts.addAll(products);
-        renderCategories();
-        recalcBuild();
+        catalog = products.stream().filter(p -> Double.isFinite(p.getPrice()) && p.getPrice() >= 0).toList();
+        Map<Integer, Product> fresh = new LinkedHashMap<>();
+        catalog.forEach(product -> fresh.put(product.getId(), product));
+        currentProducts = Map.copyOf(fresh);
+        catalogLoaded = true;
+        selected.replaceAll((category, previous) -> fresh.getOrDefault(previous.getId(), previous));
+        knowledge = new LocalKnowledgeRepository().load(catalog);
+        recalculate();
+        if (editingCategory != null) renderPicker();
     }
 
-    private void renderCategories() {
-        categoriesContainer.getChildren().clear();
+    public void selectSuggestedBuild(List<Product> products) {
+        if (adding) return;
+        selected.clear();
+        for (Product product : products) if(Double.isFinite(product.getPrice()) && product.getPrice() >= 0) ComponentCategory.fromDisplayName(product.getCategory()).ifPresent(category ->
+                selected.put(category, currentProducts.getOrDefault(product.getId(), product)));
+        hideStatus(); recalculate();
+    }
 
-        for (String category : categoryNames) {
-            HBox catBox = new HBox(15);
-            catBox.setAlignment(Pos.CENTER_LEFT);
-            catBox.setStyle("-fx-background-color: white; -fx-padding: 15 20; -fx-border-color: #e5e7eb; -fx-border-radius: 10; -fx-background-radius: 10;");
+    public void setBudget(BigDecimal value) {
+        if (value != null && (value.signum() <= 0 || value.compareTo(new BigDecimal("100000000")) > 0))
+            throw new IllegalArgumentException("Бюджет должен быть больше нуля и не более 100 млн рублей");
+        budget = value; updateBudget(total());
+    }
+    public BigDecimal getBudget() { return budget; }
+    public List<Product> getSelectedProducts() { return List.copyOf(selected.values()); }
+    public void setActive(boolean active) { if (!active) closePicker(); }
+    public void dispose() { disposed = true; operation++; if (addTask != null) addTask.cancel(true); worker.shutdownNow(); }
 
-            Label icon = new Label(getIconForCategory(category));
-            icon.setStyle("-fx-font-size: 24px;");
-
-            VBox nameBox = new VBox(4);
-            Label catLabel = new Label(category);
-            catLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
-
-            Product selected = selectedComponents.get(category);
-            Label selectedLabel = new Label(selected != null ? selected.getName() : "Не выбрано");
-            selectedLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (selected != null ? "#3b82f6" : "#9ca3af") + ";");
-            nameBox.getChildren().addAll(catLabel, selectedLabel);
-
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            Label priceLabel = new Label(selected != null ? String.format("%,.0f ₽", selected.getPrice()) : "");
-            priceLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-
-            Button selectBtn = new Button(selected != null ? "Изменить" : "Выбрать");
-
-            String btnStyle = selected != null
-                    ? "-fx-background-color: #f3f4f6; -fx-text-fill: #374151; " +
-                    "-fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 8 16; " +
-                    "-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #d1d5db; -fx-cursor: hand;"
-                    : "-fx-background-color: linear-gradient(to bottom, #3b82f6, #1d4ed8); " +
-                    "-fx-text-fill: #ffffff; -fx-font-size: 13px; -fx-font-weight: bold; " +
-                    "-fx-padding: 8 16; -fx-background-radius: 8; -fx-border-radius: 8; " +
-                    "-fx-border-width: 1.5; -fx-border-color: #93c5fd; -fx-cursor: hand; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(29,78,216,0.3), 8, 0, 0, 2);";
-
-            selectBtn.setStyle(btnStyle);
-            selectBtn.setOnAction(e -> openOverlayForCategory(category));
-
-            catBox.getChildren().addAll(icon, nameBox, spacer, priceLabel, selectBtn);
-            categoriesContainer.getChildren().add(catBox);
+    private void layoutColumns(double width) {
+        boolean stacked = width > 0 && width < 650;
+        GridPane.setColumnIndex(summaryColumn, stacked ? 0 : 1);
+        GridPane.setRowIndex(summaryColumn, stacked ? 1 : 0);
+        ColumnConstraints primary = new ColumnConstraints(); primary.setMinWidth(0); primary.setHgrow(Priority.ALWAYS);
+        if (stacked) configColumns.getColumnConstraints().setAll(primary);
+        else {
+            ColumnConstraints secondary = new ColumnConstraints(width < 930 ? 255 : 300);
+            secondary.setMinWidth(width < 930 ? 255 : 300); secondary.setMaxWidth(width < 930 ? 255 : 300);
+            configColumns.getColumnConstraints().setAll(primary, secondary);
         }
     }
 
-    private String getIconForCategory(String cat) {
-        switch (cat) {
-            case "Процессоры": return "⚙";
-            case "Материнские платы": return "🖧";
-            case "Видеокарты": return "📺";
-            case "Оперативная память": return "☷";
-            case "SSD-накопители": return "🖴";
-            case "Блоки питания": return "🔋";
-            default: return "📦";
-        }
+    @FXML private void askForHelp() { if (host != null) host.openChat(); }
+    @FXML private void clearBuild() { if (!adding) { selected.clear(); hideStatus(); recalculate(); } }
+    @FXML private void toggleBudgetEditor() {
+        budgetEditor.setVisible(!budgetEditor.isVisible()); budgetEditor.setManaged(budgetEditor.isVisible());
+        if (budgetEditor.isVisible()) { budgetField.setText(budget == null ? "" : budget.toPlainString()); budgetField.requestFocus(); budgetField.selectAll(); }
     }
-
-    private void openOverlayForCategory(String category) {
-        currentEditingCategory = category;
-        overlayTitle.setText("Доступные " + category.toLowerCase());
-
-        List<Product> availableProducts = allProducts.stream()
-                .filter(p -> p.getCategory() != null && p.getCategory().equalsIgnoreCase(category))
-                .collect(Collectors.toList());
-
-        overlayProductsGrid.getChildren().clear();
-
-        for (Product p : availableProducts) {
-            VBox card = new VBox(8);
-            card.setAlignment(Pos.TOP_CENTER);
-            card.setStyle("-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 15; -fx-cursor: hand;");
-            card.setPrefWidth(210);
-
-            ImageView iv = new ImageView();
-            iv.setFitWidth(150); iv.setFitHeight(100); iv.setPreserveRatio(true);
-            try { iv.setImage(new Image(p.getImageUrl(), true)); }
-            catch (Exception e) { iv.setStyle("-fx-background-color: #e5e7eb;"); }
-
-            Label name = new Label(p.getName());
-            name.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-            name.setWrapText(true);
-            name.setAlignment(Pos.CENTER);
-            name.setMinHeight(35);
-
-            Label price = new Label(String.format("%,.0f ₽", p.getPrice()));
-            price.setStyle("-fx-font-weight: bold; -fx-text-fill: #10b981; -fx-font-size: 14px;");
-
-            card.getChildren().addAll(iv, name, price);
-
-            card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f9fafb; -fx-border-color: #3b82f6; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 15; -fx-cursor: hand;"));
-            card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 15; -fx-cursor: hand;"));
-
-            card.setOnMouseClicked(e -> {
-                selectedComponents.put(category, p);
-                renderCategories();
-                recalcBuild();
-                closeOverlay();
-            });
-
-            overlayProductsGrid.getChildren().add(card);
-        }
-
-        if (availableProducts.isEmpty()) {
-            Label empty = new Label("Товары не найдены");
-            empty.setStyle("-fx-font-size: 14px; -fx-text-fill: #888;");
-            overlayProductsGrid.getChildren().add(empty);
-        }
-
-        mainContent.setDisable(true);
-        overlayPane.setVisible(true);
-        cartStatusBox.setVisible(false);
-        cartStatusBox.setManaged(false);
-    }
-
-    private void closeOverlay() {
-        overlayPane.setVisible(false);
-        mainContent.setDisable(false);
-        currentEditingCategory = null;
-    }
-
-    private void recalcBuild() {
-        componentsList.getItems().clear();
-        double sum = 0;
-        int count = 0;
-
-        Product cpu = selectedComponents.get("Процессоры");
-        Product mobo = selectedComponents.get("Материнские платы");
-        Product gpu = selectedComponents.get("Видеокарты");
-        Product ram = selectedComponents.get("Оперативная память");
-        Product storage = selectedComponents.get("SSD-накопители");
-        Product psu = selectedComponents.get("Блоки питания");
-
-        for (String cat : categoryNames) {
-            Product p = selectedComponents.get(cat);
-            if (p != null) {
-                componentsList.getItems().add("• " + p.getName() + "\n  " + String.format("%,.0f ₽", p.getPrice()));
-                sum += p.getPrice();
-                count++;
-            }
-        }
-
-        totalPrice.setText(String.format("%,.0f ₽", sum));
-
-        List<String> issues = checkCompatibility(cpu, mobo, gpu, ram, storage, psu);
-
-        compatStatusBox.setMinHeight(Region.USE_PREF_SIZE);
-
-        if (count == 0) {
-            compatStatusBox.setStyle("-fx-background-color: #f3f4f6; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #d1d5db;");
-            compatIcon.setText("ℹ");
-            compatIcon.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 16px;");
-            compatStatusText.setText("Сборка пуста. Начните выбор компонентов.");
-            compatStatusText.setStyle("-fx-text-fill: #4b5563; -fx-font-size: 13px; -fx-font-weight: bold;");
-
-        } else if (issues.isEmpty()) {
-            compatStatusBox.setStyle("-fx-background-color: #ecfdf5; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #10b981;");
-            compatIcon.setText("✅");
-            compatIcon.setStyle("-fx-text-fill: #10b981; -fx-font-size: 16px;");
-            compatStatusText.setText("Все выбранные компоненты совместимы!");
-            compatStatusText.setStyle("-fx-text-fill: #065f46; -fx-font-size: 13px; -fx-font-weight: bold;");
-
-        } else {
-            compatStatusBox.setStyle("-fx-background-color: #fef2f2; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #ef4444;");
-            compatIcon.setText("❌");
-            compatIcon.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 16px;");
-            compatStatusText.setText(String.join("\n", issues));
-            compatStatusText.setStyle("-fx-text-fill: #991b1b; -fx-font-size: 13px; -fx-font-weight: bold;");
-        }
-    }
-
-    private String getParam(Product product, String key) {
-        if (product == null || product.getDescription() == null) return null;
-        String desc = product.getDescription().toLowerCase();
-        String searchKey = key.toLowerCase() + ":";
-        int idx = desc.indexOf(searchKey);
-        if (idx == -1) return null;
-        int start = idx + searchKey.length();
-        int end = desc.indexOf(" ", start);
-        return end == -1 ? desc.substring(start).trim() : desc.substring(start, end).trim();
-    }
-
-    private int getIntParam(Product product, String key) {
-        String val = getParam(product, key);
-        if (val == null) return 0;
-        try { return Integer.parseInt(val); } catch (Exception e) { return 0; }
-    }
-
-    private List<String> checkCompatibility(Product cpu, Product mobo, Product gpu, Product ram, Product storage, Product psu) {
-        List<String> issues = new ArrayList<>();
-
-        if (cpu != null && mobo != null) {
-            String cpuSocket = getParam(cpu, "socket");
-            String moboSocket = getParam(mobo, "socket");
-            if (cpuSocket != null && moboSocket != null && !cpuSocket.equalsIgnoreCase(moboSocket)) {
-                issues.add("Сокет процессора не подходит к плате");
-            }
-        }
-
-        if (mobo != null && ram != null) {
-            String moboMem = getParam(mobo, "memory");
-            String ramMem = getParam(ram, "memory");
-            if (moboMem != null && ramMem != null && !moboMem.equalsIgnoreCase(ramMem)) {
-                issues.add("Память не поддерживается платой");
-            }
-        }
-
-        if (psu != null) {
-            int psuPower = getIntParam(psu, "psu_power");
-            int cpuTdp = getIntParam(cpu, "tdp");
-            int gpuPower = getIntParam(gpu, "gpu_power");
-            int totalNeed = cpuTdp + gpuPower;
-
-            if (psuPower > 0 && totalNeed > 0 && psuPower < totalNeed) {
-                issues.add("Блок питания слабоват. Нужно минимум " + totalNeed + "Вт");
-            }
-        }
-        return issues;
-    }
-
-    // ─────────────────────────────────────────────
-    //  ДОБАВЛЕНИЕ В КОРЗИНУ (БЕЗ ALERT'ОВ)
-    // ─────────────────────────────────────────────
-
-    private void addBuildToCart() {
-        // Проверка авторизации
-        if (SessionManager.getAccessToken() == null || SessionManager.getUserEmail() == null) {
-            showCartStatus("Вы не авторизованы. Войдите в аккаунт, чтобы добавить товары в корзину.", false);
-            return;
-        }
-
-        List<Product> toAdd = selectedComponents.values().stream().filter(Objects::nonNull).collect(Collectors.toList());
-        if (toAdd.isEmpty()) {
-            showCartStatus("Сборка пуста! Выберите хотя бы один компонент.", false);
-            return;
-        }
-
+    @FXML private void saveBudget() {
         try {
-            CartService cartService = new CartService();
-            for (Product p : toAdd) {
-                cartService.addProductToCart(p, 1);
+            String input = budgetField.getText().replaceAll("[\\s\\u00a0\\u202f]", "").replace(',', '.');
+            setBudget(input.isBlank() ? null : new BigDecimal(input));
+            budgetEditor.setVisible(false); budgetEditor.setManaged(false); hideStatus();
+        } catch (IllegalArgumentException ex) { showStatus("Укажите положительный бюджет в рублях, не более 100 млн.", false); }
+    }
+    @FXML private void removeBudget() { setBudget(null); budgetEditor.setVisible(false); budgetEditor.setManaged(false); }
+
+    private BigDecimal total() { return selected.values().stream().map(p -> BigDecimal.valueOf(p.getPrice())).reduce(BigDecimal.ZERO, BigDecimal::add); }
+    private boolean unavailable(Product p) { return p.getStock() <= 0 || catalogLoaded && !currentProducts.containsKey(p.getId()); }
+
+    private void recalculate() {
+        BigDecimal sum = total();
+        totalPrice.setText(Ui.money(sum)); selectedCount.setText(selected.size() + " из 8 компонентов");
+        componentsList.getItems().setAll(selected.values().stream().map(p -> p.getName() + " — " + Ui.money(p.getPrice())).toList());
+        Set<Integer> ids = selected.values().stream().map(Product::getId).collect(Collectors.toSet());
+        var specs = knowledge == null ? List.<com.example.authapp.domain.CatalogComponent>of()
+                : knowledge.components().stream().filter(c -> ids.contains(c.productId())).toList();
+        assessment = new CompatibilityService().assess(specs);
+        updateCompatibility(); renderRows(); updateBudget(sum);
+        boolean unavailable = selected.values().stream().anyMatch(this::unavailable);
+        addBuildToCart.setDisable(adding || selected.isEmpty() || unavailable || assessment.hasConflict());
+        addBuildToCart.setText(adding ? "Добавляем товары…" : "Добавить товары в корзину");
+        addProgress.setVisible(adding); addProgress.setManaged(adding);
+        categoriesContainer.setDisable(adding); clearBuildButton.setDisable(adding || selected.isEmpty());
+    }
+
+    private void updateBudget(BigDecimal sum) {
+        budgetValue.setText(budget == null ? "Не задан" : Ui.money(budget));
+        budgetProgress.setVisible(budget != null); budgetProgress.setManaged(budget != null);
+        budgetRemainderLabel.setText(budget == null ? "Укажите бюджет для сравнения" : sum.compareTo(budget) > 0 ? "Превышение бюджета" : "Остаток бюджета");
+        remainingBudget.setText(budget == null ? "—" : Ui.money(budget.subtract(sum).abs()));
+        remainingBudget.getStyleClass().remove("over-budget");
+        if (budget != null) {
+            budgetProgress.setProgress(Math.min(1, sum.divide(budget, 6, java.math.RoundingMode.HALF_UP).doubleValue()));
+            if (sum.compareTo(budget) > 0) remainingBudget.getStyleClass().add("over-budget");
+        }
+        removeBudgetButton.setVisible(budget != null); removeBudgetButton.setManaged(budget != null);
+    }
+
+    private void updateCompatibility() {
+        compatStatusBox.getStyleClass().removeAll("config-status-unknown", "config-status-conflict", "config-status-ok");
+        String state;
+        if (selected.isEmpty()) { state = "unknown"; compatTitle.setText("Начните выбор компонентов"); compatStatusText.setText("Выберите детали или откройте подбор в помощнике."); }
+        else if (assessment.hasConflict()) { state = "conflict"; compatTitle.setText("Обнаружена несовместимость"); compatStatusText.setText("Замените конфликтующие детали. Причины указаны в проверках ниже."); }
+        else if (assessment.status() == CompatibilityService.Status.COMPATIBLE) { state = "ok"; compatTitle.setText("Основные проверки пройдены"); compatStatusText.setText("Проверены доступные характеристики. Перед покупкой сверьте спецификации и установленную версию BIOS."); }
+        else { state = "unknown"; compatTitle.setText("Нужна проверка характеристик"); compatStatusText.setText("Недостаточно данных для подтверждения совместимости. Проверьте BIOS, размеры и разъёмы питания."); }
+        compatStatusBox.getStyleClass().add("config-status-" + state);
+        if (selected.values().stream().anyMatch(this::unavailable)) compatStatusText.setText(compatStatusText.getText() + " Некоторые товары отсутствуют в наличии.");
+        if (knowledge != null && !knowledge.warnings().isEmpty()) compatStatusText.setText(compatStatusText.getText() + "\n" + String.join("\n", knowledge.warnings()));
+        findingsBox.getChildren().clear();
+        var findings = assessment.findings().stream().filter(f -> !f.code().startsWith("missing_") && !f.code().equals("empty"))
+                .sorted(Comparator.comparingInt(f -> f.status() == CompatibilityService.Status.INCOMPATIBLE ? 0 : 1)).toList();
+        if (findings.isEmpty()) { Label label = new Label("Проверки появятся после выбора связанных компонентов."); label.setWrapText(true); label.getStyleClass().add("config-check-note"); findingsBox.getChildren().add(label); }
+        for (var finding : findings) {
+            boolean conflict = finding.status() == CompatibilityService.Status.INCOMPATIBLE;
+            Label title = new Label(CHECK_NAMES.getOrDefault(finding.code(), "Проверка компонентов")); title.setWrapText(true); title.getStyleClass().add("config-check-title");
+            String detail = conflict ? finding.message() : finding.status() == CompatibilityService.Status.COMPATIBLE ? "Проверка пройдена" : "Недостаточно проверенных данных";
+            Label description = new Label(detail); description.setWrapText(true); description.getStyleClass().add("config-check-description");
+            VBox text = new VBox(4, title, description); text.setMinWidth(0); HBox.setHgrow(text, Priority.ALWAYS);
+            HBox line = new HBox(9, Ui.icon(conflict ? "warning" : finding.status() == CompatibilityService.Status.COMPATIBLE ? "check" : "clock"), text);
+            line.getStyleClass().addAll("config-check", conflict ? "config-check-conflict" : "config-check-muted"); findingsBox.getChildren().add(line);
+        }
+    }
+
+    private void renderRows() {
+        categoriesContainer.getChildren().clear();
+        for (ComponentCategory category : ComponentCategory.values()) {
+            Product product = selected.get(category);
+            StackPane thumbnail = new StackPane(product == null ? Ui.icon(iconFor(category)) : Ui.productImage(product, 52, 44));
+            thumbnail.getStyleClass().add("config-component-thumb"); thumbnail.setMinSize(58, 52); thumbnail.setPrefSize(58, 52); thumbnail.setMaxSize(58, 52);
+            Label kind = new Label(singular(category)); kind.getStyleClass().add("config-component-kind");
+            Label name = new Label(product == null ? "Компонент не выбран" : product.getName()); name.setWrapText(true); name.getStyleClass().add("config-component-name");
+            VBox copy = new VBox(5, kind, name); copy.setMinWidth(0); HBox.setHgrow(copy, Priority.ALWAYS);
+            if (product != null && unavailable(product)) { Label issue = new Label("Нет в наличии"); issue.getStyleClass().add("config-row-conflict"); copy.getChildren().add(issue); }
+            else if (product != null) {
+                assessment.findings().stream().filter(f -> f.status() == CompatibilityService.Status.INCOMPATIBLE && relatesTo(f.code(), category))
+                        .findFirst().ifPresent(f -> { Label issue = new Label(f.message()); issue.setWrapText(true); issue.getStyleClass().add("config-row-conflict"); copy.getChildren().add(issue); });
             }
-            showCartStatus("Товары успешно добавлены в корзину!", true);
-        } catch (Exception e) {
-            showCartStatus("Ошибка: " + e.getMessage(), false);
+            Label price = new Label(product == null ? "" : Ui.money(product.getPrice())); price.getStyleClass().add("config-component-price"); price.setMinWidth(Region.USE_PREF_SIZE);
+            Button edit = new Button(product == null ? "Выбрать" : ""); edit.setGraphic(Ui.icon(product == null ? "plus" : "edit"));
+            edit.setAccessibleText("Изменить: " + singular(category)); edit.setTooltip(new Tooltip("Выбрать: " + category.displayName()));
+            edit.getStyleClass().addAll("btn", "config-component-edit"); edit.setOnAction(event -> openPicker(category)); edit.setMinWidth(Region.USE_PREF_SIZE);
+            HBox row = new HBox(13, thumbnail, copy, price, edit); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("config-component-row");
+            if (product == null) row.getStyleClass().add("config-component-empty");
+            categoriesContainer.getChildren().add(row);
         }
     }
 
-    private void showCartStatus(String message, boolean isSuccess) {
-        cartStatusBox.setVisible(true);
-        cartStatusBox.setManaged(true);
-        cartStatusText.setText(message);
-
-        if (isSuccess) {
-            cartStatusBox.setStyle("-fx-background-color: #ecfdf5; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #10b981;");
-            cartStatusIcon.setText("✅");
-            cartStatusIcon.setStyle("-fx-text-fill: #10b981; -fx-font-size: 16px;");
-            cartStatusText.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #065f46;");
-        } else {
-            cartStatusBox.setStyle("-fx-background-color: #fef2f2; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #ef4444;");
-            cartStatusIcon.setText("❌");
-            cartStatusIcon.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 16px;");
-            cartStatusText.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #991b1b;");
+    private void openPicker(ComponentCategory category) {
+        if (adding) return;
+        editingCategory = category; overlayTitle.setText(category.displayName()); pickerSearch.clear(); onlyAvailable.setSelected(true);
+        renderPicker(); overlayPane.setVisible(true); overlayPane.setManaged(true); mainContent.setDisable(true); hideStatus(); pickerSearch.requestFocus();
+    }
+    @FXML private void closePicker() { overlayPane.setVisible(false); overlayPane.setManaged(false); mainContent.setDisable(false); editingCategory = null; }
+    @FXML private void clearSelection() { if (editingCategory != null) selected.remove(editingCategory); closePicker(); recalculate(); }
+    private void renderPicker() {
+        if (editingCategory == null) return;
+        String query = pickerSearch.getText().trim().toLowerCase(Locale.ROOT);
+        var matching = catalog.stream().filter(p -> ComponentCategory.fromDisplayName(p.getCategory()).orElse(null) == editingCategory)
+                .filter(p -> !onlyAvailable.isSelected() || p.getStock() > 0)
+                .filter(p -> (p.getName() + " " + p.getManufacturer()).toLowerCase(Locale.ROOT).contains(query))
+                .sorted(Comparator.comparingDouble(Product::getPrice).thenComparingInt(Product::getId)).toList();
+        overlayProductsGrid.getChildren().clear(); pickerCount.setText("Найдено: " + matching.size());
+        clearSelectionBtn.setDisable(!selected.containsKey(editingCategory));
+        for (Product product : matching) {
+            Label name = new Label(product.getName()); name.setWrapText(true); name.getStyleClass().add("config-picker-name");
+            Label price = new Label(Ui.money(product.getPrice())); price.getStyleClass().add("config-picker-price");
+            Label stock = new Label(product.getStock() > 0 ? "В наличии: " + product.getStock() : "Нет в наличии"); stock.getStyleClass().add("config-picker-stock");
+            Button choose = new Button("Выбрать компонент"); choose.getStyleClass().addAll("btn", "btn-primary"); choose.setMaxWidth(Double.MAX_VALUE); choose.setDisable(product.getStock() <= 0);
+            choose.setOnAction(event -> { selected.put(editingCategory, product); closePicker(); recalculate(); });
+            VBox card = new VBox(10, new StackPane(Ui.productImage(product, 170, 105)), name, stock, price, choose);
+            card.getStyleClass().add("config-picker-card"); card.setPrefWidth(235); card.setMaxWidth(235); overlayProductsGrid.getChildren().add(card);
         }
+        if (matching.isEmpty()) { Label empty = new Label(query.isEmpty() ? "В этой категории пока нет доступных товаров.\nПопробуйте снять фильтр наличия." : "Ничего не найдено. Уточните название или очистите поиск."); empty.setWrapText(true); empty.getStyleClass().add("config-picker-empty"); overlayProductsGrid.getChildren().add(empty); }
+    }
 
-        // Автоматически скрывать сообщение через 5 секунд
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
-        pause.setOnFinished(event -> {
-            cartStatusBox.setVisible(false);
-            cartStatusBox.setManaged(false);
+    @FXML private void addBuildToCart() {
+        if (adding || selected.isEmpty() || assessment.hasConflict()) return;
+        String account = SessionManager.getUserId();
+        if (account == null || SessionManager.getAccessToken() == null) { showStatus("Войдите в аккаунт, чтобы добавить выбранные товары в корзину.", false); return; }
+        var lease = SessionManager.requireSession();
+        List<Product> requested = List.copyOf(selected.values()); long id = ++operation; adding = true; recalculate(); hideStatus();
+        addTask = worker.submit(() -> {
+            int added = 0;
+            try (var scope = com.example.authapp.network.SupabaseHttp.forSession(lease)) {
+                List<Product> freshCatalog = ProductRepository.loadProductsFromSupabase();
+                Map<Integer, Product> fresh = freshCatalog.stream().collect(Collectors.toMap(Product::getId, p -> p));
+                List<Product> checked = new ArrayList<>(); boolean changedPrice = false;
+                for (Product previous : requested) {
+                    Product current = fresh.get(previous.getId());
+                    if (current == null || current.getStock() <= 0) throw new IllegalStateException("Товар больше не доступен: " + previous.getName());
+                    changedPrice |= BigDecimal.valueOf(current.getPrice()).compareTo(BigDecimal.valueOf(previous.getPrice())) != 0; checked.add(current);
+                }
+                var snapshot = new LocalKnowledgeRepository().load(checked);
+                if (new CompatibilityService().assess(snapshot.components()).hasConflict()) throw new IllegalStateException("Обновлённые данные содержат конфликт. Проверьте сборку.");
+                if (changedPrice) {
+                    update(id, () -> { setProducts(freshCatalog); selected.clear(); checked.forEach(p -> ComponentCategory.fromDisplayName(p.getCategory()).ifPresent(c -> selected.put(c, p))); recalculate(); showStatus("Цены изменились. Проверьте новую сумму и нажмите добавление ещё раз.", false); });
+                    return;
+                }
+                CartService service = new CartService();
+                for (Product product : checked) {
+                    if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("Действие отменено. Проверьте корзину перед повтором.");
+                    SessionManager.assertCurrent(lease);
+                    service.addProductToCart(product, 1); added++;
+                }
+                update(id, () -> { showStatus("Выбранные товары добавлены в корзину.", true); if (host != null) host.refreshSessionUi(); });
+            } catch (Exception ex) {
+                int completed = added;
+                update(id, () -> showStatus((completed > 0 ? "Добавлено " + completed + " из " + requested.size() + ". Проверьте корзину перед повтором. " : "") + Objects.requireNonNullElse(ex.getMessage(), "Не удалось добавить товары."), false));
+            } finally { update(id, () -> { adding = false; recalculate(); }); }
         });
-        pause.play();
     }
+    private void update(long id, Runnable action) { Platform.runLater(() -> { if (!disposed && id == operation) action.run(); }); }
+    private void hideStatus() { cartStatusBox.setVisible(false); cartStatusBox.setManaged(false); }
+    private void showStatus(String text, boolean success) {
+        cartStatusText.setText(text); cartStatusBox.getStyleClass().removeAll("config-cart-success", "config-cart-error");
+        cartStatusBox.getStyleClass().add(success ? "config-cart-success" : "config-cart-error"); cartStatusBox.setVisible(true); cartStatusBox.setManaged(true);
+    }
+    private static String singular(ComponentCategory category) { return switch (category) {
+        case CPU -> "Процессор"; case MOTHERBOARD -> "Материнская плата"; case GPU -> "Видеокарта"; case RAM -> "Оперативная память";
+        case STORAGE -> "SSD-накопитель"; case PSU -> "Блок питания"; case CASE -> "Корпус"; case COOLER -> "Охлаждение"; }; }
+    private static String iconFor(ComponentCategory category) { return switch (category) {
+        case CPU -> "cpu"; case MOTHERBOARD -> "board"; case GPU -> "gpu"; case RAM -> "memory"; case STORAGE -> "drive";
+        case PSU -> "power"; case CASE -> "case"; case COOLER -> "cooler"; }; }
+    private static boolean relatesTo(String code, ComponentCategory category) { return switch (category) {
+        case CPU -> Set.of("socket", "cpu_support", "cooler_socket", "cooler_power", "power_budget").contains(code);
+        case MOTHERBOARD -> Set.of("socket", "cpu_support", "memory_type", "memory_capacity", "memory_slots", "board_case", "storage_interface", "board_connectors").contains(code);
+        case GPU -> Set.of("gpu_length", "gpu_min_psu", "gpu_connectors", "power_budget").contains(code);
+        case RAM -> code.startsWith("memory_"); case STORAGE -> code.equals("storage_interface");
+        case PSU -> Set.of("psu_case", "gpu_min_psu", "gpu_connectors", "board_connectors", "power_budget").contains(code);
+        case CASE -> Set.of("board_case", "gpu_length", "cooler_height", "psu_case").contains(code);
+        case COOLER -> code.startsWith("cooler_"); }; }
 }

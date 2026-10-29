@@ -1,254 +1,150 @@
 package config;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.example.authapp.models.Cart;
+import com.example.authapp.network.SupabaseHttp;
+import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.util.Objects;
 
-public class SessionManager {
-    private static String accessToken;
-    private static String userEmail;
-    private static String userId;
-    private static boolean isAdmin   = false;
-    private static boolean isManager = false;
-    private static boolean isBlocked = false;
+/** Atomic in-memory session. Network calls never hold the state lock used by logout. */
+public final class SessionManager {
+    private static final Object STATE_LOCK = new Object();
+    private static final Object REFRESH_LOCK = new Object();
+    private record State(long epoch, String accessToken, String refreshToken, String email, String userId,
+                         boolean admin, boolean manager, boolean blocked, boolean confirmation, Instant expiresAt) {
+        private static State signedOut(long epoch) { return new State(epoch,null,null,null,null,false,false,false,false,Instant.EPOCH); }
+    }
+    public record SessionLease(long epoch, String userId) {}
+    private static volatile State state = State.signedOut(0);
+    private SessionManager() {}
+    public static String getAccessToken() { return state.accessToken(); }
+    public static String getUserEmail() { return state.email(); }
+    public static String getUserId() { return state.userId(); }
+    public static boolean isAdmin() { return state.admin(); }
+    public static boolean isManager() { return state.manager(); }
+    public static boolean isBlocked() { return state.blocked(); }
+    public static boolean isRegistrationAwaitingConfirmation() { return state.confirmation(); }
 
-    // --- GETTERS ---
-    public static String  getAccessToken() { return accessToken; }
-    public static String  getUserEmail()   { return userEmail; }
-    public static String  getUserId()      { return userId; }
-    public static boolean isAdmin()        { return isAdmin; }
-    public static boolean isManager()      { return isManager; }
-    public static boolean isBlocked()      { return isBlocked; }
-
+    public static SessionLease captureSession() { State current=state; return new SessionLease(current.epoch(),current.userId()); }
+    public static SessionLease requireSession() {
+        synchronized(STATE_LOCK) {
+            if(state.userId()==null || state.accessToken()==null) throw new IllegalStateException("Войдите в аккаунт");
+            return new SessionLease(state.epoch(),state.userId());
+        }
+    }
+    public static SessionLease captureForToken(String token) {
+        synchronized(STATE_LOCK) {
+            if(state.userId()==null || !Objects.equals(state.accessToken(),token)) throw changed();
+            return new SessionLease(state.epoch(),state.userId());
+        }
+    }
+    public static void assertCurrent(SessionLease lease) { synchronized(STATE_LOCK) { check(lease); } }
+    public static String tokenFor(SessionLease lease) {
+        synchronized(STATE_LOCK) { check(lease); if(state.accessToken()==null)throw changed(); return state.accessToken(); }
+    }
+    /** Only short local mutations belong here, never network or other blocking work. */
+    public static void runIfCurrent(SessionLease lease,Runnable action) {
+        synchronized(STATE_LOCK) { check(lease); action.run(); }
+    }
+    private static void check(SessionLease lease) {
+        if(lease==null || state.epoch()!=lease.epoch() || !Objects.equals(state.userId(),lease.userId())) throw changed();
+    }
+    private static IllegalStateException changed() { return new IllegalStateException("Сессия изменилась. Повторите действие в текущем аккаунте."); }
     public static void clearSession() {
-        accessToken = null;
-        userEmail   = null;
-        userId      = null;
-        isAdmin     = false;
-        isManager   = false;
-        isBlocked   = false;
-        System.out.println("🚪 Сессия очищена");
+        synchronized(STATE_LOCK) { clearLocked(); }
     }
+    private static long clearLocked() {
+        state=State.signedOut(state.epoch()+1);
+        Cart.getInstance().clear();
+        return state.epoch();
+    }
+    private static long beginAuthentication() { synchronized(STATE_LOCK) { return clearLocked(); } }
+    private static void clearIfCurrent(long epoch) { synchronized(STATE_LOCK) { if(state.epoch()==epoch)clearLocked(); } }
 
-    // --- Supabase EMAIL+PASSWORD LOGIN ---
-    public static boolean login(String email, String password) {
+    public static boolean login(String email,String password) {
+        long epoch=beginAuthentication();
         try {
-            String url = Config.SUPABASE_URL + "/auth/v1/token?grant_type=password";
-            JSONObject payload = new JSONObject();
-            payload.put("email", email);
-            payload.put("password", password);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            JSONObject json = new JSONObject(response.body());
-
-            if (json.has("access_token")) {
-                accessToken = json.getString("access_token");
-                userEmail   = email;
-
-                if (json.has("user")) {
-                    userId = json.getJSONObject("user").optString("id", null);
-                } else {
-                    userId = json.optString("user_id", null);
-                }
-
-                System.out.println("✅ Пользователь авторизован: " + email);
-                System.out.println("📝 User ID: " + userId);
-
-                if (isUserBlocked(email)) {
-                    clearSession();
-                    System.err.println("❌ Пользователь заблокирован администратором!");
-                    return false;
-                }
-
-                checkAdminStatus(email);
-                checkManagerStatus(email);
-                return true;
+            JSONObject result=auth("/auth/v1/token?grant_type=password",new JSONObject().put("email",email).put("password",password));
+            if(!acceptSession(epoch,result,email,false))return false;
+            SessionLease lease=new SessionLease(epoch,result.getJSONObject("user").getString("id"));
+            loadProfile(lease);
+            synchronized(STATE_LOCK) { check(lease); if(state.blocked()){clearLocked();return false;} }
+            return true;
+        } catch(Exception ex) { clearIfCurrent(epoch); return false; }
+    }
+    public static boolean register(String email,String password) {
+        long epoch=beginAuthentication();
+        try {
+            JSONObject result=auth("/auth/v1/signup",new JSONObject().put("email",email).put("password",password));
+            if(acceptSession(epoch,result,email,false))return true;
+            synchronized(STATE_LOCK) {
+                if(state.epoch()!=epoch)return false;
+                boolean confirmation=result.has("id")||result.has("user");
+                state=new State(epoch,null,null,null,null,false,false,false,confirmation,Instant.EPOCH);
+                return confirmation;
             }
-
-            return false;
-
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка при входе: " + e.getMessage());
-            e.printStackTrace();
-            clearSession();
-            return false;
+        } catch(Exception ex) { clearIfCurrent(epoch);return false; }
+    }
+    public static void ensureValidSession() throws Exception { ensureValidSession(requireSession()); }
+    public static void ensureValidSession(SessionLease lease) throws Exception {
+        synchronized(STATE_LOCK) { check(lease); if(fresh(state))return; }
+        // Serializes one-use refresh tokens, while clearSession never needs this lock.
+        synchronized(REFRESH_LOCK) {
+            State before;
+            synchronized(STATE_LOCK) { check(lease);before=state;if(fresh(before))return; }
+            if(before.refreshToken()==null){clearIfCurrent(lease.epoch());throw changed();}
+            try {
+                JSONObject response=auth("/auth/v1/token?grant_type=refresh_token",new JSONObject().put("refresh_token",before.refreshToken()));
+                if(!response.has("user") || !lease.userId().equals(response.getJSONObject("user").getString("id")))throw changed();
+                if(!acceptSession(lease.epoch(),response,before.email(),true))throw changed();
+                loadProfile(lease);
+                synchronized(STATE_LOCK){check(lease);if(state.blocked())throw changed();}
+            } catch(Exception ex) {clearIfCurrent(lease.epoch());throw ex;}
         }
     }
-
-    // --- Supabase EMAIL+PASSWORD REGISTER ---
-    public static boolean register(String email, String password) {
-        try {
-            String url = Config.SUPABASE_URL + "/auth/v1/signup";
-            JSONObject payload = new JSONObject();
-            payload.put("email", email);
-            payload.put("password", password);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            JSONObject json = new JSONObject(response.body());
-
-            if (json.has("access_token")) {
-                accessToken = json.getString("access_token");
-                userEmail   = email;
-
-                if (json.has("user")) {
-                    userId = json.getJSONObject("user").optString("id", null);
-                } else {
-                    userId = json.optString("user_id", null);
-                }
-
-                isAdmin   = false;
-                isManager = false;
-                System.out.println("✅ Пользователь зарегистрирован: " + email);
-                return true;
-            }
-
-            return false;
-
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка при регистрации: " + e.getMessage());
-            e.printStackTrace();
-            clearSession();
-            return false;
+    private static boolean fresh(State current) { return current.accessToken()!=null && Instant.now().isBefore(current.expiresAt().minusSeconds(30)); }
+    private static JSONObject auth(String path,JSONObject payload) throws Exception {
+        HttpRequest request=HttpRequest.newBuilder(URI.create(Config.SUPABASE_URL+path)).header("apikey",Config.SUPABASE_ANON_KEY)
+                .header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(payload.toString())).build();
+        return new JSONObject(SupabaseHttp.jsonBody(SupabaseHttp.send(request)));
+    }
+    private static boolean acceptSession(long epoch,JSONObject response,String email,boolean preserveRoles) {
+        if(!response.has("access_token")||!response.has("user"))return false;
+        JSONObject user=response.getJSONObject("user");
+        String token=response.getString("access_token"),id=user.getString("id");
+        if(token.isBlank()||id.isBlank())return false;
+        synchronized(STATE_LOCK) {
+            if(state.epoch()!=epoch)return false;
+            if(preserveRoles&&!Objects.equals(state.userId(),id))return false;
+            state=new State(epoch,token,response.optString("refresh_token",null),user.optString("email",email),id,
+                    preserveRoles&&state.admin(),preserveRoles&&state.manager(),preserveRoles&&state.blocked(),false,
+                    Instant.now().plusSeconds(Math.max(0,response.optLong("expires_in",3600))));
+            return true;
         }
     }
-
-    // --- ПРОВЕРКА БЛОКИРОВКИ ---
-    private static boolean isUserBlocked(String email) {
-        try {
-            String encodedEmail = URLEncoder.encode(email, "UTF-8");
-            String url = Config.SUPABASE_URL + "/rest/v1/profiles?email=eq." + encodedEmail + "&select=is_blocked";
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .GET()
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200 && !response.body().equals("[]")) {
-                JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
-                if (jsonArray.size() > 0) {
-                    JsonObject user = jsonArray.get(0).getAsJsonObject();
-                    boolean blocked = user.get("is_blocked").getAsBoolean();
-                    if (blocked) {
-                        System.out.println("🔒 Пользователь заблокирован в системе");
-                        isBlocked = true;
-                    }
-                    return blocked;
-                }
-            }
-
-            return false;
-
-        } catch (Exception e) {
-            System.err.println("⚠️ Ошибка проверки блокировки: " + e.getMessage());
-            return false;
+    private static void loadProfile(SessionLease lease) throws Exception {
+        HttpRequest request=HttpRequest.newBuilder(URI.create(Config.SUPABASE_URL+"/rest/v1/profiles?id=eq."+SupabaseHttp.queryValue(lease.userId())+"&select=is_admin,is_manager,is_blocked,blocked"))
+                .header("apikey",Config.SUPABASE_ANON_KEY).GET().build();
+        JSONArray profiles=new JSONArray(SupabaseHttp.jsonBody(SupabaseHttp.sendWithCurrentToken(request,lease)));
+        boolean admin=false,manager=false,blocked=false;
+        if(!profiles.isEmpty()) {
+            JSONObject profile=profiles.getJSONObject(0);admin=profile.optBoolean("is_admin",false);manager=profile.optBoolean("is_manager",false);
+            blocked=profile.optBoolean("is_blocked",false)||profile.optBoolean("blocked",false);
+        } else {
+            String email;
+            synchronized(STATE_LOCK){check(lease);email=state.email();}
+            JSONObject profile=new JSONObject().put("id",lease.userId()).put("email",email).put("name","").put("surname","").put("phone","").put("city","").put("address","");
+            HttpRequest create=HttpRequest.newBuilder(URI.create(Config.SUPABASE_URL+"/rest/v1/profiles?on_conflict=id"))
+                    .header("apikey",Config.SUPABASE_ANON_KEY).header("Content-Type","application/json").header("Prefer","resolution=ignore-duplicates,return=minimal")
+                    .POST(HttpRequest.BodyPublishers.ofString(profile.toString())).build();
+            SupabaseHttp.sendWithCurrentToken(create,lease);
         }
-    }
-
-    // --- ПРОВЕРКА АДМИН СТАТУСА ---
-    private static void checkAdminStatus(String email) {
-        try {
-            String encodedEmail = URLEncoder.encode(email, "UTF-8");
-            String url = Config.SUPABASE_URL + "/rest/v1/profiles?email=eq." + encodedEmail + "&select=is_admin";
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .GET()
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                String body = response.body();
-                if (!body.equals("[]")) {
-                    JsonArray jsonArray = JsonParser.parseString(body).getAsJsonArray();
-                    if (jsonArray.size() > 0) {
-                        JsonObject user = jsonArray.get(0).getAsJsonObject();
-                        isAdmin = user.get("is_admin").getAsBoolean();
-                        if (isAdmin) System.out.println("👑 Пользователь имеет права администратора");
-                    }
-                } else {
-                    isAdmin = false;
-                }
-            } else {
-                isAdmin = false;
-            }
-
-        } catch (Exception e) {
-            System.err.println("⚠️ Ошибка проверки admin-статуса: " + e.getMessage());
-            isAdmin = false;
-        }
-    }
-
-    // --- ПРОВЕРКА МЕНЕДЖЕР СТАТУСА ---
-    private static void checkManagerStatus(String email) {
-        try {
-            String encodedEmail = URLEncoder.encode(email, "UTF-8");
-            String url = Config.SUPABASE_URL + "/rest/v1/profiles?email=eq." + encodedEmail + "&select=is_manager";
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .header("apikey", Config.SUPABASE_ANON_KEY)
-                    .GET()
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                String body = response.body();
-                if (!body.equals("[]")) {
-                    JsonArray jsonArray = JsonParser.parseString(body).getAsJsonArray();
-                    if (jsonArray.size() > 0) {
-                        JsonObject user = jsonArray.get(0).getAsJsonObject();
-                        if (user.has("is_manager") && !user.get("is_manager").isJsonNull()) {
-                            isManager = user.get("is_manager").getAsBoolean();
-                            if (isManager) System.out.println("🗂️ Пользователь — менеджер");
-                        }
-                    }
-                } else {
-                    isManager = false;
-                }
-            } else {
-                isManager = false;
-            }
-
-        } catch (Exception e) {
-            System.err.println("⚠️ Ошибка проверки manager-статуса: " + e.getMessage());
-            isManager = false;
+        synchronized(STATE_LOCK) {
+            check(lease);State s=state;
+            state=new State(s.epoch(),s.accessToken(),s.refreshToken(),s.email(),s.userId(),admin,manager,blocked,s.confirmation(),s.expiresAt());
         }
     }
 }

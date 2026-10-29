@@ -15,10 +15,14 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.7")
     implementation("org.json:json:20230618")
     implementation("com.google.code.gson:gson:2.10.1")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.testfx:openjfx-monocle:21.0.2")
 }
 
 application {
-    mainClass.set("com.example.authapp.Main")
+    mainClass.set("com.example.authapp.Launcher")
     applicationDefaultJvmArgs = listOf(
         "-Dfile.encoding=UTF-8",
         "-Dconsole.encoding=UTF-8"
@@ -54,14 +58,38 @@ tasks.jar {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
+tasks.named<JavaCompile>("compileTestJava") {
+    options.compilerArgs.addAll(listOf("--add-modules", "jdk.httpserver,java.desktop",
+        "--add-reads", "com.example.authapp=jdk.httpserver", "--add-reads", "com.example.authapp=java.desktop"))
+}
 tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    // Tests use fake APIs and never need local or production credentials.
+    systemProperty("techstore.supabase.key", "sb_publishable_test")
+    systemProperty("glass.platform", "Monocle")
+    systemProperty("monocle.platform", "Headless")
+    systemProperty("headless.geometry", "1920x1200")
+    systemProperty("prism.order", "sw")
     systemProperty("file.encoding", "UTF-8")
     jvmArgs("-Dconsole.encoding=UTF-8")
+    jvmArgs("--add-modules=jdk.httpserver,java.desktop")
+    systemProperty("javafx.cachedir", layout.buildDirectory.dir("javafx-cache").get().asFile.absolutePath)
 }
 tasks.withType<JavaExec>().configureEach {
     systemProperty("file.encoding", "UTF-8")
     jvmArgs("-Dconsole.encoding=UTF-8")
 }
+
+tasks.test { useJUnitPlatform { excludeTags("ui") } }
+val uiTest by tasks.registering(Test::class) {
+    description = "Loads every JavaFX screen against a local fake API and renders snapshots."
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("ui") }
+    shouldRunAfter(tasks.test)
+}
+tasks.check { dependsOn(uiTest) }
 
 // Launch4j exe build config
 launch4j {
@@ -73,18 +101,4 @@ launch4j {
     jreMinVersion = "21"
 }
 
-// Правильный порядок задач (решение ваших ошибок)
-tasks.named("distZip") {
-    dependsOn(tasks.named("createExe"))
-}
-tasks.named("distTar") {
-    dependsOn(tasks.named("createExe"))
-}
-tasks.named("startScripts") {
-    dependsOn(tasks.named("createExe"))
-}
-
-// Можно также добавить:
-tasks.build {
-    dependsOn(tasks.launch4j)
-}
+// Windows packaging is explicit: ./gradlew createExe. Normal builds also run on Linux.

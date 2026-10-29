@@ -1,790 +1,248 @@
 package controllers;
 
 import com.example.authapp.models.Cart;
-import config.SessionManager;
-import com.example.authapp.services.CartService;
 import com.example.authapp.models.Product;
+import com.example.authapp.network.SupabaseHttp;
 import com.example.authapp.repositories.ProductRepository;
+import com.example.authapp.services.CartService;
+import com.example.authapp.services.LocalKnowledgeRepository;
+import com.example.authapp.ui.CatalogQuery;
+import com.example.authapp.ui.Ui;
+import config.SessionManager;
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.Image;
+import javafx.util.Duration;
 
-import java.net.URL;
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.*;
 
-public class MainController implements Initializable {
-
-    @FXML private VBox categoryItemsPane;
-    @FXML private TilePane productPane;
-    @FXML private TextField searchField;
-    @FXML private Button profileBtn, cartBtn, configuratorBtn;
-    @FXML private HBox headerPane;
-    @FXML private VBox categoryPane;
-    @FXML private ScrollPane contentScroll;
+/** Persistent application shell. Navigation never removes the sidebar or header. */
+public class MainController {
+    @FXML private StackPane shellRoot;
     @FXML private BorderPane mainPane;
+    @FXML private VBox categoryPane, staffNav, sidebarHelp;
+    @FXML private HBox headerPane, searchBox;
+    @FXML private Button catalogBtn,configuratorBtn,chatBtn,cartBtn,profileBtn,accountBtn,adminBtn,managerBtn;
+    @FXML private Label sectionName,toastLabel;
+    @FXML private TextField searchField;
+    private final ExecutorService io=Executors.newFixedThreadPool(3,r->{Thread t=new Thread(r,"store-io");t.setDaemon(true);return t;});
+    private final Map<String,View> cache=new HashMap<>();
+    private final Set<String> selectedManufacturers=new HashSet<>();
+    private final PauseTransition notificationTimer=new PauseTransition(Duration.seconds(6));
+    private final PauseTransition searchTimer=new PauseTransition(Duration.millis(140));
+    private List<Product> allProducts=List.of();
+    private List<Product> visibleProducts=List.of();
+    private String category="Все",active="catalog",sessionOwner;
+    private int visibleLimit=12,loadVersion;
+    private boolean disposed,catalogLoaded,refreshing;
+    private String catalogError;
+    private ScrollPane catalogView;
+    private TilePane productPane;
+    private VBox brandsBox,stateBox,filterPane;
+    private FlowPane categoryTabs;
+    private Label resultCount;
+    private Button showMore;
+    private TextField minPrice,maxPrice;
+    private CheckBox onlyInStock;
+    private ComboBox<CatalogQuery.Sort> sort;
+    private ChatController chatController;
+    private ConfiguratorController configuratorController;
+    private record View(Parent node,Object controller){}
 
-    private Node lastCenter;
-    private List<Product> allProducts = new ArrayList<>();
-    private List<Product> popularProducts = new ArrayList<>();
-    private CartController cartController;
-    private String selectedCategory = "Все";
-
-    private List<String> categories = Arrays.asList(
-            "Все", "Популярное", "Процессоры", "Видеокарты", "Материнские платы",
-            "Оперативная память", "Жёсткие диски", "SSD-накопители", "Блоки питания",
-            "Корпуса", "Охлаждение", "Мониторы", "Клавиатуры", "Мыши", "Аксессуары"
-    );
-
-    // ─── Стили карточки ──────────────────────────────────────────────────────
-    private static final String CARD_STYLE =
-            "-fx-background-color: #ffffff;" +
-                    "-fx-border-color: #e5e7eb;" +
-                    "-fx-border-width: 1;" +
-                    "-fx-border-radius: 14;" +
-                    "-fx-background-radius: 14;" +
-                    "-fx-effect: dropshadow(gaussian, rgba(15,23,42,0.10), 8, 0, 0, 2);";
-
-    private static final String CARD_HOVER_STYLE =
-            "-fx-background-color: #ffffff;" +
-                    "-fx-border-color: #bfdbfe;" +
-                    "-fx-border-width: 1;" +
-                    "-fx-border-radius: 14;" +
-                    "-fx-background-radius: 14;" +
-                    "-fx-effect: dropshadow(gaussian, rgba(37,99,235,0.25), 14, 0, 0, 5);";
-
-    private static final String BTN_PRIMARY =
-            "-fx-background-color: #3b82f6;" +
-                    "-fx-text-fill: #ffffff;" +
-                    "-fx-font-size: 11px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-background-radius: 8;" +
-                    "-fx-border-width: 0;" +
-                    "-fx-padding: 7 14;" +
-                    "-fx-cursor: hand;";
-
-    private static final String BTN_PRIMARY_HOVER =
-            "-fx-background-color: #2563eb;" +
-                    "-fx-text-fill: #ffffff;" +
-                    "-fx-font-size: 11px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-background-radius: 8;" +
-                    "-fx-border-width: 0;" +
-                    "-fx-padding: 7 14;" +
-                    "-fx-cursor: hand;";
-
-    private static final String BTN_CART =
-            "-fx-background-color: #1d4ed8;" +
-                    "-fx-text-fill: #ffffff;" +
-                    "-fx-font-size: 12px;" +
-                    "-fx-background-radius: 8;" +
-                    "-fx-border-width: 0;" +
-                    "-fx-padding: 7 10;" +
-                    "-fx-cursor: hand;";
-
-    private static final String BTN_CART_HOVER =
-            "-fx-background-color: #1e40af;" +
-                    "-fx-text-fill: #ffffff;" +
-                    "-fx-font-size: 12px;" +
-                    "-fx-background-radius: 8;" +
-                    "-fx-border-width: 0;" +
-                    "-fx-padding: 7 10;" +
-                    "-fx-cursor: hand;";
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        loadCategories();
-        setupSearch();
-        setupProfileButton();
-        setupCartButton();
-        setupConfiguratorButton();
-
-        Thread loadThread = new Thread(() -> {
-            try {
-                loadProductsFromSupabase();
-            } catch (Exception e) {
-                System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-        loadThread.setDaemon(true);
-        loadThread.start();
-
-        lastCenter = contentScroll;
-
-        contentScroll.widthProperty().addListener((obs, oldVal, newVal) ->
-                updateCardSize(newVal.doubleValue()));
+    @FXML private void initialize(){
+        sessionOwner=SessionManager.getUserId();
+        shellRoot.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED,e->{if(e.getCode()==javafx.scene.input.KeyCode.TAB)shellRoot.pseudoClassStateChanged(PseudoClass.getPseudoClass("keyboard-navigation"),true);});
+        shellRoot.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED,e->shellRoot.pseudoClassStateChanged(PseudoClass.getPseudoClass("keyboard-navigation"),false));
+        catalogBtn.setGraphic(Ui.icon("grid"));configuratorBtn.setGraphic(Ui.icon("layers"));chatBtn.setGraphic(Ui.icon("chat"));
+        cartBtn.setGraphic(Ui.icon("bag"));profileBtn.setGraphic(Ui.icon("user"));accountBtn.setGraphic(Ui.icon("user"));
+        managerBtn.setGraphic(Ui.icon("board"));adminBtn.setGraphic(Ui.icon("layers"));searchBox.getChildren().add(0,Ui.icon("search"));
+        catalogBtn.setOnAction(e->showMainContent());configuratorBtn.setOnAction(e->openConfigurator());chatBtn.setOnAction(e->openChat());
+        cartBtn.setOnAction(e->openCart());profileBtn.setOnAction(e->openCabinetInMain());accountBtn.setOnAction(e->openCabinetInMain());
+        adminBtn.setOnAction(e->openAdminPanel());managerBtn.setOnAction(e->openManagerPanel());
+        notificationTimer.setOnFinished(e->{toastLabel.setVisible(false);toastLabel.setManaged(false);});
+        searchTimer.setOnFinished(e->{if(!active.equals("catalog"))showMainContent();applyFilters();});
+        searchField.textProperty().addListener((o,a,b)->searchTimer.playFromStart());
+        searchField.setOnAction(e->{searchTimer.stop();showMainContent();applyFilters();});
+        shellRoot.widthProperty().addListener((o,a,b)->resize(b.doubleValue()));
+        catalogView=createCatalog();showMainContent();reloadProducts();
     }
-
-    // -------- Адаптивная сетка --------
-
-    private void updateCardSize(double scrollWidth) {
-        double padding = 48;
-        double hgap = 16;
-        double available = scrollWidth - padding - 20;
-
-        int columns;
-        if (available < 400) {
-            columns = 1;
-        } else if (available < 620) {
-            columns = 2;
-        } else if (available < 900) {
-            columns = 3;
-        } else {
-            columns = 4;
+    private void resize(double width){
+        boolean compact=width>0&&width<1150;
+        shellRoot.pseudoClassStateChanged(PseudoClass.getPseudoClass("compact"),compact);
+        categoryPane.setMinWidth(compact?180:220);categoryPane.setPrefWidth(compact?180:220);categoryPane.setMaxWidth(compact?180:220);
+        sidebarHelp.setVisible(!compact);sidebarHelp.setManaged(!compact);
+    }
+    private ScrollPane createCatalog(){
+        VBox page=new VBox(22);page.getStyleClass().add("catalog-page");page.setMinWidth(0);
+        Button assistant=new Button("Подобрать с помощником",Ui.icon("spark"));assistant.getStyleClass().addAll("btn","btn-primary");assistant.setOnAction(e->openChat());
+        page.getChildren().add(pageHeading("ВСЁ ДЛЯ ВАШЕЙ СБОРКИ","Каталог комплектующих","Подберите детали, которые работают вместе.",assistant));
+        categoryTabs=new FlowPane(7,7);categoryTabs.getStyleClass().add("category-tabs");page.getChildren().add(categoryTabs);
+        filterPane=new VBox(17);filterPane.getStyleClass().add("catalog-filters");filterPane.setPrefWidth(164);filterPane.setMinWidth(140);filterPane.setMaxWidth(164);
+        Label filtersTitle=Ui.label("Фильтры","section-title");filterPane.getChildren().add(filtersTitle);
+        minPrice=new TextField();minPrice.setPromptText("От");minPrice.setId("priceMin");minPrice.setAccessibleText("Минимальная цена, рублей");
+        maxPrice=new TextField();maxPrice.setPromptText("До");maxPrice.setId("priceMax");maxPrice.setAccessibleText("Максимальная цена, рублей");
+        HBox priceInputs=new HBox(7,minPrice,maxPrice);minPrice.setMinWidth(0);maxPrice.setMinWidth(0);HBox.setHgrow(minPrice,Priority.ALWAYS);HBox.setHgrow(maxPrice,Priority.ALWAYS);
+        minPrice.textProperty().addListener((o,a,b)->applyFilters());maxPrice.textProperty().addListener((o,a,b)->applyFilters());
+        brandsBox=new VBox(10);ScrollPane brandScroll=new ScrollPane(brandsBox);brandScroll.setFitToWidth(true);brandScroll.setMaxHeight(240);brandScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        onlyInStock=new CheckBox("Только в наличии");onlyInStock.setId("onlyInStock");onlyInStock.setOnAction(e->applyFilters());
+        Button reset=new Button("Сбросить фильтры");reset.getStyleClass().addAll("btn-ghost","btn-small");reset.setId("resetFilters");reset.setOnAction(e->resetFilters());
+        filterPane.getChildren().addAll(Ui.label("Цена, ₽","filter-heading"),priceInputs,new Separator(),Ui.label("Производитель","filter-heading"),brandScroll,new Separator(),onlyInStock,reset);
+        resultCount=Ui.label("Загружаем каталог…","text-muted");resultCount.setId("resultCount");
+        sort=new ComboBox<>();sort.getItems().setAll(CatalogQuery.Sort.values());sort.setValue(CatalogQuery.Sort.DEFAULT);sort.setId("catalogSort");sort.getStyleClass().add("catalog-sort");sort.setOnAction(e->applyFilters());
+        Region spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);HBox results=new HBox(12,resultCount,spacer,sort);results.setAlignment(Pos.CENTER_LEFT);
+        productPane=new TilePane(16,16);productPane.setId("productPane");productPane.setPrefColumns(3);productPane.setMinWidth(0);productPane.getStyleClass().add("product-grid");
+        productPane.widthProperty().addListener((o,a,b)->resizeGrid(b.doubleValue()));
+        stateBox=new VBox(10);stateBox.setId("catalogState");stateBox.getStyleClass().add("catalog-state");stateBox.setAlignment(Pos.CENTER);
+        showMore=new Button("Показать ещё");showMore.setId("showMore");showMore.setMaxWidth(Double.MAX_VALUE);showMore.setOnAction(e->{visibleLimit+=12;renderProducts();});
+        VBox productsColumn=new VBox(16,results,stateBox,productPane,showMore);productsColumn.setMinWidth(0);HBox.setHgrow(productsColumn,Priority.ALWAYS);
+        HBox body=new HBox(24,filterPane,productsColumn);body.setAlignment(Pos.TOP_LEFT);page.getChildren().add(body);
+        ScrollPane scroll=new ScrollPane(page);scroll.setId("contentScroll");scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);scroll.setMinWidth(0);return scroll;
+    }
+    private HBox pageHeading(String eyebrow,String title,String subtitle,Node action){
+        VBox text=new VBox(7,Ui.label(eyebrow,"eyebrow"),Ui.label(title,"page-title"),Ui.label(subtitle,"page-subtitle"));
+        text.getChildren().stream().filter(Label.class::isInstance).map(Label.class::cast).forEach(l->l.setWrapText(true));text.setMinWidth(0);HBox.setHgrow(text,Priority.ALWAYS);
+        HBox heading=new HBox(18,text);heading.setAlignment(Pos.CENTER_LEFT);if(action!=null)heading.getChildren().add(action);heading.getStyleClass().add("page-heading");return heading;
+    }
+    private void updateCategories(){
+        categoryTabs.getChildren().clear();LinkedHashSet<String> categories=new LinkedHashSet<>();categories.add("Все");
+        for(String standard:List.of("Процессоры","Видеокарты","Материнские платы","Оперативная память","SSD-накопители","Блоки питания","Корпуса","Охлаждение"))
+            if(allProducts.stream().anyMatch(p->standard.equalsIgnoreCase(Objects.toString(p.getCategory(),""))))categories.add(standard);
+        allProducts.stream().map(Product::getCategory).filter(Objects::nonNull).filter(s->!s.isBlank()).sorted(String.CASE_INSENSITIVE_ORDER).forEach(value->{if(categories.stream().noneMatch(c->c.equalsIgnoreCase(value)))categories.add(value);});
+        if(!categories.contains(category))category="Все";
+        for(String value:categories){Button button=new Button(value.equals("Все")?"Все комплектующие":value);button.getStyleClass().add("category-tab");button.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"),value.equals(category));button.setOnAction(e->{category=value;visibleLimit=12;updateCategories();applyFilters();});categoryTabs.getChildren().add(button);}
+        selectedManufacturers.retainAll(allProducts.stream().map(Product::getManufacturer).filter(Objects::nonNull).toList());
+        brandsBox.getChildren().clear();
+        allProducts.stream().map(Product::getManufacturer).filter(Objects::nonNull).filter(s->!s.isBlank()).distinct().sorted(String.CASE_INSENSITIVE_ORDER).forEach(value->{CheckBox check=new CheckBox(value);check.setSelected(selectedManufacturers.contains(value));check.setOnAction(e->{if(check.isSelected())selectedManufacturers.add(value);else selectedManufacturers.remove(value);applyFilters();});brandsBox.getChildren().add(check);});
+        if(brandsBox.getChildren().isEmpty())brandsBox.getChildren().add(Ui.label("Не указаны","text-muted"));
+    }
+    private BigDecimal price(TextField field){
+        String value=field.getText().replaceAll("[\\s\\u00a0\\u202f]","").replace(',','.');if(value.isBlank())return null;
+        try{BigDecimal result=new BigDecimal(value);if(result.signum()<0)throw new NumberFormatException();field.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"),false);return result;}
+        catch(NumberFormatException e){field.pseudoClassStateChanged(PseudoClass.getPseudoClass("invalid"),true);throw new IllegalArgumentException("Цена должна быть положительным числом");}
+    }
+    private void applyFilters(){
+        if(productPane==null)return;
+        try{CatalogQuery query=new CatalogQuery(searchField.getText(),category,selectedManufacturers,price(minPrice),price(maxPrice),onlyInStock.isSelected(),sort.getValue());visibleProducts=query.apply(allProducts);renderProducts();}
+        catch(IllegalArgumentException e){productPane.getChildren().clear();resultCount.setText("Проверьте фильтры");showState("Проверьте диапазон цены",e.getMessage(),null);showMore.setManaged(false);showMore.setVisible(false);}
+    }
+    private void resetFilters(){category="Все";selectedManufacturers.clear();minPrice.clear();maxPrice.clear();onlyInStock.setSelected(false);searchField.clear();sort.setValue(CatalogQuery.Sort.DEFAULT);visibleLimit=12;updateCategories();applyFilters();}
+    private void renderProducts(){
+        productPane.getChildren().clear();resultCount.setText(visibleProducts.size()+" товаров"+(refreshing?" · обновляем…":""));
+        if(!catalogLoaded&&refreshing)showState("Загружаем каталог","Помощник и справочник уже доступны.",null);
+        else if(catalogError!=null && allProducts.isEmpty()){Button retry=new Button("Повторить загрузку");retry.getStyleClass().add("btn-primary");retry.setOnAction(e->reloadProducts());showState("Каталог пока недоступен",catalogError,retry);}
+        else if(visibleProducts.isEmpty())showState(allProducts.isEmpty()?"Каталог пока пуст":"По вашему запросу ничего не найдено",allProducts.isEmpty()?"Товары появятся после наполнения каталога.":"Попробуйте другую категорию или измените фильтры.",null);
+        else{stateBox.setVisible(false);stateBox.setManaged(false);visibleProducts.stream().limit(visibleLimit).map(this::productCard).forEach(productPane.getChildren()::add);}
+        showMore.setManaged(visibleProducts.size()>visibleLimit);showMore.setVisible(visibleProducts.size()>visibleLimit);showMore.setText("Показать ещё "+Math.min(12,Math.max(0,visibleProducts.size()-visibleLimit)));
+        resizeGrid(productPane.getWidth());
+    }
+    private void showState(String title,String detail,Node action){stateBox.getChildren().setAll(Ui.icon(catalogError!=null?"warning":"search"),Ui.label(title,"section-title"));Label label=Ui.label(detail,"text-muted");label.setWrapText(true);label.setMaxWidth(430);stateBox.getChildren().add(label);if(action!=null)stateBox.getChildren().add(action);stateBox.setVisible(true);stateBox.setManaged(true);}
+    private void resizeGrid(double width){if(width<=0)return;double minimum=width<600?215:265;int columns=Math.max(1,Math.min(4,(int)((width+16)/(minimum+16))));double tile=Math.max(160,Math.floor((width-16*(columns-1)-3)/columns));productPane.setPrefColumns(columns);productPane.setPrefTileWidth(tile);for(Node node:productPane.getChildren())if(node instanceof Region region){region.setPrefWidth(tile);region.setMaxWidth(tile);}}
+    private VBox productCard(Product product){
+        VBox card=new VBox(8);card.getStyleClass().add("product-card");card.setId("product-"+product.getId());card.setMinWidth(0);card.setPrefHeight(330);
+        Button image=new Button();image.setGraphic(Ui.productImage(product,260,150));image.getStyleClass().add("product-art-button");image.setMaxWidth(Double.MAX_VALUE);image.setOnAction(e->openProduct(product));
+        Label type=Ui.label(Objects.toString(product.getCategory(),"Комплектующие"),"product-category");
+        Button name=new Button(Objects.toString(product.getName(),"Без названия"));name.setWrapText(true);name.setMaxWidth(Double.MAX_VALUE);name.setMinHeight(44);name.setAlignment(Pos.TOP_LEFT);name.getStyleClass().add("product-name");name.setOnAction(e->openProduct(product));
+        Label manufacturer=Ui.label(Objects.toString(product.getManufacturer(),""),"product-maker");Label stock=Ui.label(product.getStock()>0?"В наличии":"Нет в наличии","product-stock");stock.pseudoClassStateChanged(PseudoClass.getPseudoClass("unavailable"),product.getStock()<=0);
+        Region gap=new Region();VBox.setVgrow(gap,Priority.ALWAYS);Label price=Ui.label(Ui.money(product.getPrice()),"product-price");Region space=new Region();HBox.setHgrow(space,Priority.ALWAYS);
+        Button add=new Button("",Ui.icon("bag"));add.setAccessibleText("Добавить "+product.getName()+" в корзину");add.getStyleClass().addAll("btn-primary","product-add");add.setDisable(product.getStock()<=0);add.setOnAction(e->addProductToCart(product,1));
+        HBox bottom=new HBox(8,price,space,add);bottom.setAlignment(Pos.CENTER_LEFT);VBox copy=new VBox(7,type,name,manufacturer,stock,gap,bottom);copy.getStyleClass().add("product-copy");VBox.setVgrow(copy,Priority.ALWAYS);card.getChildren().addAll(image,copy);return card;
+    }
+    public void reloadProducts(){
+        if(!Platform.isFxApplicationThread()){Platform.runLater(this::reloadProducts);return;}if(disposed)return;
+        int version=++loadVersion;refreshing=true;applyFilters();
+        io.submit(()->{try{List<Product> loaded=List.copyOf(ProductRepository.loadProductsFromSupabase());Platform.runLater(()->{if(disposed||version!=loadVersion)return;allProducts=loaded;refreshing=false;catalogLoaded=true;catalogError=null;updateCategories();applyFilters();if(chatController!=null)chatController.updateCatalog(loaded);if(configuratorController!=null)configuratorController.setProducts(loaded);});}
+        catch(Exception e){Platform.runLater(()->{if(disposed||version!=loadVersion)return;refreshing=false;catalogLoaded=true;catalogError="Не удалось получить товары. Проверьте подключение и повторите попытку.";applyFilters();if(!allProducts.isEmpty())notifyUser(catalogError);});}});
+    }
+    private View loadView(String name) throws java.io.IOException{
+        View existing=cache.get(name);if(existing!=null)return existing;
+        FXMLLoader loader=new FXMLLoader(getClass().getResource("/views/"+name+".fxml"));Parent node=loader.load();Ui.theme(node);View view=new View(node,loader.getController());cache.put(name,view);return view;
+    }
+    private void switchView(Parent node,String title,String key){
+        cache.forEach((name,view)->setActive(view.controller(),name.equals(key)));
+        active=key;mainPane.setCenter(node);sectionName.setText(title);
+        Map<Button,String> nav=new LinkedHashMap<>();nav.put(catalogBtn,"catalog");nav.put(configuratorBtn,"configurator");nav.put(chatBtn,"chat");nav.put(cartBtn,"cart");nav.put(profileBtn,"cabinet");nav.put(adminBtn,"admin");nav.put(managerBtn,"manager");
+        nav.forEach((button,target)->button.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"),target.equals(key)));refreshSessionUi();
+    }
+    public void showMainContent(){if(!Platform.isFxApplicationThread()){Platform.runLater(this::showMainContent);return;}if(catalogView!=null){switchView(catalogView,"Каталог","catalog");applyFilters();}}
+    public void openChat(){refreshSessionUi();try{View view=loadView("chat");if(chatController==null){chatController=(ChatController)view.controller();chatController.configure(this,allProducts);}switchView(view.node(),"Помощник","chat");}catch(Exception e){notifyUser("Не удалось открыть помощника. Попробуйте снова.");}}
+    public void openConfigurator(){refreshSessionUi();try{View view=loadView("configurator");configuratorController=(ConfiguratorController)view.controller();configuratorController.setMainController(this);configuratorController.setProducts(allProducts);view.node().setUserData(configuratorController);switchView(view.node(),"Конфигуратор","configurator");}catch(Exception e){notifyUser("Не удалось открыть конфигуратор.");}}
+    public void openSuggestedBuild(List<Product> products){openSuggestedBuild(products,null);}
+    public void openSuggestedBuild(List<Product> products,BigDecimal budget){openConfigurator();if(configuratorController!=null){configuratorController.selectSuggestedBuild(products);if(budget!=null)configuratorController.setBudget(budget);}}
+    public void openCart(){refreshSessionUi();if(!authorized()){openAuth();notifyUser("Войдите в аккаунт, чтобы открыть корзину.");return;}try{View view=loadView("cart");((CartController)view.controller()).setMainController(this);switchView(view.node(),"Корзина","cart");}catch(Exception e){notifyUser("Не удалось открыть корзину.");}}
+    private void openAuth(){refreshSessionUi();try{AuthController.setMainController(this);View view=loadView("auth");switchView(view.node(),"Вход в аккаунт","auth");}catch(Exception e){notifyUser("Не удалось открыть форму входа.");}}
+    public void openCabinetInMain(){refreshSessionUi();if(!authorized()){openAuth();return;}try{CabinetController.setHostMainController(this);View view=loadView("cabinet");switchView(view.node(),"Личный кабинет","cabinet");}catch(Exception e){notifyUser("Не удалось открыть личный кабинет.");}}
+    public void openAdminPanel(){refreshSessionUi();if(!SessionManager.isAdmin()){notifyUser("Для этого раздела нужны права администратора.");return;}try{View view=loadView("admin");((AdminController)view.controller()).setMainController(this);((AdminController)view.controller()).setCabinetController(null);switchView(view.node(),"Администрирование","admin");}catch(Exception e){notifyUser("Не удалось открыть управление.");}}
+    public void openManagerPanel(){refreshSessionUi();if(!SessionManager.isManager()&&!SessionManager.isAdmin()){notifyUser("Для этого раздела нужны права менеджера.");return;}try{View view=loadView("manager");((ManagerController)view.controller()).setMainController(this);switchView(view.node(),"Управление товарами","manager");}catch(Exception e){notifyUser("Не удалось открыть управление товарами.");}}
+    public void hideCategoriesAndSearch(){ /* Persistent shell intentionally remains visible. */ }
+    public void showCategoriesAndSearch(){ /* Compatibility with existing child controllers. */ }
+    private boolean authorized(){return SessionManager.getAccessToken()!=null&&SessionManager.getUserId()!=null;}
+    public void refreshSessionUi(){
+        if(!Platform.isFxApplicationThread()){Platform.runLater(this::refreshSessionUi);return;}
+        String current=SessionManager.getUserId();
+        if(!Objects.equals(current,sessionOwner)){
+            clearPrivateViews();Cart.getInstance().clear();sessionOwner=current;
+            if(!active.equals("catalog")&&!active.equals("configurator")){active="catalog";mainPane.setCenter(catalogView);sectionName.setText("Каталог");for(Button b:List.of(catalogBtn,configuratorBtn,chatBtn,cartBtn,profileBtn,adminBtn,managerBtn))b.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"),b==catalogBtn);}
         }
-
-        double cardWidth = (available - hgap * (columns - 1)) / columns;
-        cardWidth = Math.max(180, cardWidth);
-
-        productPane.setPrefColumns(columns);
-        productPane.setPrefTileWidth(cardWidth);
+        String email=SessionManager.getUserEmail();accountBtn.setText(email==null?"Гость":email.split("@")[0]);
+        boolean admin=SessionManager.isAdmin(),manager=SessionManager.isManager();staffNav.setVisible(admin||manager);staffNav.setManaged(admin||manager);adminBtn.setVisible(admin);adminBtn.setManaged(admin);managerBtn.setVisible(admin||manager);managerBtn.setManaged(admin||manager);
+        cartBtn.setText("Корзина"+(Cart.getInstance().getTotalQuantity()>0?" · "+Cart.getInstance().getTotalQuantity():""));
     }
-
-    // -------- Категории --------
-
-    private void loadCategories() {
-        categoryItemsPane.getChildren().clear();
-        categoryItemsPane.setAlignment(Pos.CENTER_LEFT);
-        for (String cat : categories) {
-            Button btn = new Button(cat);
-            btn.setMaxWidth(Double.MAX_VALUE);
-            btn.setMinHeight(34);
-            btn.setStyle(getCategoryButtonStyle(cat.equals(selectedCategory)));
-            btn.setOnAction(e -> {
-                selectedCategory = cat;
-                loadCategories();
-                filterByCategory(selectedCategory);
-            });
-            categoryItemsPane.getChildren().add(btn);
-        }
+    private void setActive(Object controller,boolean value){
+        if(controller instanceof ChatController c)c.setActive(value);
+        else if(controller instanceof ConfiguratorController c)c.setActive(value);
+        else if(controller instanceof CartController c)c.setActive(value);
+        else if(controller instanceof CabinetController c)c.setActive(value);
+        else if(controller instanceof AuthController c)c.setActive(value);
+        else if(controller instanceof AdminController c)c.setActive(value);
+        else if(controller instanceof ManagerController c)c.setActive(value);
     }
-
-    private String getCategoryButtonStyle(boolean selected) {
-        if (selected) {
-            return "-fx-background-color: #3b82f6;" +
-                    "-fx-text-fill: #fff;" +
-                    "-fx-font-size: 13px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-background-radius: 9;" +
-                    "-fx-border-radius: 9;" +
-                    "-fx-border-width: 2;" +
-                    "-fx-border-color: #2563eb;" +
-                    "-fx-padding: 6 20;" +
-                    "-fx-cursor: hand;" +
-                    "-fx-alignment: center;" +  // <-- Добавлено центрирование текста
-                    "-fx-text-alignment: center;" +
-                    "-fx-effect: dropshadow(gaussian, #2563eb22, 2,0,0,2);";
-        } else {
-            return "-fx-background-color: transparent;" +
-                    "-fx-text-fill: #1f2937;" +
-                    "-fx-font-size: 13px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-background-radius: 9;" +
-                    "-fx-padding: 6 20;" +
-                    "-fx-cursor: hand;" +
-                    "-fx-alignment: center;" +  // <-- Добавлено центрирование текста
-                    "-fx-text-alignment: center;";
-        }
+    private void disposeView(Object controller){
+        if(controller instanceof ChatController c)c.dispose();
+        else if(controller instanceof ConfiguratorController c)c.dispose();
+        else if(controller instanceof CartController c)c.dispose();
+        else if(controller instanceof CabinetController c)c.dispose();
+        else if(controller instanceof AuthController c)c.dispose();
+        else if(controller instanceof AdminController c)c.dispose();
+        else if(controller instanceof ManagerController c)c.dispose();
     }
-
-    // -------- Загрузка товаров --------
-
-    private void loadProductsFromSupabase() {
-        try {
-            allProducts = ProductRepository.loadProductsFromSupabase();
-
-            if (allProducts.isEmpty()) {
-                addTestProducts();
-            }
-
-            popularProducts = allProducts.stream()
-                    .filter(p -> p.getCategory() != null &&
-                            (p.getCategory().equalsIgnoreCase("Видеокарты") ||
-                                    p.getCategory().equalsIgnoreCase("Процессоры")))
-                    .toList();
-
-            javafx.application.Platform.runLater(() -> showProducts(allProducts));
-
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка загрузки товаров: " + e.getMessage());
-            e.printStackTrace();
-            javafx.application.Platform.runLater(() -> {
-                showProducts(Collections.emptyList());
-                showErrorMessage("Ошибка загрузки товаров", e.getMessage());
-            });
-        }
+    private void clearPrivateViews(){
+        for(String name:List.of("chat","cart","cabinet","admin","manager","auth")){View view=cache.remove(name);if(view!=null)disposeView(view.controller());}
+        chatController=null;
     }
-
-    private void addTestProducts() {
-        allProducts.add(new Product(1, "RTX 4090", "Мощная видеокарта. gpu_power:450", 180000, 5, "", "Видеокарты", "NVIDIA"));
-        allProducts.add(new Product(2, "Intel i9", "Процессор. socket:LGA1700 tdp:125", 95000, 10, "", "Процессоры", "Intel"));
-        allProducts.add(new Product(3, "DDR5 32GB", "Оперативная память. memory:DDR5", 15000, 20, "", "Оперативная память", "Kingston"));
+    public void onLogout(){SessionManager.clearSession();clearPrivateViews();Cart.getInstance().clear();sessionOwner=null;showMainContent();notifyUser("Вы вышли из аккаунта.");}
+    public void notifyUser(String text){if(!Platform.isFxApplicationThread()){Platform.runLater(()->notifyUser(text));return;}toastLabel.setText(text);toastLabel.setVisible(true);toastLabel.setManaged(true);notificationTimer.playFromStart();refreshSessionUi();}
+    public void addProductToCart(Product product,int quantity){
+        if(!authorized()){openAuth();notifyUser("Войдите в аккаунт, затем добавьте выбранный товар.");return;}
+        var lease=SessionManager.requireSession();notifyUser("Проверяем цену и наличие…");
+        io.submit(()->{try(var scope=SupabaseHttp.forSession(lease)){Product fresh=ProductRepository.loadProductsFromSupabase().stream().filter(p->p.getId()==product.getId()).findFirst().orElseThrow(()->new IllegalStateException("Товар больше не доступен"));
+            SessionManager.assertCurrent(lease);
+            if(fresh.getStock()<quantity)throw new IllegalStateException("Недостаточно товара в наличии");
+            if(BigDecimal.valueOf(fresh.getPrice()).compareTo(BigDecimal.valueOf(product.getPrice()))!=0){Platform.runLater(()->{if(disposed||!lease.equals(SessionManager.captureSession()))return;openProduct(fresh);notifyUser("Цена изменилась. Проверьте её и добавьте товар снова.");});return;}
+            new CartService().addProductToCart(fresh,quantity);Platform.runLater(()->{if(!disposed&&lease.equals(SessionManager.captureSession()))notifyUser(fresh.getName()+" добавлен в корзину.");});
+        }catch(Exception e){Platform.runLater(()->{if(!disposed&&lease.equals(SessionManager.captureSession()))notifyUser(Objects.requireNonNullElse(e.getMessage(),"Не удалось добавить товар."));});}});
     }
-
-    public void reloadProducts() {
-        Thread loadThread = new Thread(() -> {
-            try {
-                List<Product> freshProducts = ProductRepository.loadProductsFromSupabase();
-                allProducts.clear();
-                allProducts.addAll(freshProducts);
-                popularProducts = allProducts.stream()
-                        .filter(p -> p.getCategory() != null &&
-                                (p.getCategory().equalsIgnoreCase("Видеокарты") ||
-                                        p.getCategory().equalsIgnoreCase("Процессоры")))
-                        .toList();
-                javafx.application.Platform.runLater(() -> filterByCategory(selectedCategory));
-            } catch (Exception e) {
-                e.printStackTrace();
-                javafx.application.Platform.runLater(() ->
-                        showErrorMessage("Ошибка", "Не удалось перезагрузить товары: " + e.getMessage()));
-            }
-        });
-        loadThread.setDaemon(true);
-        loadThread.start();
+    public void openProduct(Product product){
+        VBox page=new VBox(24);page.getStyleClass().add("catalog-page");Button back=new Button("К каталогу",Ui.icon("arrow-right"));back.getStyleClass().add("btn-ghost");back.setOnAction(e->showMainContent());page.getChildren().add(back);
+        Node image=Ui.productImage(product,300,260);VBox imageColumn=new VBox(image);imageColumn.setMinWidth(180);imageColumn.setPrefWidth(300);imageColumn.setMaxWidth(340);
+        Label title=Ui.label(Objects.toString(product.getName(),"Без названия"),"page-title");title.setWrapText(true);title.setMaxWidth(Double.MAX_VALUE);
+        Label categoryLabel=Ui.label(Objects.toString(product.getCategory(),"Комплектующие"),"eyebrow");Label price=Ui.label(Ui.money(product.getPrice()),"detail-price");Label stock=Ui.label(product.getStock()>0?"В наличии: "+product.getStock():"Нет в наличии","product-stock");
+        Label description=new Label(product.getDescription()==null||product.getDescription().isBlank()?"Описание пока не добавлено.":product.getDescription());description.setWrapText(true);description.getStyleClass().add("detail-description");
+        Button add=new Button("В корзину",Ui.icon("bag"));add.getStyleClass().add("btn-primary");add.setDisable(product.getStock()<=0);add.setOnAction(e->addProductToCart(product,1));
+        VBox info=new VBox(16,categoryLabel,title,Ui.label(Objects.toString(product.getManufacturer(),"Производитель не указан"),"text-muted"),price,stock,add,new Separator(),Ui.label("Описание","section-title"),description);info.setMinWidth(0);HBox.setHgrow(info,Priority.ALWAYS);
+        HBox detail=new HBox(30,imageColumn,info);detail.getStyleClass().add("detail-surface");page.getChildren().add(detail);
+        Label note=Ui.label("Для проверки совместимости откройте конфигуратор. Отсутствующие характеристики не подтверждают совместимость.","feedback");note.setWrapText(true);page.getChildren().add(note);
+        ScrollPane scroll=new ScrollPane(page);scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);switchView(scroll,"Карточка товара","catalog");
     }
-
-    // -------- Отображение товаров --------
-
-    private void showErrorMessage(String title, String message) {
-        Label errorLabel = new Label("❌ " + title + "\n" + message);
-        errorLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #ef4444; -fx-wrap-text: true;");
-        productPane.getChildren().clear();
-        productPane.getChildren().add(errorLabel);
-    }
-
-    @FXML
-    private void onSearch() {
-        String text = searchField.getText().toLowerCase().trim();
-        if (text.isEmpty()) {
-            filterByCategory(selectedCategory);
-        } else {
-            List<Product> filtered = allProducts.stream()
-                    .filter(p -> p.getName() != null && p.getName().toLowerCase().contains(text))
-                    .toList();
-            showProducts(filtered);
-        }
-    }
-
-    private void showProducts(List<Product> products) {
-        productPane.getChildren().clear();
-        productPane.setStyle("-fx-background-color: #f5f5f5; -fx-padding: 24;");
-
-        if (products.isEmpty()) {
-            Label emptyLabel = new Label("😔 Товары не найдены");
-            emptyLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #888;");
-            productPane.getChildren().add(emptyLabel);
-            return;
-        }
-
-        for (Product product : products) {
-            try {
-                productPane.getChildren().add(createProductCard(product));
-            } catch (Exception e) {
-                System.err.println("❌ Ошибка создания карточки: " + e.getMessage());
-            }
-        }
-
-        javafx.application.Platform.runLater(() ->
-                updateCardSize(contentScroll.getWidth()));
-
-        lastCenter = contentScroll;
-    }
-
-    private VBox createProductCard(Product product) {
-        VBox card = new VBox(4); // было 8 — уменьшаем gap между элементами
-        card.setAlignment(Pos.TOP_CENTER);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setMinWidth(180);
-        card.setMinHeight(270);
-        card.setPadding(new Insets(10)); // было 14
-        card.setStyle(CARD_STYLE);
-
-        card.setOnMouseEntered(e -> card.setStyle(CARD_HOVER_STYLE));
-        card.setOnMouseExited(e -> card.setStyle(CARD_STYLE));
-
-        // ===== КАРТИНКА (увеличена) =====
-        StackPane imageWrapper = new StackPane();
-        imageWrapper.setPrefHeight(150); // было 120
-        imageWrapper.setMaxWidth(Double.MAX_VALUE);
-        imageWrapper.setStyle(
-                "-fx-background-color: #f9fafb;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-overflow: hidden;"
-        );
-
-        ImageView imageView = new ImageView();
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(220);
-        imageView.setFitHeight(150);
-        loadImage(imageView, product.getImageUrl(), 220, 150);
-
-        imageWrapper.getChildren().add(imageView);
-
-        boolean hasRealImage =
-                product.getImageUrl() != null &&
-                        !product.getImageUrl().isBlank() &&
-                        (product.getImageUrl().startsWith("http://") ||
-                                product.getImageUrl().startsWith("https://"));
-
-        if (hasRealImage) {
-            imageWrapper.setOnMouseEntered(e -> {
-                imageView.setScaleX(1.5);
-                imageView.setScaleY(1.5);
-                imageView.setTranslateY(-6);
-            });
-            imageWrapper.setOnMouseExited(e -> {
-                imageView.setScaleX(1.0);
-                imageView.setScaleY(1.0);
-                imageView.setTranslateY(0);
-            });
-        }
-
-        // ===== ТЕКСТ — убраны все лишние отступы =====
-        Label categoryBadge = new Label(product.getCategory() == null ? "" : product.getCategory());
-        categoryBadge.setStyle(
-                "-fx-background-color: #eff6ff;" +
-                        "-fx-text-fill: #3b82f6;" +
-                        "-fx-font-size: 10px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-padding: 1 6;" +       // было 2 8
-                        "-fx-background-radius: 20;"
-        );
-        VBox.setMargin(categoryBadge, new Insets(4, 0, 0, 0)); // маленький отступ только сверху
-
-        Label name = new Label(product.getName() == null ? "Без названия" : product.getName());
-        name.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-        name.setWrapText(true);
-        name.setMaxHeight(34);          // ограничиваем высоту — не больше 2 строк
-        VBox.setMargin(name, new Insets(0));
-
-        Label manufacturer = new Label(
-                product.getManufacturer() == null || product.getManufacturer().isEmpty()
-                        ? "" : "🏭 " + product.getManufacturer());
-        manufacturer.setStyle("-fx-font-size: 10px; -fx-text-fill: #9ca3af;");
-        VBox.setMargin(manufacturer, new Insets(0));
-
-        Label price = new Label(String.format("%,.0f ₽", product.getPrice()));
-        price.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #10b981;");
-        VBox.setMargin(price, new Insets(0));
-
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        // ===== КНОПКИ =====
-        HBox buttonBox = new HBox(6);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setMinHeight(32);
-
-        Button detailsBtn = new Button("Подробнее");
-        detailsBtn.setStyle(BTN_PRIMARY);
-        detailsBtn.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(detailsBtn, Priority.ALWAYS);
-        detailsBtn.setOnMouseEntered(e -> detailsBtn.setStyle(BTN_PRIMARY_HOVER));
-        detailsBtn.setOnMouseExited(e -> detailsBtn.setStyle(BTN_PRIMARY));
-        detailsBtn.setOnAction(e -> showProductDetail(product));
-
-        Button addToCartBtn = new Button("🛒");
-        addToCartBtn.setStyle(BTN_CART);
-        addToCartBtn.setOnMouseEntered(e -> addToCartBtn.setStyle(BTN_CART_HOVER));
-        addToCartBtn.setOnMouseExited(e -> addToCartBtn.setStyle(BTN_CART));
-        addToCartBtn.setOnAction(e -> addProductToCart(product, 1));
-
-        buttonBox.getChildren().addAll(detailsBtn, addToCartBtn);
-
-        card.getChildren().addAll(
-                imageWrapper,
-                categoryBadge,
-                name,
-                manufacturer,
-                price,
-                spacer,
-                buttonBox
-        );
-
-        return card;
-    }
-
-    private void showProductDetail(Product product) {
-        // Создаем контейнер специально для детальной страницы (не TilePane)
-        VBox detailPageContainer = new VBox(16);
-        detailPageContainer.setStyle("-fx-background-color: #f5f5f5; -fx-padding: 24;");
-        detailPageContainer.setMaxWidth(Double.MAX_VALUE);
-
-        // Кнопка назад
-        Button backBtn = new Button("← Назад к товарам");
-        String backStyle =
-                "-fx-background-color: #6b7280; -fx-text-fill: white; -fx-padding: 9 18;" +
-                        "-fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;" +
-                        "-fx-background-radius: 8; -fx-border-width: 0;";
-        String backHover =
-                "-fx-background-color: #4b5563; -fx-text-fill: white; -fx-padding: 9 18;" +
-                        "-fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;" +
-                        "-fx-background-radius: 8; -fx-border-width: 0;";
-        backBtn.setStyle(backStyle);
-        backBtn.setOnMouseEntered(e -> backBtn.setStyle(backHover));
-        backBtn.setOnMouseExited(e -> backBtn.setStyle(backStyle));
-        backBtn.setOnAction(e -> {
-            // Возвращаем TilePane с товарами обратно в ScrollPane
-            contentScroll.setContent(productPane);
-            filterByCategory(selectedCategory);
-        });
-
-        // Изображение
-        ImageView largeImage = new ImageView();
-        largeImage.setPreserveRatio(true);
-        loadImage(largeImage, product.getImageUrl(), 340, 260);
-
-        Label catBadge = new Label("📦 " + (product.getCategory() == null ? "" : product.getCategory()));
-        catBadge.setStyle(
-                "-fx-background-color: #eff6ff;" +
-                        "-fx-text-fill: #3b82f6;" +
-                        "-fx-font-size: 12px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-padding: 4 14;" +
-                        "-fx-background-radius: 20;"
-        );
-
-        VBox imageBox = new VBox(12);
-        imageBox.setAlignment(Pos.TOP_CENTER);
-        imageBox.getChildren().addAll(largeImage, catBadge);
-
-        // Информация
-        Label nameLabel = new Label(product.getName() == null ? "Без названия" : product.getName());
-        nameLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #111827;");
-        nameLabel.setWrapText(true);
-
-        Label manufacturerLabel = new Label("🏭 Производитель: " +
-                (product.getManufacturer() == null || product.getManufacturer().isEmpty()
-                        ? "Не указан" : product.getManufacturer()));
-        manufacturerLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6b7280;");
-
-        Label priceLabel = new Label(String.format("%,.0f ₽", product.getPrice()));
-        priceLabel.setStyle("-fx-font-size: 28px; -fx-text-fill: #10b981; -fx-font-weight: bold;");
-
-        Label descTitle = new Label("Описание:");
-        descTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
-
-        String rawDesc = product.getDescription() == null ? "" : product.getDescription();
-        String cleanDesc = rawDesc
-                .replaceAll("socket:\\S+", "")
-                .replaceAll("memory:\\S+", "")
-                .replaceAll("tdp:\\S+", "")
-                .replaceAll("gpu_power:\\S+", "")
-                .replaceAll("psu_power:\\S+", "")
-                .trim();
-
-        Label descriptionLabel = new Label(cleanDesc.isEmpty() ? "Описание отсутствует" : cleanDesc);
-        descriptionLabel.setWrapText(true);
-        descriptionLabel.setMaxWidth(Double.MAX_VALUE);
-        descriptionLabel.setStyle(
-                "-fx-font-size: 13px; -fx-text-fill: #374151;" +
-                        "-fx-background-color: #f9fafb;" +
-                        "-fx-border-color: #e5e7eb; -fx-border-width: 1;" +
-                        "-fx-border-radius: 8; -fx-background-radius: 8;" +
-                        "-fx-padding: 12;"
-        );
-
-        // Стили кнопок действий
-        String btnAddStyle =
-                "-fx-background-color: #3b82f6; -fx-text-fill: #ffffff;" +
-                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 28;" +
-                        "-fx-background-radius: 10; -fx-border-width: 0; -fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(59,130,246,0.4), 8, 0, 0, 2);";
-        String btnAddHover =
-                "-fx-background-color: #2563eb; -fx-text-fill: #ffffff;" +
-                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 28;" +
-                        "-fx-background-radius: 10; -fx-border-width: 0; -fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(37,99,235,0.5), 10, 0, 0, 3);";
-        String btnBuyStyle =
-                "-fx-background-color: #10b981; -fx-text-fill: #ffffff;" +
-                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 28;" +
-                        "-fx-background-radius: 10; -fx-border-width: 0; -fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(16,185,129,0.4), 8, 0, 0, 2);";
-        String btnBuyHover =
-                "-fx-background-color: #059669; -fx-text-fill: #ffffff;" +
-                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 12 28;" +
-                        "-fx-background-radius: 10; -fx-border-width: 0; -fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(5,150,105,0.5), 10, 0, 0, 3);";
-
-        Button addToCartBtn = new Button("🛒 В корзину");
-        addToCartBtn.setStyle(btnAddStyle);
-        addToCartBtn.setOnMouseEntered(e -> addToCartBtn.setStyle(btnAddHover));
-        addToCartBtn.setOnMouseExited(e -> addToCartBtn.setStyle(btnAddStyle));
-        addToCartBtn.setOnAction(e -> addProductToCart(product, 1));
-
-        Button buyNowBtn = new Button("💳 Купить сейчас");
-        buyNowBtn.setStyle(btnBuyStyle);
-        buyNowBtn.setOnMouseEntered(e -> buyNowBtn.setStyle(btnBuyHover));
-        buyNowBtn.setOnMouseExited(e -> buyNowBtn.setStyle(btnBuyStyle));
-        buyNowBtn.setOnAction(e -> addProductToCart(product, 1));
-
-        HBox actionBox = new HBox(12);
-        actionBox.setAlignment(Pos.CENTER_LEFT);
-        actionBox.getChildren().addAll(addToCartBtn, buyNowBtn);
-
-        VBox infoBox = new VBox(14);
-        HBox.setHgrow(infoBox, Priority.ALWAYS);
-        VBox.setVgrow(infoBox, Priority.ALWAYS);
-        infoBox.getChildren().addAll(
-                nameLabel, manufacturerLabel, priceLabel,
-                new Separator(), descTitle, descriptionLabel,
-                new Separator(), actionBox
-        );
-
-        // Адаптивная карточка (располагаем элементы в зависимости от ширины)
-        String detailCardStyle =
-                "-fx-background-color: #ffffff;" +
-                        "-fx-border-color: #e5e7eb;" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-background-radius: 16;" +
-                        "-fx-padding: 24;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 8, 0, 0, 2);";
-
-        // Лямбда для обновления раскладки (переключение HBox <-> VBox)
-        javafx.beans.value.ChangeListener<Number> widthListener = (obs, oldVal, newVal) -> {
-            double w = newVal.doubleValue();
-            detailPageContainer.getChildren().removeIf(node -> node != backBtn);
-
-            Pane detailCard;
-            if (w > 750) {
-                // Широкий экран: картинка слева, текст справа
-                largeImage.setFitWidth(320);
-                largeImage.setFitHeight(240);
-                imageBox.setMinWidth(340);
-                imageBox.setMaxWidth(340);
-                HBox hCard = new HBox(28);
-                hCard.getChildren().addAll(imageBox, infoBox);
-                detailCard = hCard;
-            } else {
-                // Узкий экран: картинка сверху, текст снизу
-                largeImage.setFitWidth(Math.min(w - 96, 400));
-                largeImage.setFitHeight(220);
-                imageBox.setMaxWidth(Double.MAX_VALUE);
-                VBox vCard = new VBox(20);
-                vCard.getChildren().addAll(imageBox, infoBox);
-                detailCard = vCard;
-            }
-
-            detailCard.setStyle(detailCardStyle);
-            detailCard.setMaxWidth(Double.MAX_VALUE);
-            detailPageContainer.getChildren().add(detailCard);
-        };
-
-        // Задаем начальную раскладку
-        widthListener.changed(null, null, contentScroll.getWidth());
-
-        // Подписываемся на изменение ширины окна
-        contentScroll.widthProperty().addListener(widthListener);
-
-        detailPageContainer.getChildren().add(0, backBtn);
-
-        // ВМЕСТО того чтобы класть карточку в TilePane, мы меняем всё содержимое скролла
-        contentScroll.setContent(detailPageContainer);
-    }
-
-
-    // -------- Вспомогательные --------
-
-    private void loadImage(ImageView iv, String url, double w, double h) {
-        boolean valid = url != null && !url.isBlank() &&
-                (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:/"));
-        try {
-            if (valid) {
-                iv.setImage(new Image(url, true));
-            } else {
-                iv.setImage(new Image("file:src/main/resources/images/default-image.png"));
-            }
-        } catch (Exception e) {
-            iv.setStyle(String.format(
-                    "-fx-background-color: #f3f4f6; -fx-min-width: %.0f; -fx-min-height: %.0f;", w, h));
-        }
-    }
-
-    private void filterByCategory(String category) {
-        List<Product> filtered;
-        if ("Все".equals(category)) {
-            filtered = allProducts;
-        } else if ("Популярное".equals(category)) {
-            filtered = popularProducts;
-        } else {
-            filtered = allProducts.stream()
-                    .filter(p -> p.getCategory() != null && p.getCategory().equalsIgnoreCase(category))
-                    .toList();
-        }
-        showProducts(filtered);
-    }
-
-    // -------- Навигация --------
-
-    private void setupSearch() {
-        searchField.setOnKeyReleased(event -> onSearch());
-    }
-
-    private void setupProfileButton() {
-        profileBtn.setOnAction(e -> {
-            if (isAuthorized()) openCabinetInMain();
-            else showAuthForm();
-        });
-    }
-
-    private void setupCartButton() {
-        cartBtn.setOnAction(e -> openCartView());
-    }
-
-    private void setupConfiguratorButton() {
-        if (configuratorBtn != null) {
-            configuratorBtn.setOnAction(e -> openConfigurator());
-        }
-    }
-
-    private boolean isAuthorized() {
-        return SessionManager.getAccessToken() != null && SessionManager.getUserEmail() != null;
-    }
-
-    private void addProductToCart(Product product, int quantity) {
-        try {
-            CartService cartService = new CartService();
-            cartService.addProductToCart(product, quantity);
-            Cart cart = Cart.getInstance();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Корзина");
-            alert.setHeaderText(null);
-            alert.setContentText(product.getName() + " добавлен в корзину!\n" +
-                    "Товаров: " + cart.getTotalQuantity() + "\n" +
-                    "Итого: " + String.format("%.2f ₽", cart.getTotal()));
-            alert.showAndWait();
-        } catch (Exception e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Ошибка");
-            alert.setHeaderText(null);
-            alert.setContentText("Не удалось добавить товар: " + e.getMessage());
-            alert.showAndWait();
-        }
-    }
-
-    private void showAuthForm() {
-        try {
-            lastCenter = productPane;
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/auth.fxml"));
-            Node authNode = loader.load();
-            headerPane.setVisible(false); headerPane.setManaged(false);
-            categoryPane.setVisible(false); categoryPane.setManaged(false);
-            mainPane.setCenter(authNode);
-            mainPane.setTop(null); mainPane.setLeft(null);
-            AuthController.setMainController(this);
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void openCabinetInMain() {
-        try {
-            lastCenter = contentScroll;
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cabinet.fxml"));
-            Node cabinetNode = loader.load();
-            headerPane.setVisible(false); headerPane.setManaged(false);
-            categoryPane.setVisible(false); categoryPane.setManaged(false);
-            mainPane.setCenter(cabinetNode);
-            mainPane.setTop(null); mainPane.setLeft(null);
-            CabinetController cabinetCtrl = loader.getController();
-            cabinetCtrl.setHostMainController(this);
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void showMainContent() {
-        headerPane.setVisible(true); headerPane.setManaged(true);
-        categoryPane.setVisible(true); categoryPane.setManaged(true);
-        searchField.setVisible(true); searchField.setManaged(true);
-        profileBtn.setVisible(true); profileBtn.setManaged(true);
-        cartBtn.setVisible(true); cartBtn.setManaged(true);
-        if (configuratorBtn != null) {
-            configuratorBtn.setVisible(true);
-            configuratorBtn.setManaged(true);
-        }
-        mainPane.setTop(headerPane);
-        mainPane.setLeft(categoryPane);
-        mainPane.setCenter(contentScroll);
-        mainPane.getStylesheets().clear();
-        filterByCategory(selectedCategory);
-    }
-
-    private void openCartView() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cart.fxml"));
-            Node cartNode = loader.load();
-            cartController = loader.getController();
-            cartController.setMainController(this);
-            mainPane.setCenter(cartNode);
-            categoryPane.setVisible(false);
-            mainPane.setLeft(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorMessage("Ошибка", "Не удалось загрузить корзину");
-        }
-    }
-
-    public void openConfigurator() {
-        try {
-            lastCenter = contentScroll;
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/configurator.fxml"));
-            Node configNode = loader.load();
-            headerPane.setVisible(false); headerPane.setManaged(false);
-            categoryPane.setVisible(false); categoryPane.setManaged(false);
-            mainPane.setCenter(configNode);
-            mainPane.setTop(null); mainPane.setLeft(null);
-            ConfiguratorController configCtrl = loader.getController();
-            configCtrl.setMainController(this);
-            configCtrl.setProducts(allProducts);
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void openAdminPanel() {
-        try {
-            lastCenter = contentScroll;
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
-            Node adminNode = loader.load();
-            headerPane.setVisible(false); headerPane.setManaged(false);
-            categoryPane.setVisible(false); categoryPane.setManaged(false);
-            mainPane.setCenter(adminNode);
-            mainPane.setTop(null); mainPane.setLeft(null);
-            AdminController adminController = loader.getController();
-            adminController.setMainController(this);
-            adminController.setCabinetController(null);
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void hideCategoriesAndSearch() {
-        if (categoryPane != null) { categoryPane.setVisible(false); categoryPane.setManaged(false); }
-        if (searchField != null) { searchField.setVisible(false); searchField.setManaged(false); }
-    }
-
-    public void showCategoriesAndSearch() {
-        if (categoryPane != null) { categoryPane.setVisible(true); categoryPane.setManaged(true); }
-        if (searchField != null) { searchField.setVisible(true); searchField.setManaged(true); }
-    }
-    public void openManagerPanel() {
-        try {
-            lastCenter = contentScroll;
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/manager.fxml"));
-            Node managerNode = loader.load();
-            headerPane.setVisible(false);   headerPane.setManaged(false);
-            categoryPane.setVisible(false); categoryPane.setManaged(false);
-            mainPane.setCenter(managerNode);
-            mainPane.setTop(null);
-            mainPane.setLeft(null);
-            ManagerController managerController = loader.getController();
-            managerController.setMainController(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    public List<Product> getCatalogSnapshot(){return List.copyOf(allProducts);}
+    public boolean isCatalogLoaded(){return catalogLoaded;}
+    public void dispose(){disposed=true;++loadVersion;io.shutdownNow();searchTimer.stop();notificationTimer.stop();clearPrivateViews();cache.values().forEach(view->disposeView(view.controller()));cache.clear();}
 }

@@ -1,0 +1,809 @@
+{
+  "version": 1,
+  "project": "qsthuhzkciimucarscco",
+  "retrievedAt": "2026-10-25",
+  "purpose": "Public catalog identity reference for local verified specifications; not an offline product/stock database.",
+  "products": [
+    {
+      "id": 2,
+      "name": "Intel Core i5-14600K",
+      "description": "14 ядер (6P+8E), 20 потоков, базовая частота до 3.5 ГГц, турбо до 5.3 ГГц. socket:LGA1700 tdp:181\r\n Отличный игровой и рабочий процессор семейства Raptor Lake Refresh с поддержкой DDR4/DDR5 и PCIe 5.0.",
+      "category": "Процессоры",
+      "manufacturer": "Intel",
+      "price": "34990.00",
+      "stock": 18
+    },
+    {
+      "id": 3,
+      "name": "Intel Core i7-14700K",
+      "description": "20 ядер (8P+12E), 28 потоков, частота до 5.6 ГГц. socket:LGA1700 tdp:253\r\n Высокопроизводительный CPU для стриминга и серьёзного контента, поддержка DDR4/DDR5, PCIe 5.0.",
+      "category": "Процессоры",
+      "manufacturer": "Intel",
+      "price": "49990.00",
+      "stock": 14
+    },
+    {
+      "id": 4,
+      "name": "Intel Core i9-14900K",
+      "description": "24 ядра (8P+16E), 32 потока, частота до 6.0 ГГц. socket:LGA1700 tdp:253\r\n Флагманский игровой и рабочий процессор, требовательный к охлаждению и питанию, рекомендован мощный кулер и БП.",
+      "category": "Процессоры",
+      "manufacturer": "Intel",
+      "price": "69990.00",
+      "stock": 10
+    },
+    {
+      "id": 5,
+      "name": "Intel Core i5-12400F",
+      "description": "6 ядер / 12 потоков, частота до 4.4 ГГц, без встроенной графики. socket:LGA1700 tdp:65\r\n Оптимальный бюджетный вариант для игр в паре с дискретной видеокартой.",
+      "category": "Процессоры",
+      "manufacturer": "Intel",
+      "price": "14990.00",
+      "stock": 30
+    },
+    {
+      "id": 6,
+      "name": "AMD Ryzen 5 7600",
+      "description": "6 ядер / 12 потоков, частота до 5.1 ГГц, встроенная графика Radeon. socket:AM5 tdp:65\r\n Отличный баланс производительности и энергоэффективности для игр и работы.",
+      "category": "Процессоры",
+      "manufacturer": "AMD",
+      "price": "22990.00",
+      "stock": 25
+    },
+    {
+      "id": 7,
+      "name": "AMD Ryzen 5 7600X",
+      "description": "6 ядер / 12 потоков, разгон до 5.3 ГГц. socket:AM5 tdp:105\r\n Игровой процессор нового поколения с поддержкой DDR5 и PCIe 5.0.",
+      "category": "Процессоры",
+      "manufacturer": "AMD",
+      "price": "25990.00",
+      "stock": 20
+    },
+    {
+      "id": 8,
+      "name": "AMD Ryzen 7 7800X3D",
+      "description": "8 ядер / 16 потоков, большое 3D V-Cache. socket:AM5 tdp:120\r\n Один из лучших CPU для игр благодаря увеличенному объёму кэша L3.",
+      "category": "Процессоры",
+      "manufacturer": "AMD",
+      "price": "44990.00",
+      "stock": 12
+    },
+    {
+      "id": 9,
+      "name": "AMD Ryzen 9 7900X",
+      "description": "12 ядер / 24 потока, частота до 5.6 ГГц. socket:AM5 tdp:170\r\n Мощный многопоточный процессор для работы с рендерингом и монтажом.",
+      "category": "Процессоры",
+      "manufacturer": "AMD",
+      "price": "52990.00",
+      "stock": 10
+    },
+    {
+      "id": 10,
+      "name": "AMD Ryzen 9 7950X",
+      "description": "16 ядер / 32 потока, частота до 5.7 ГГц. socket:AM5 tdp:170\r\n Флагман для рабочих станций и тяжёлых вычислительных задач.",
+      "category": "Процессоры",
+      "manufacturer": "AMD",
+      "price": "67990.00",
+      "stock": 8
+    },
+    {
+      "id": 11,
+      "name": "Intel Core i3-14100F",
+      "description": "4 ядра / 8 потоков, частота до 4.7 ГГц, без встроенной графики. socket:LGA1700 tdp:60\r\nНачальный игровой процессор под современные видеокарты.",
+      "category": "Процессоры",
+      "manufacturer": "Intel",
+      "price": "10990.00",
+      "stock": 40
+    },
+    {
+      "id": 12,
+      "name": "NVIDIA GeForce RTX 4060 8GB",
+      "description": "Архитектура Ada Lovelace, 8 ГБ GDDR6, трассировка лучей и DLSS 3. gpu_power:160\r\n Идеальна для игр в 1080p с высоким FPS и умерным энергопотреблением.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "32990.00",
+      "stock": 18
+    },
+    {
+      "id": 13,
+      "name": "NVIDIA GeForce RTX 4070 12GB",
+      "description": "12 ГБ GDDR6X, поддержка DLSS 3 и трассировки лучей. gpu_power:220\r\n Отличный выбор для 1440p-гейминга с высоким качеством графики.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "55990.00",
+      "stock": 15
+    },
+    {
+      "id": 14,
+      "name": "NVIDIA GeForce RTX 4070 SUPER 12GB",
+      "description": "Обновлённая RTX 4070 с повышенной производительностью. gpu_power:230\r\n Баланс между 1440p и 4K, эффективная архитектура и низкое энергопотребление.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "61990.00",
+      "stock": 12
+    },
+    {
+      "id": 15,
+      "name": "NVIDIA GeForce RTX 4080 SUPER 16GB",
+      "description": "16 ГБ GDDR6X, высокая производительность для 4K-гейминга. gpu_power:320\r\n Подходит для ультра настроек и тяжёлых RTX-игр.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "99990.00",
+      "stock": 6
+    },
+    {
+      "id": 16,
+      "name": "NVIDIA GeForce RTX 4090 24GB",
+      "description": "Флагманская видеокарта на базе Ada Lovelace, 24 ГБ GDDR6X. gpu_power:450\r\n Максимальная производительность в 4K и рабочих задачах, требует мощного БП и корпуса.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "169990.00",
+      "stock": 4
+    },
+    {
+      "id": 17,
+      "name": "AMD Radeon RX 7600 8GB",
+      "description": "8 ГБ GDDR6, архитектура RDNA 3. gpu_power:165\r\n Доступное решение для 1080p с поддержкой современных технологий AMD.",
+      "category": "Видеокарты",
+      "manufacturer": "AMD",
+      "price": "27990.00",
+      "stock": 20
+    },
+    {
+      "id": 18,
+      "name": "AMD Radeon RX 7700 XT 12GB",
+      "description": "12 ГБ GDDR6, отличная производительность в 1440p. gpu_power:245\r\n Хороший выбор для высоких настроек графики и VR.",
+      "category": "Видеокарты",
+      "manufacturer": "AMD",
+      "price": "46990.00",
+      "stock": 10
+    },
+    {
+      "id": 19,
+      "name": "AMD Radeon RX 7800 XT 16GB",
+      "description": "16 ГБ GDDR6, архитектура RDNA 3. gpu_power:275\r\n Конкурент для карт верхнего среднего сегмента, подходит для 1440p/4K.",
+      "category": "Видеокарты",
+      "manufacturer": "AMD",
+      "price": "56990.00",
+      "stock": 8
+    },
+    {
+      "id": 20,
+      "name": "NVIDIA GeForce RTX 4060 Ti 16GB",
+      "description": "16 ГБ GDDR6, улучшенная версия RTX 4060 для тяжёлых проектов. gpu_power:220\r\n Подходит для разработчиков, стриминга и работы с графикой.",
+      "category": "Видеокарты",
+      "manufacturer": "NVIDIA",
+      "price": "45990.00",
+      "stock": 14
+    },
+    {
+      "id": 21,
+      "name": "AMD Radeon RX 7900 XTX 24GB",
+      "description": "24 ГБ GDDR6, топовая карта RDNA 3. gpu_power:355\r\n Подходит для 4K-гейминга и профессиональных задач, высокая пропускная способность памяти.",
+      "category": "Видеокарты",
+      "manufacturer": "AMD",
+      "price": "119990.00",
+      "stock": 5
+    },
+    {
+      "id": 22,
+      "name": "ASUS ROG Strix Z790-E Gaming WiFi",
+      "description": "Материнская плата формата ATX для процессоров Intel 12–14 поколения. socket:LGA1700 memory:DDR5\r\n Поддержка PCIe 5.0, Wi‑Fi 6E, мощная подсистема питания для разгона.",
+      "category": "Материнские платы",
+      "manufacturer": "ASUS",
+      "price": "39990.00",
+      "stock": 10
+    },
+    {
+      "id": 23,
+      "name": "MSI MAG Z790 TOMAHAWK WiFi",
+      "description": "Игровая плата ATX под Intel LGA1700. socket:LGA1700 memory:DDR5\r\n Усиленные слоты, хорошее охлаждение VRM, множество портов USB и M.2.",
+      "category": "Материнские платы",
+      "manufacturer": "MSI",
+      "price": "32990.00",
+      "stock": 12
+    },
+    {
+      "id": 24,
+      "name": "GIGABYTE Z790 AORUS ELITE AX",
+      "description": "Плата серии AORUS для геймерских сборок. socket:LGA1700 memory:DDR5\r\n Поддержка высокочастотной DDR5, PCIe 5.0 и скоростных SSD.",
+      "category": "Материнские платы",
+      "manufacturer": "GIGABYTE",
+      "price": "30990.00",
+      "stock": 12
+    },
+    {
+      "id": 25,
+      "name": "ASUS TUF Gaming B760-PLUS WiFi",
+      "description": "Надёжная плата формата ATX под Intel. socket:LGA1700 memory:DDR5\r\n Серия TUF с усиленной элементной базой и хорошей системой охлаждения.",
+      "category": "Материнские платы",
+      "manufacturer": "ASUS",
+      "price": "24990.00",
+      "stock": 15
+    },
+    {
+      "id": 26,
+      "name": "MSI PRO B760M-P DDR4",
+      "description": "Компактная mATX плата с поддержкой DDR4. socket:LGA1700 memory:DDR4\r\n Подходит для бюджетных и офисных сборок, достаточный набор интерфейсов.",
+      "category": "Материнские платы",
+      "manufacturer": "MSI",
+      "price": "14990.00",
+      "stock": 20
+    },
+    {
+      "id": 27,
+      "name": "ASUS ROG Strix X670E-F Gaming WiFi",
+      "description": "Игровая плата под новейшие процессоры Ryzen. socket:AM5 memory:DDR5\r\n Поддержка PCIe 5.0, быстрой DDR5 и множества M.2-накопителей.",
+      "category": "Материнские платы",
+      "manufacturer": "ASUS",
+      "price": "42990.00",
+      "stock": 8
+    },
+    {
+      "id": 28,
+      "name": "MSI MPG X670E CARBON WiFi",
+      "description": "Флагманская плата X670E для энтузиастов. socket:AM5 memory:DDR5\r\n Усиленная подсистема питания, хороший набор портов и поддержка PCIe 5.0.",
+      "category": "Материнские платы",
+      "manufacturer": "MSI",
+      "price": "45990.00",
+      "stock": 6
+    },
+    {
+      "id": 29,
+      "name": "GIGABYTE B650 AORUS ELITE AX",
+      "description": "Плата среднего уровня под Ryzen 7000. socket:AM5 memory:DDR5\r\n Баланс цены и возможностей, Wi‑Fi, PCIe 4.0, несколько M.2.",
+      "category": "Материнские платы",
+      "manufacturer": "GIGABYTE",
+      "price": "28990.00",
+      "stock": 10
+    },
+    {
+      "id": 30,
+      "name": "ASRock B650M Pro RS",
+      "description": "Доступная mATX плата под AM5. socket:AM5 memory:DDR5\r\n Подходит для компактных игровых и рабочих систем.",
+      "category": "Материнские платы",
+      "manufacturer": "ASRock",
+      "price": "18990.00",
+      "stock": 14
+    },
+    {
+      "id": 31,
+      "name": "ASUS PRIME B550M-A",
+      "description": "Проверенная временем плата под Ryzen 3000/5000. socket:AM4 memory:DDR4\r\n Поддержка PCIe 4.0 для видеокарты и NVMe SSD, компактный формат mATX.",
+      "category": "Материнские платы",
+      "manufacturer": "ASUS",
+      "price": "12990.00",
+      "stock": 18
+    },
+    {
+      "id": 32,
+      "name": "Kingston Fury Beast 16GB (2x8) DDR4-3200",
+      "description": "Набор из двух модулей по 8 ГБ, частота 3200 МГц, тайминги CL16. memory:DDR4\r\n Отличный выбор для игровых и рабочих систем на DDR4.",
+      "category": "Оперативная память",
+      "manufacturer": "Kingston",
+      "price": "6490.00",
+      "stock": 25
+    },
+    {
+      "id": 33,
+      "name": "Kingston Fury Beast 32GB (2x16) DDR4-3600",
+      "description": "Объём 32 ГБ, частота 3600 МГц, поддержка XMP-профилей. memory:DDR4\r\n Подходит для стриминга и тяжёлых приложений.",
+      "category": "Оперативная память",
+      "manufacturer": "Kingston",
+      "price": "11990.00",
+      "stock": 20
+    },
+    {
+      "id": 34,
+      "name": "G.Skill Trident Z5 RGB 32GB (2x16) DDR5-6000",
+      "description": "Высокоскоростной комплект DDR5 с подсветкой, 6000 МГц. memory:DDR5\r\n Идеален для современных платформ Intel/AMD с поддержкой DDR5.",
+      "category": "Оперативная память",
+      "manufacturer": "G.Skill",
+      "price": "18990.00",
+      "stock": 15
+    },
+    {
+      "id": 35,
+      "name": "Corsair Vengeance 32GB (2x16) DDR5-5600",
+      "description": "Надёжные модули DDR5, частота 5600 МГц. memory:DDR5\r\n Хороший выбор для игровых и рабочих систем нового поколения.",
+      "category": "Оперативная память",
+      "manufacturer": "Corsair",
+      "price": "16990.00",
+      "stock": 18
+    },
+    {
+      "id": 36,
+      "name": "Patriot Viper Steel 16GB (2x8) DDR4-3600",
+      "description": "Компактные модули без подсветки, 3600 МГц. memory:DDR4\r\n Подходят для производительных, но сдержанных по дизайну сборок.",
+      "category": "Оперативная память",
+      "manufacturer": "Patriot",
+      "price": "5990.00",
+      "stock": 22
+    },
+    {
+      "id": 37,
+      "name": "Seagate BarraCuda 1TB 7200rpm",
+      "description": "Жёсткий диск 3.5\\\" на 1 ТБ, скорость вращения 7200 об/мин, буфер 64 МБ.\r\n Подходит для хранения игр, фильмов и рабочих файлов.",
+      "category": "Жёсткие диски",
+      "manufacturer": "Seagate",
+      "price": "3490.00",
+      "stock": 20
+    },
+    {
+      "id": 38,
+      "name": "Seagate BarraCuda 2TB 7200rpm",
+      "description": "Модель на 2 ТБ с увеличенным объёмом, 7200 об/мин.\r\n Хорошее решение для мультимедийных библиотек и бэкапов.",
+      "category": "Жёсткие диски",
+      "manufacturer": "Seagate",
+      "price": "4990.00",
+      "stock": 18
+    },
+    {
+      "id": 39,
+      "name": "WD Blue 4TB 5400rpm",
+      "description": "Надёжный диск на 4 ТБ, оптимизированный для тихой работы.\r\n Подходит для длительного хранения данных и архива.",
+      "category": "Жёсткие диски",
+      "manufacturer": "Western Digital",
+      "price": "7990.00",
+      "stock": 12
+    },
+    {
+      "id": 40,
+      "name": "Samsung 990 PRO 1TB NVMe",
+      "description": "Высокоскоростной M.2 NVMe SSD PCIe 4.0, до 7450 МБ/с чтение и 6900 МБ/с запись.\r\n Подходит для игр, монтажа и тяжёлых задач.",
+      "category": "SSD-накопители",
+      "manufacturer": "Samsung",
+      "price": "10990.00",
+      "stock": 20
+    },
+    {
+      "id": 41,
+      "name": "Samsung 990 PRO 2TB NVMe",
+      "description": "SSD формата M.2 PCIe 4.0 с ёмкостью 2 ТБ и высокой производительностью.\r\n Отличный выбор для рабочих станций и игровых систем.",
+      "category": "SSD-накопители",
+      "manufacturer": "Samsung",
+      "price": "18990.00",
+      "stock": 15
+    },
+    {
+      "id": 42,
+      "name": "Kingston NV2 1TB NVMe",
+      "description": "Бюджетный NVMe SSD, форм-фактор M.2, интерфейс PCIe 4.0.\r\n Хорошее соотношение цены и скорости для повседневных задач.",
+      "category": "SSD-накопители",
+      "manufacturer": "Kingston",
+      "price": "5990.00",
+      "stock": 25
+    },
+    {
+      "id": 43,
+      "name": "Crucial MX500 1TB SATA",
+      "description": "Классический 2.5\\\" SATA SSD на 1 ТБ, надёжная память и стабильная скорость.\r\n Подойдёт для апгрейда старых систем.",
+      "category": "SSD-накопители",
+      "manufacturer": "Crucial",
+      "price": "7490.00",
+      "stock": 18
+    },
+    {
+      "id": 44,
+      "name": "WD Black SN850X 1TB NVMe",
+      "description": "Игровой NVMe SSD с высокой скоростью чтения и записи, PCIe 4.0.\r\n Оптимизирован для минимальной задержки в современных играх.",
+      "category": "SSD-накопители",
+      "manufacturer": "Western Digital",
+      "price": "11990.00",
+      "stock": 10
+    },
+    {
+      "id": 45,
+      "name": "Corsair RM750e 750W 80+ Gold",
+      "description": "Модульный блок питания на 750 Вт с сертификатом 80+ Gold. psu_power:750\r\n Подходит для игровых систем с мощной видеокартой и многими накопителями.",
+      "category": "Блоки питания",
+      "manufacturer": "Corsair",
+      "price": "10990.00",
+      "stock": 18
+    },
+    {
+      "id": 46,
+      "name": "Corsair RM850x 850W 80+ Gold",
+      "description": "Высоконадежный БП 850 Вт, полностью модульные кабели. psu_power:850\r\n Рекомендуется для систем с RTX 4080/4090 и разогнанными CPU.",
+      "category": "Блоки питания",
+      "manufacturer": "Corsair",
+      "price": "13990.00",
+      "stock": 12
+    },
+    {
+      "id": 47,
+      "name": "be quiet! Straight Power 11 750W",
+      "description": "Тихий блок питания премиум-класса на 750 Вт. psu_power:750\r\n Низкий уровень шума, высокое качество компонентов и стабильное питание.",
+      "category": "Блоки питания",
+      "manufacturer": "be quiet!",
+      "price": "12990.00",
+      "stock": 10
+    },
+    {
+      "id": 48,
+      "name": "be quiet! Pure Power 12 M 650W",
+      "description": "Модульный БП на 650 Вт с поддержкой ATX 3.0 и PCIe 5.0. psu_power:650\r\n Хороший выбор для среднебюджетных игровых ПК.",
+      "category": "Блоки питания",
+      "manufacturer": "be quiet!",
+      "price": "9990.00",
+      "stock": 16
+    },
+    {
+      "id": 49,
+      "name": "DeepCool PQ850M 850W 80+ Gold",
+      "description": "80+ Gold, 850 Вт, модульные кабели. psu_power:850\r\n Комбинация эффективности, мощности и современной элементной базы.",
+      "category": "Блоки питания",
+      "manufacturer": "DeepCool",
+      "price": "11490.00",
+      "stock": 14
+    },
+    {
+      "id": 50,
+      "name": "Seasonic Focus GX-750 750W",
+      "description": "Компактный, но мощный блок питания на 750 Вт. psu_power:750\r\n Популярная серия с высокой надёжностью и качественным охлаждением.",
+      "category": "Блоки питания",
+      "manufacturer": "Seasonic",
+      "price": "12490.00",
+      "stock": 10
+    },
+    {
+      "id": 51,
+      "name": "Cooler Master MWE Gold 650W",
+      "description": "Доступный 650‑ваттный БП с сертификатом 80+ Gold. psu_power:650\r\n Подходит для игровых конфигураций начального и среднего уровня.",
+      "category": "Блоки питания",
+      "manufacturer": "Cooler Master",
+      "price": "8490.00",
+      "stock": 20
+    },
+    {
+      "id": 52,
+      "name": "ASUS ROG Strix 1000W Gold",
+      "description": "Игровой блок питания на 1000 Вт с RGB‑подсветкой. psu_power:1000\r\n Создан для топовых конфигураций с несколькими высокопроизводительными компонентами.",
+      "category": "Блоки питания",
+      "manufacturer": "ASUS",
+      "price": "16990.00",
+      "stock": 8
+    },
+    {
+      "id": 53,
+      "name": "Fractal Design Meshify 2 Black",
+      "description": "Корпус формата Mid‑Tower с сетчатой фронтальной панелью и отличной продуваемостью. Поддержка ATX, E-ATX, длинных видеокарт и высоких кулеров. Удобный кабель-менеджмент, съёмные фильтры.",
+      "category": "Корпуса",
+      "manufacturer": "Fractal Design",
+      "price": "18990.00",
+      "stock": 10
+    },
+    {
+      "id": 54,
+      "name": "Fractal Design Pop Air RGB",
+      "description": "Стильный Mid‑Tower корпус с RGB‑вентиляторами и перфорированной передней панелью. Поддерживает платы ATX и крупные видеокарты, есть место для нескольких 2.5\"/3.5\" накопителей.",
+      "category": "Корпуса",
+      "manufacturer": "Fractal Design",
+      "price": "11990.00",
+      "stock": 14
+    },
+    {
+      "id": 55,
+      "name": "NZXT H5 Flow",
+      "description": "Компактный, но хорошо продуваемый корпус с боковой панелью из закалённого стекла. Продуманная внутренняя компоновка, поддержка водяного охлаждения и высоких видеокарт.",
+      "category": "Корпуса",
+      "manufacturer": "NZXT",
+      "price": "12990.00",
+      "stock": 12
+    },
+    {
+      "id": 56,
+      "name": "NZXT H7 Flow",
+      "description": "Увеличенный вариант линейки H с улучшенной вентиляцией. Поддержка нескольких радиаторов СЖО, длинных видеокарт и большого числа накопителей.",
+      "category": "Корпуса",
+      "manufacturer": "NZXT",
+      "price": "15990.00",
+      "stock": 8
+    },
+    {
+      "id": 57,
+      "name": "Corsair 4000D Airflow",
+      "description": "Популярный корпус с акцентом на охлаждение: сетчатый фронт, два предустановленных вентилятора, поддержка до 6–8 вентиляторов и радиаторов 360 мм.",
+      "category": "Корпуса",
+      "manufacturer": "Corsair",
+      "price": "11490.00",
+      "stock": 16
+    },
+    {
+      "id": 58,
+      "name": "Corsair 5000D Airflow",
+      "description": "Просторный Mid‑Tower для продвинутых сборок с несколькими радиаторами и крупными видеокартами. Много места для кабель-менеджмента и скрытого монтажа накопителей.",
+      "category": "Корпуса",
+      "manufacturer": "Corsair",
+      "price": "16990.00",
+      "stock": 10
+    },
+    {
+      "id": 59,
+      "name": "be quiet! Pure Base 500DX",
+      "description": "Тихий и хорошо продуваемый корпус с тремя предустановленными вентиляторами. Сочетает стильный дизайн и низкий уровень шума.",
+      "category": "Корпуса",
+      "manufacturer": "be quiet!",
+      "price": "13990.00",
+      "stock": 9
+    },
+    {
+      "id": 60,
+      "name": "be quiet! Silent Base 802",
+      "description": "Корпус для любителей тишины: толстые шумопоглощающие панели, гибкая конфигурация вентиляции, поддержка больших радиаторов и E-ATX плат.",
+      "category": "Корпуса",
+      "manufacturer": "be quiet!",
+      "price": "21990.00",
+      "stock": 6
+    },
+    {
+      "id": 61,
+      "name": "Lian Li LANCOOL 215",
+      "description": "Корпус с двумя крупными 200‑мм вентиляторами на фронте и стеклянной боковой панелью. Поддерживает высокие видеокарты и башенные кулеры.",
+      "category": "Корпуса",
+      "manufacturer": "Lian Li",
+      "price": "10990.00",
+      "stock": 13
+    },
+    {
+      "id": 62,
+      "name": "Lian Li O11 Dynamic",
+      "description": "Знаменитый корпус с двухкамерной компоновкой и большим количеством стекла. Создан для красивых кастомных сборок и сложных систем водяного охлаждения.",
+      "category": "Корпуса",
+      "manufacturer": "Lian Li",
+      "price": "17990.00",
+      "stock": 7
+    },
+    {
+      "id": 63,
+      "name": "DeepCool CH510 Mesh Digital",
+      "description": "Корпус с сетчатым фронтом и небольшим цифровым дисплеем на передней панели. Хорошая продуваемость, поддержка радиаторов до 360 мм.",
+      "category": "Корпуса",
+      "manufacturer": "DeepCool",
+      "price": "9990.00",
+      "stock": 15
+    },
+    {
+      "id": 64,
+      "name": "Phanteks Eclipse G360A",
+      "description": "Компактный корпус с перфорированным фронтом и поддержкой трёх фронтальных вентиляторов 120 мм. Подходит для игровых систем среднего уровня.",
+      "category": "Корпуса",
+      "manufacturer": "Phanteks",
+      "price": "10490.00",
+      "stock": 11
+    },
+    {
+      "id": 65,
+      "name": "Phanteks Enthoo Pro 2",
+      "description": "Большой корпус для рабочих станций и энтузиастов. Поддерживает две системы или огромное количество накопителей, продвинутая система охлаждения.",
+      "category": "Корпуса",
+      "manufacturer": "Phanteks",
+      "price": "19990.00",
+      "stock": 5
+    },
+    {
+      "id": 66,
+      "name": "Cooler Master MasterBox NR600",
+      "description": "Минималистичный корпус с сетчатой передней панелью, поддержкой ATX и несколькими HDD/SSD. Хороший вариант для бюджетной и средней сборки.",
+      "category": "Корпуса",
+      "manufacturer": "Cooler Master",
+      "price": "7990.00",
+      "stock": 20
+    },
+    {
+      "id": 68,
+      "name": "Noctua NH-D15",
+      "description": "Флагманский воздушный кулер с двумя 140‑мм вентиляторами и массивным радиатором. Подходит для топовых CPU и тихих сборок при высоком TDP.",
+      "category": "Охлаждение",
+      "manufacturer": "Noctua",
+      "price": "12990.00",
+      "stock": 10
+    },
+    {
+      "id": 69,
+      "name": "be quiet! Dark Rock Pro 4",
+      "description": "Двухбашенный кулер с тихими вентиляторами и строгим чёрным дизайном. Обеспечивает эффективное охлаждение мощных процессоров.",
+      "category": "Охлаждение",
+      "manufacturer": "be quiet!",
+      "price": "11990.00",
+      "stock": 9
+    },
+    {
+      "id": 70,
+      "name": "DeepCool AK620",
+      "description": "Высокопроизводительный башенный кулер с двумя вентиляторами 120 мм. Хороший баланс цены, производительности и шума.",
+      "category": "Охлаждение",
+      "manufacturer": "DeepCool",
+      "price": "8990.00",
+      "stock": 14
+    },
+    {
+      "id": 71,
+      "name": "NZXT Kraken 360 RGB",
+      "description": "СЖО 360 мм с RGB‑подсветкой и круглым блоком на процессор. Подходит для разгона и топовых игровых систем.",
+      "category": "Охлаждение",
+      "manufacturer": "NZXT",
+      "price": "18990.00",
+      "stock": 8
+    },
+    {
+      "id": 72,
+      "name": "Corsair iCUE H150i Elite Capellix",
+      "description": "Жидкостное охлаждение 360 мм с яркой подсветкой и эффективным радиатором. Идеально для мощных CPU Intel/AMD в закрытых корпусах.",
+      "category": "Охлаждение",
+      "manufacturer": "Corsair",
+      "price": "19990.00",
+      "stock": 6
+    },
+    {
+      "id": 73,
+      "name": "AOC 24G2 24\" IPS 144Hz",
+      "description": "24‑дюймовый игровой монитор с IPS‑матрицей, частотой 144 Гц и временем отклика 1 мс MPRT. Подходит для соревновательных игр в 1080p.",
+      "category": "Мониторы",
+      "manufacturer": "AOC",
+      "price": "16990.00",
+      "stock": 18
+    },
+    {
+      "id": 74,
+      "name": "AOC 27G2U 27\" IPS 144Hz",
+      "description": "Увеличенная версия популярной модели 24G2. Разрешение 1080p, 144 Гц, регулируемая подставка и тонкие рамки.",
+      "category": "Мониторы",
+      "manufacturer": "AOC",
+      "price": "19990.00",
+      "stock": 14
+    },
+    {
+      "id": 75,
+      "name": "LG 27GP850-B 27\" QHD 165Hz Nano IPS",
+      "description": "27‑дюймовый монитор с разрешением 2560×1440, частотой до 165 Гц и технологиями G‑Sync Compatible/FreeSync Premium.",
+      "category": "Мониторы",
+      "manufacturer": "LG",
+      "price": "32990.00",
+      "stock": 10
+    },
+    {
+      "id": 76,
+      "name": "LG 27GN800-B 27\" QHD 144Hz",
+      "description": "Игровой монитор 27\" с QHD‑разрешением, 144 Гц и поддержкой адаптивной синхронизации. Хороший вариант для мощных игровых систем.",
+      "category": "Мониторы",
+      "manufacturer": "LG",
+      "price": "27990.00",
+      "stock": 12
+    },
+    {
+      "id": 77,
+      "name": "Samsung Odyssey G5 32\" QHD 144Hz",
+      "description": "Изогнутый 32‑дюймовый VA‑монитор с разрешением 2560×1440 и частотой 144 Гц. Подходит для погружения в игры и фильмы.",
+      "category": "Мониторы",
+      "manufacturer": "Samsung",
+      "price": "29990.00",
+      "stock": 9
+    },
+    {
+      "id": 78,
+      "name": "Samsung Odyssey G7 27\" QHD 240Hz",
+      "description": "Премиальный игровой монитор с VA‑матрицей, 240 Гц и глубокой контрастностью. Разработан для киберспортивных дисциплин.",
+      "category": "Мониторы",
+      "manufacturer": "Samsung",
+      "price": "46990.00",
+      "stock": 5
+    },
+    {
+      "id": 79,
+      "name": "Dell UltraSharp U2722D 27\" QHD",
+      "description": "Монитор для работы с цветом: фабрическая калибровка, IPS‑матрица, тонкие рамки и богатый набор интерфейсов.",
+      "category": "Мониторы",
+      "manufacturer": "Dell",
+      "price": "34990.00",
+      "stock": 7
+    },
+    {
+      "id": 80,
+      "name": "ASUS TUF Gaming VG259QM 24.5\" 280Hz",
+      "description": "Очень быстрый игровой монитор с частотой до 280 Гц и временем отклика 1 мс. Отлично подходит для шутеров и киберспорта.",
+      "category": "Мониторы",
+      "manufacturer": "ASUS",
+      "price": "31990.00",
+      "stock": 8
+    },
+    {
+      "id": 81,
+      "name": "ASUS ProArt PA278QV 27\" QHD",
+      "description": "Профессиональный монитор с высокой точностью цветопередачи, калибровкой с завода и удобной эргономичной подставкой.",
+      "category": "Мониторы",
+      "manufacturer": "ASUS",
+      "price": "36990.00",
+      "stock": 6
+    },
+    {
+      "id": 82,
+      "name": "Gigabyte M28U 28\" 4K 144Hz",
+      "description": "4K‑монитор с частотой 144 Гц и поддержкой HDMI 2.1, подходит как для ПК, так и для современных консолей.",
+      "category": "Мониторы",
+      "manufacturer": "Gigabyte",
+      "price": "49990.00",
+      "stock": 4
+    },
+    {
+      "id": 83,
+      "name": "Logitech G Pro X TKL",
+      "description": "Компактная игровая клавиатура без цифрового блока, механические переключатели, настраиваемая подсветка и съёмный кабель USB‑C.",
+      "category": "Клавиатуры",
+      "manufacturer": "Logitech",
+      "price": "14990.00",
+      "stock": 15
+    },
+    {
+      "id": 84,
+      "name": "Logitech G213 Prodigy",
+      "description": "Мембранная игровая клавиатура с RGB‑подсветкой и влагозащитой. Хороший вариант для повседневного использования и игр.",
+      "category": "Клавиатуры",
+      "manufacturer": "Logitech",
+      "price": "5990.00",
+      "stock": 20
+    },
+    {
+      "id": 85,
+      "name": "SteelSeries Apex Pro",
+      "description": "Премиальная клавиатура с настраиваемой высотой срабатывания переключателей, OLED‑экраном и алюминиевым корпусом.",
+      "category": "Клавиатуры",
+      "manufacturer": "SteelSeries",
+      "price": "22990.00",
+      "stock": 8
+    },
+    {
+      "id": 86,
+      "name": "HyperX Alloy Origins",
+      "description": "Механическая клавиатура в металлическом корпусе, компактная раскладка, фирменные переключатели и яркая RGB‑подсветка.",
+      "category": "Клавиатуры",
+      "manufacturer": "HyperX",
+      "price": "9990.00",
+      "stock": 18
+    },
+    {
+      "id": 87,
+      "name": "Razer BlackWidow V3",
+      "description": "Игровая механическая клавиатура с зелёными или жёлтыми переключателями, фирменной подсветкой и мультимедийным колесом.",
+      "category": "Клавиатуры",
+      "manufacturer": "Razer",
+      "price": "13990.00",
+      "stock": 12
+    },
+    {
+      "id": 88,
+      "name": "Logitech G Pro X Superlight",
+      "description": "Лёгкая беспроводная игровая мышь весом около 63 г, сенсор HERO и надёжный беспроводной интерфейс Lightspeed. Подходит для киберспорта.",
+      "category": "Мыши",
+      "manufacturer": "Logitech",
+      "price": "12990.00",
+      "stock": 15
+    },
+    {
+      "id": 89,
+      "name": "Razer DeathAdder V3",
+      "description": "Эргономичная игровая мышь с современным сенсором и облегчённым корпусом. Классическая форма, подходящая под ладонный хват.",
+      "category": "Мыши",
+      "manufacturer": "Razer",
+      "price": "9990.00",
+      "stock": 18
+    },
+    {
+      "id": 90,
+      "name": "SteelSeries Rival 5",
+      "description": "Многофункциональная проводная мышь с дополнительными боковыми кнопками, RGB‑подсветкой и точным сенсором.",
+      "category": "Мыши",
+      "manufacturer": "SteelSeries",
+      "price": "7490.00",
+      "stock": 20
+    },
+    {
+      "id": 91,
+      "name": "DeepCool RGB LED Strip Kit",
+      "description": "Набор адресуемых RGB‑лент для оформления корпуса. Простое подключение к совместимым материнским платам и контроллерам.",
+      "category": "Аксессуары",
+      "manufacturer": "DeepCool",
+      "price": "2990.00",
+      "stock": 25
+    }
+  ]
+}

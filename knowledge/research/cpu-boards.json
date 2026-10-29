@@ -1,0 +1,870 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-25",
+  "scope": "Official manufacturer sources for CPUs 2-11 and motherboards 22-31; local enrichment only.",
+  "products": [
+    {
+      "productId": 2,
+      "catalogName": "Intel Core i5-14600K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i5-14600k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 181,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236799/intel-core-i5-processor-14600k-24m-cache-up-to-5-30-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      }
+    },
+    {
+      "productId": 3,
+      "catalogName": "Intel Core i7-14700K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i7-14700k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 253,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236783/intel-core-i7-processor-14700k-33m-cache-up-to-5-60-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      }
+    },
+    {
+      "productId": 4,
+      "catalogName": "Intel Core i9-14900K",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i9-14900k",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 253,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236773/intel-core-i9-processor-14900k-36m-cache-up-to-6-00-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      }
+    },
+    {
+      "productId": 5,
+      "catalogName": "Intel Core i5-12400F",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i5-12400f",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 117,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/134587/intel-core-i512400f-processor-18m-cache-up-to-4-40-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      }
+    },
+    {
+      "productId": 6,
+      "catalogName": "AMD Ryzen 5 7600",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-5-7600",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ]
+    },
+    {
+      "productId": 7,
+      "catalogName": "AMD Ryzen 5 7600X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-5-7600x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ]
+    },
+    {
+      "productId": 8,
+      "catalogName": "AMD Ryzen 7 7800X3D",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-7-7800x3d",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ]
+    },
+    {
+      "productId": 9,
+      "catalogName": "AMD Ryzen 9 7900X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-9-7900x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7900x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ]
+    },
+    {
+      "productId": 10,
+      "catalogName": "AMD Ryzen 9 7950X",
+      "facts": {
+        "model_id": {
+          "value": "amd-ryzen-9-7950x",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact product model."
+        },
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "General Specifications: CPU Socket AM5."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-9-7950x.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Connectivity: System Memory Type DDR5."
+        }
+      },
+      "notes": [
+        "max_power_watts intentionally omitted: AMD Default TDP is not a verified maximum electrical consumption/PPT."
+      ]
+    },
+    {
+      "productId": 11,
+      "catalogName": "Intel Core i3-14100F",
+      "facts": {
+        "model_id": {
+          "value": "intel-core-i3-14100f",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Canonical application identifier normalized from the exact Processor Number."
+        },
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Package Specifications: Sockets Supported FCLGA1700; normalized to LGA1700."
+        },
+        "max_power_watts": {
+          "value": 110,
+          "source": "https://www.intel.com/content/www/us/en/products/sku/236786/intel-core-i3-processor-14100f-12m-cache-up-to-4-70-ghz/specifications.html",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU Specifications: Maximum Turbo Power, not Processor Base Power."
+        }
+      }
+    },
+    {
+      "productId": 22,
+      "catalogName": "ASUS ROG Strix Z790-E Gaming WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 23,
+      "catalogName": "MSI MAG Z790 TOMAHAWK WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://storage-asset.msi.com/datasheet/mb/global/MAG-Z790-TOMAHAWK-WIFI.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official product datasheet, page 1: CPU Socket LGA 1700."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/MAG-Z790-TOMAHAWK-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 24,
+      "catalogName": "GIGABYTE Z790 AORUS ELITE AX",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-10/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/Z790-AORUS-ELITE-AX-rev-1x/sp"
+          ]
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown.",
+        "Catalog omits PCB revision. Only identical facts corroborated on both official revision specifications are included."
+      ]
+    },
+    {
+      "productId": 25,
+      "catalogName": "ASUS TUF Gaming B760-PLUS WiFi",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760-plus-wifi/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 26,
+      "catalogName": "MSI PRO B760M-P DDR4",
+      "facts": {
+        "socket": {
+          "value": "LGA1700",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 128,
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/PRO-B760M-P-DDR4/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 27,
+      "catalogName": "ASUS ROG Strix X670E-F Gaming WiFi",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 192,
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x670e-f-gaming-wifi-model/spec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 28,
+      "catalogName": "MSI MPG X670E CARBON WiFi",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.msi.com/Motherboard/MPG-X670E-CARBON-WIFI/Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 29,
+      "catalogName": "GIGABYTE B650 AORUS ELITE AX",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "form_factor": {
+          "value": "ATX",
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official ATX form factor.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-10-11/sp",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional.",
+          "corroboratingSources": [
+            "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX-rev-12/sp"
+          ]
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown.",
+        "Catalog omits PCB revision. Only identical facts corroborated on both official revision specifications are included."
+      ]
+    },
+    {
+      "productId": 30,
+      "catalogName": "ASRock B650M Pro RS",
+      "facts": {
+        "socket": {
+          "value": "AM5",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR5",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 256,
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asrock.com/mb/AMD/B650M%20Pro%20RS/index.asp#Specification",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    },
+    {
+      "productId": 31,
+      "catalogName": "ASUS PRIME B550M-A",
+      "facts": {
+        "socket": {
+          "value": "AM4",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "CPU section identifies the physical socket; this does not verify the installed BIOS."
+        },
+        "memory_type": {
+          "value": "DDR4",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory specification identifies DDR generation."
+        },
+        "form_factor": {
+          "value": "Micro-ATX",
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Official Micro ATX/mATX form factor normalized to Micro-ATX."
+        },
+        "memory_slots": {
+          "value": 4,
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Memory section lists four DIMM sockets/slots."
+        },
+        "max_memory_gb": {
+          "value": 128,
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Published maximum system memory capacity; actual support also depends on CPU, BIOS and memory configuration."
+        },
+        "supported_storage_interfaces": {
+          "value": [
+            "NVMe",
+            "SATA"
+          ],
+          "source": "https://www.asus.com/motherboards-components/motherboards/prime/prime-b550m-a/techspec/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-10-25",
+          "evidence": "Storage section specifies PCIe M.2 SSD support and SATA 6Gb/s ports; generation, sharing and slot availability remain conditional."
+        }
+      },
+      "notes": [
+        "supported_cpu_models intentionally omitted: exact CPU support requires the manufacturer CPU support list and the installed BIOS version, which is unknown."
+      ]
+    }
+  ]
+}
