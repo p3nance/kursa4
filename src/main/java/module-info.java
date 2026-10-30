@@ -3,7 +3,6 @@ module com.example.authapp {
     requires javafx.controls;
     requires javafx.fxml;
 
-    requires kotlin.stdlib;
 
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;

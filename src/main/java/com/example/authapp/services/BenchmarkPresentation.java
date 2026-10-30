@@ -16,6 +16,10 @@ public final class BenchmarkPresentation {
                 ? context.suite() : context.suite()+" "+context.version();
     }
 
+    public static String resolution(BenchmarkService.Context context) {
+        return conditionValue("resolution",context.conditions().getOrDefault("resolution","Не опубликовано"));
+    }
+
     public static String workload(BenchmarkService.Context context) {
         return switch(context.workload().toLowerCase(Locale.ROOT)) {
             case "gpu gaming benchmark (4k/high/no upscaling)" -> "Игровой тест видеокарты · средняя частота кадров";

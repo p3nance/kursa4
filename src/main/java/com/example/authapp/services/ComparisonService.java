@@ -108,8 +108,19 @@ public final class ComparisonService {
     private Outcome unavailableGamingScenario(CatalogComponent left,CatalogComponent right,Status status,List<BenchmarkService.Comparison> gaming) {
         String lead="Продолжаем сравнивать «"+left.name()+"» и «"+right.name()+"». Для указанного сценария нет подтверждённого общего игрового результата; FPS и процентную разницу для него не вывожу.";
         String available=gaming.isEmpty()?"Для этой пары общих игровых измерений пока нет.":
-                "Для пары доступны другие опубликованные условия: "+String.join("; ",gaming.stream().map(c->BenchmarkPresentation.title(c.left().context())+" · "+c.left().context().conditions().getOrDefault("resolution","разрешение не указано")).distinct().toList())+". Они не подтверждают результат для названного сценария.";
-        return new Outcome(status,new ChatBotService.Reply(lead+"\n"+available+"\nПоддержано только точное название доступной игры и разрешение диаграммы; дополнительные параметры ПК требуют отдельных измерений.",lead+" "+available,List.of(),List.of(),null,List.of("Сравнить характеристики","Показать модели с общим тестом")));
+                "Для пары доступны другие опубликованные условия: "+String.join("; ",gaming.stream().map(c->BenchmarkPresentation.title(c.left().context())+" · "+BenchmarkPresentation.resolution(c.left().context())).distinct().toList())+". Они не подтверждают результат для названного сценария.";
+        List<String> actions=new ArrayList<>();
+        for(var comparison:gaming) {
+            var context=comparison.left().context();
+            var resolution=Pattern.compile("(?i)^(1080p|4k)\\b").matcher(context.conditions().getOrDefault("resolution",""));
+            if(resolution.find()) {
+                String scenario="в "+BenchmarkPresentation.title(context)+" "+resolution.group();
+                String action="Для игр "+scenario;
+                if(!gamingScenario(gaming,scenario).isEmpty() && !actions.contains(action) && actions.size()<2)actions.add(action);
+            }
+        }
+        actions.add("Сравнить характеристики");actions.add("Показать модели с общим тестом");
+        return new Outcome(status,new ChatBotService.Reply(lead+"\n"+available+"\nПоддержано только точное название доступной игры и разрешение диаграммы; дополнительные параметры ПК требуют отдельных измерений.",lead+" "+available,List.of(),List.of(),null,actions));
     }
 
     private Outcome specifications(CatalogComponent left,CatalogComponent right,Status status,boolean specsOnly,String purpose,

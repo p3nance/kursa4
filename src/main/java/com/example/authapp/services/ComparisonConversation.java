@@ -51,10 +51,26 @@ final class ComparisonConversation {
     Optional<ChatBotService.Reply> respond(String raw,ChatIntentParser.Parsed parsed) {
         String text=ModelResolver.normalize(raw);
         if(parsed.intent()==ChatIntentParser.Intent.COMPARE_HELP) return Optional.of(responses.help());
-        // Fully explicit new requests take precedence over a pending choice.
+        // A goal-first follow-up describes the current pair; a divider inside its scenario is not a new pair.
+        if((parsed.intent()==ChatIntentParser.Intent.OTHER || parsed.intent()==ChatIntentParser.Intent.COMPARE) && startsGamingGoal(raw)) {
+            if(complete()) {
+                setPurposeFrom(raw);
+                return Optional.of(taskDetails.isBlank()?finish(false):acceptTaskDetails(taskDetails));
+            }
+            if(awaiting==0 || awaiting==1) {setPurposeFrom(raw);return Optional.of(askModel(awaiting));}
+        }
+        String modelRaw=raw;
+        if(parsed.intent()==ChatIntentParser.Intent.OTHER || parsed.intent()==ChatIntentParser.Intent.COMPARE) {
+            var marker=EXPLICIT_GAMING_GOAL.matcher(raw);
+            if(marker.find() && marker.start()>0) {
+                modelRaw=raw.substring(0,marker.start()).strip();
+                parsed=new ChatIntentParser().parse(modelRaw);
+            }
+        }
+        // Fully explicit new model requests take precedence over a pending choice.
         if(parsed.intent()==ChatIntentParser.Intent.COMPARE && parsed.pair().size()==2)
             return Optional.of(begin(parsed.pair().get(0),parsed.pair().get(1),raw));
-        var explicitModels=resolver.mentions(raw);
+        var explicitModels=resolver.mentions(modelRaw);
         if((parsed.intent()==ChatIntentParser.Intent.OTHER || parsed.intent()==ChatIntentParser.Intent.COMPARE) && explicitModels.size()==2)
             return Optional.of(begin(explicitModels.get(0).name(),explicitModels.get(1).name(),raw));
         if(text.matches("(?:покажи|показать|выбрать|выбери) модели с общим тестом.*")) {
@@ -81,8 +97,8 @@ final class ComparisonConversation {
             return Optional.of(replace(target,replacement));
         }
         if(awaiting>=0 && parsed.intent()!=ChatIntentParser.Intent.COMPARE && goal(raw)!=null) {
-            setPurpose(goal(raw));
-            return Optional.of(resolver.mentions(raw).isEmpty()?askModel(awaiting):choose(cleanQuery(raw)));
+            setPurposeFrom(raw);
+            return Optional.of(startsGamingGoal(raw) || resolver.mentions(raw).isEmpty()?askModel(awaiting):choose(cleanQuery(raw)));
         }
         if(awaiting>=0 && parsed.intent()!=ChatIntentParser.Intent.COMPARE)
             return Optional.of(choose(raw));
@@ -109,7 +125,7 @@ final class ComparisonConversation {
             left=null;right=anchor;leftQuery="";rightQuery=anchor.name();awaiting=0;options=List.of();
             return Optional.of(reply("С какой моделью сравнить «"+anchor.name()+"»?",List.of()));
         }
-        var mentioned=resolver.mentions(raw);
+        var mentioned=resolver.mentions(modelRaw);
         if(mentioned.size()>2)return Optional.of(reply("Вижу больше двух моделей. Назовите одну пару, которую нужно сравнить.",List.of()));
         if(mentioned.size()==2)return Optional.of(begin(mentioned.get(0).name(),mentioned.get(1).name(),raw));
         if(parsed.intent()==ChatIntentParser.Intent.COMPARE) {
@@ -126,13 +142,13 @@ final class ComparisonConversation {
             var next=resolver.resolve(cleanQuery(raw));
             if(next.status()!=ModelResolver.Status.NOT_FOUND && !(awaitingTaskDetails && goal(raw)==null
                     && next.candidates().stream().allMatch(c->c.category()!=left.category()))) {
-                if(goal(raw)!=null)setPurpose(goal(raw));
+                if(goal(raw)!=null)setPurposeFrom(raw);
                 replacement=cleanQuery(raw);awaiting=2;return Optional.of(replacementTarget());
             }
         }
         if(complete() && goal(raw)!=null && mentioned.isEmpty()) {
             if(hasHardwareToken(raw))return Optional.of(reply("Не распознал новую модель в запросе. Уточните её название; прежняя пара сохранена.",List.of()));
-            setPurpose(goal(raw));return Optional.of(finish(false));
+            setPurposeFrom(raw);return Optional.of(finish(false));
         }
         if(invalidated && (text.matches(".*(?:для игр|для работы|перв|втор|вместо).*"))) {
             invalidated=false;return Optional.of(reply("Каталог изменился, прежний выбор моделей устарел. Назовите новую пару.",List.of()));
@@ -151,7 +167,7 @@ final class ComparisonConversation {
                 List.of("Сравнить характеристики","Показать модели с общим тестом"));
     }
     private ChatBotService.Reply begin(String first,String second,String raw) {
-        clear();specsMode=ModelResolver.normalize(raw).contains("характеристик");leftQuery=cleanQuery(first);rightQuery=cleanQuery(second);String goal=goal(raw);if(goal!=null)purpose=goal;
+        clear();specsMode=ModelResolver.normalize(raw).contains("характеристик");leftQuery=cleanQuery(first);rightQuery=cleanQuery(second);setPurposeFrom(raw);
         return resolve(0,leftQuery);
     }
     private ChatBotService.Reply resolve(int slot,String query) {
@@ -234,13 +250,27 @@ final class ComparisonConversation {
     }
     private static String goal(String raw) {
         String text=ModelResolver.normalize(raw);
-        if(text.matches(".*(?:для игр|игров|гейм).*"))return "Для игр";
+        if(text.matches(".*(?:для игр|в играх|игров|гейм).*"))return "Для игр";
         if(text.matches(".*(?:для работы|для монтажа|монтаж|рендер|рабочих задач|программирован).*"))return "Для работы";
         if(text.matches(".*(?:для офиса|для учебы|офис|учеб).*"))return "Для офиса и учёбы";
         return null;
     }
     private static boolean hasHardwareToken(String text) {
         return cleanQuery(text).matches("\\d{4,5}") || Pattern.compile("(?iu)(?:rtx|gtx|\\brx\\s*\\d|ryzen|райзен|radeon|intel|\\bi[3579]\\s*[- ]*\\d|\\b\\d{4,5}(?:k|kf|f|x|x3d)\\b)").matcher(text).find();
+    }
+    private static final Pattern EXPLICIT_GAMING_GOAL=Pattern.compile("(?iuU)(?<![\\p{L}\\p{N}])(?:для\\s+игр|в\\s+играх)(?![\\p{L}\\p{N}])");
+    private static boolean startsGamingGoal(String raw) {
+        return Pattern.compile("(?iuU)^(?:(?:а|тогда|давай)\\s+)?(?:для\\s+игр|в\\s+играх)(?![\\p{L}\\p{N}])").matcher(raw.strip()).find();
+    }
+    private void setPurposeFrom(String raw) {
+        String next=goal(raw);if(next==null)return;
+        setPurpose(next);
+        if(!next.equals("Для игр"))return;
+        var marker=EXPLICIT_GAMING_GOAL.matcher(raw);
+        if(marker.find()) {
+            String tail=raw.substring(marker.end()).replaceAll("^[\\s,:;—-]+|[.!?]+$","").strip();
+            taskDetails=tail.length()>300?tail.substring(0,300)+"…":tail;
+        }
     }
     private void setPurpose(String value) {if(!purpose.equals(value))taskDetails="";purpose=value;}
     private static ChatBotService.Reply reply(String text,List<String> suggestions) {

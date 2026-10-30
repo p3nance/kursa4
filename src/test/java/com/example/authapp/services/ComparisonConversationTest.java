@@ -230,4 +230,45 @@ class ComparisonConversationTest {
         bot.commitConversation(draft);assertEquals("Starfield",benchmarks(bot.reply("Сравнить по бенчмаркам")).comparisons().getFirst().left().context().suite());
         bot.reply("Новый диалог");assertTrue(bot.reply("Starfield, 4K").content().isEmpty());
     }
+
+    @Test void anInitialGamingRequestKeepsItsUnknownGameOrUnsupportedResolutionTail() {
+        for(String suffix:List.of("для игр в Cyberpunk 2077 на 1440p","для игр на 1440p","в играх Starfield на 1440p","для игр в Starfield 4K с RTX 4090")) {
+            var bot=bot();var reply=bot.reply("Сравни 4070 SUPER и 4070 "+suffix);
+            assertTrue(reply.content().isEmpty(),suffix);assertFalse(reply.text().contains("%"),suffix);
+            var followUp=bot.reply("Сравнить характеристики");var card=specs(followUp);
+            assertTrue(card.left().name().contains("4070 SUPER"));assertTrue(card.right().name().contains("4070"));
+            assertTrue(followUp.text().contains("1440p") || followUp.text().contains("RTX 4090"),suffix);
+        }
+    }
+    @Test void supportedInitialGameTailsUseOnlyTheirActualGamingContexts() {
+        for(var request:List.of(new String[]{"Сравни 4070 SUPER и 4070 для игр в Starfield 4K","Starfield"},
+                new String[]{"Сравни 7600X и 7900X в играх F1 24 на 1080p","F1"})) {
+            var card=benchmarks(bot().reply(request[0]));assertEquals(1,card.comparisons().size(),request[0]);
+            assertEquals(request[1],card.comparisons().getFirst().left().context().suite());
+        }
+        var generic=bot().reply("Сравни 4070 SUPER и 4070 для игр");
+        assertEquals(1,benchmarks(generic).comparisons().size());assertTrue(generic.text().contains("В какие игры"));
+    }
+    @Test void goalFirstFollowUpsRetainTheOriginalPairAndApplyTheirInlineScenario() {
+        var known=bot();known.reply("4070 SUPER vs 4070");var starfield=known.reply("а для игр в Starfield 4K");
+        assertEquals("Starfield",benchmarks(starfield).comparisons().getFirst().left().context().suite());
+        assertTrue(starfield.text().contains("Учёл уточнение"));
+        for(String followUp:List.of("а для игр в Cyberpunk 2077 на 1440p","а для игр на 1440p","а для игр в Starfield 4K с RTX 4090")) {
+            var bot=bot();bot.reply("4070 SUPER vs 4070");var reply=bot.reply(followUp);
+            assertTrue(reply.content().isEmpty(),followUp);assertFalse(reply.text().contains("%"),followUp);
+            assertTrue(reply.text().contains("Учёл уточнение"),followUp);
+            var card=specs(bot.reply("Сравнить характеристики"));
+            assertTrue(card.left().name().contains("4070 SUPER"));assertTrue(card.right().name().contains("4070"));
+        }
+    }
+    @Test void anInlineGamingTailSurvivesModelClarificationAndACommittedDraft() {
+        var bot=bot();assertTrue(bot.reply("Сравни 4070 SUPER для игр в Starfield 4K").text().contains("вторую"));
+        assertEquals("Starfield",benchmarks(bot.reply("4070")).comparisons().getFirst().left().context().suite());
+        var draft=bot.fork();assertTrue(draft.reply("а для игр в Cyberpunk 2077 на 1440p").content().isEmpty());
+        assertFalse(benchmarks(bot.reply("Сравнить по бенчмаркам")).comparisons().isEmpty());
+        bot.commitConversation(draft);assertTrue(bot.reply("Сравнить по бенчмаркам").content().isEmpty());
+        var generic=bot.reply("а для игр?");assertEquals(1,benchmarks(generic).comparisons().size());
+        assertTrue(generic.text().contains("В какие игры"));
+        bot.reply("Новый диалог");assertTrue(bot.reply("а для игр в Starfield 4K").content().isEmpty());
+    }
 }

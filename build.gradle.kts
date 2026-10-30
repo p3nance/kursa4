@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("org.slf4j:slf4j-simple:2.0.7")
     implementation("org.json:json:20230618")

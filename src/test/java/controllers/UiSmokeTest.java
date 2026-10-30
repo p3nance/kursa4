@@ -160,6 +160,20 @@ class UiSmokeTest {
             render(chat,"benchmark-comparison",1440,900);render(chat,"benchmark-comparison-900",900,600);return null;
         });
     }
+    @Test void inlineGameScenarioNeverShowsAnotherGamesFpsAsItsResult() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Cyberpunk 1440p");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && text(lookup(chat,"#messages")).contains("указанного сценария"));
+        onFx(()->{
+            String displayed=text(lookup(chat,"#messages"));assertTrue(chat.lookupAll(".chat-benchmark-card").isEmpty());
+            assertTrue(displayed.contains("NVIDIA GeForce RTX 4070 SUPER 12GB"));assertTrue(displayed.contains("NVIDIA GeForce RTX 4070 12GB"));
+            assertTrue(displayed.contains("Starfield"));assertFalse(displayed.contains("13.76 %"));assertFalse(displayed.contains("52.9"));
+            render(chat,"r22-inline-unsupported",1440,900);render(chat,"r22-inline-unsupported-900",900,600);
+            Button available=findButton(chat,"Для игр в Starfield 4K");assertNotNull(available,"Offer a supported scenario instead of making the user guess its syntax");available.fire();return null;
+        });
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{String displayed=text(lookup(chat,"#messages"));assertTrue(displayed.contains("13.76 %"));assertTrue(displayed.contains("52.9"));assertTrue(displayed.contains("46.5"));render(chat,"r22-inline-supported",1440,900);return null;});
+    }
     @Test void realGamingComparisonShowsAverageFpsAndHonestUnknownsAtBothWindowSizes() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни Ryzen 7 7800X3D и Ryzen 5 7600X для игр");return null;});
