@@ -67,7 +67,11 @@ public final class BenchmarkService {
     }
     public List<Result> load(Path path) throws IOException {
         if(Files.size(path)>5_000_000) throw new IOException("Файл бенчмарков превышает 5 МБ");
-        try(var reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)) {
+        try(var reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)) { return load(reader); }
+    }
+    /** The caller owns the reader; measurement validation is identical for files and resources. */
+    public List<Result> load(Reader reader) throws IOException {
+        try {
             var root=JsonParser.parseReader(reader).getAsJsonObject();
             if(root.get("version").getAsBigDecimal().intValueExact()!=1) throw new IllegalArgumentException("Неизвестная версия бенчмарков");
             List<Result> imported=new ArrayList<>();Set<MeasurementKey> keys=new HashSet<>();

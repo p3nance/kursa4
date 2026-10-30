@@ -33,6 +33,7 @@ public final class RepositoryRlsContractProbe {
                             .put("user",new JSONObject().put("id",second?B:A).put("email",email)).toString();
                 } else if(path.equals("/rest/v1/products")){
                     productRequests.incrementAndGet();JSONObject payload=new JSONObject(body);
+                    check(payload.getBigDecimal("price").equals(new java.math.BigDecimal("1000.17")),"product price lost decimal digits");
                     check(!payload.has("id"),"REST product payload sent forbidden id column");
                     check(payload.keySet().equals(Set.of("name","description","price","stock","image_url","category","manufacturer")),"product mutable column set changed");
                     if(method.equals("POST"))status=201;
@@ -62,7 +63,7 @@ public final class RepositoryRlsContractProbe {
         server.start();System.setProperty("techstore.supabase.url","http://127.0.0.1:"+server.getAddress().getPort());System.setProperty("techstore.supabase.key","sb_publishable_test");
         try {
             check(SessionManager.login("a@example.invalid","test"),"fixture login failed");
-            Product product=new Product(17,"Test product","description",1000,5,"https://example.invalid/photo.png","Процессоры","Test");
+            Product product=new Product(17,"Test product","description",new java.math.BigDecimal("1000.17"),5,"https://example.invalid/photo.png","Процессоры","Test");
             ProductRepository.addProductToSupabase(product);ProductRepository.updateProductInSupabase(product);
             check(productRequests.get()==2,"product create/PATCH were not exercised");
             check(UserRepository.getUserProfileByEmail("a@example.invalid").id.equals(A),"own profile read by email failed");

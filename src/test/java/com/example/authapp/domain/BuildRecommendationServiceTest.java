@@ -64,4 +64,34 @@ class BuildRecommendationServiceTest {
         var workstation=BuildRecommendationService.Request.forUsage(new BigDecimal("800"),BuildRecommendationService.Usage.WORKSTATION);
         assertEquals(BuildRecommendationService.Status.NO_MATCH,service.recommend(parts,workstation).status());
     }
+    @Test void alternativesAreDistinctRankedAndDeterministicInOneTraversal() {
+        var catalog=alternativeCatalog();
+        var request=BuildRecommendationService.Request.forBudget(new BigDecimal("1000.00"));
+        var choices=service.recommendAlternatives(catalog,request,3);
+        assertEquals(3,choices.size());assertEquals(List.of(new BigDecimal("800.00"),new BigDecimal("800.01"),new BigDecimal("800.02")),choices.stream().map(BuildRecommendationService.Recommendation::purchaseTotal).toList());
+        assertEquals(3,choices.stream().map(r->r.components().stream().map(CatalogComponent::productId).toList()).distinct().count());
+        assertTrue(choices.stream().allMatch(r->r.status()==BuildRecommendationService.Status.READY));
+        Collections.reverse(catalog);assertEquals(choices,service.recommendAlternatives(catalog,request,3));
+        assertEquals(service.recommend(catalog,request),choices.getFirst());
+    }
+    @Test void alternativeBudgetsOwnedPartsAndNodeLimitsRemainAuthoritative() {
+        var catalog=alternativeCatalog();var gpu=catalog.stream().filter(c->c.category()==ComponentCategory.GPU).findFirst().orElseThrow();
+        var request=new BuildRecommendationService.Request(new BigDecimal("700.01"),BuildRecommendationService.Usage.GAMING,16,500,Map.of(ComponentCategory.GPU,gpu),true);
+        var choices=service.recommendAlternatives(catalog,request,3);
+        assertEquals(2,choices.size());assertEquals(new BigDecimal("700.00"),choices.getFirst().purchaseTotal());
+        assertTrue(choices.stream().allMatch(r->r.purchaseTotal().compareTo(request.budget())<=0&&r.components().contains(gpu)));
+        var bounded=new BuildRecommendationService(12,3).recommendAlternatives(catalog,request,3);
+        assertEquals(BuildRecommendationService.Status.SEARCH_LIMIT,bounded.getFirst().status());assertTrue(bounded.getFirst().searchTruncated());
+        assertThrows(IllegalArgumentException.class,()->service.recommendAlternatives(catalog,request,4));
+        assertThrows(IllegalArgumentException.class,()->service.recommendAlternatives(catalog,request,0));
+    }
+    private static ArrayList<CatalogComponent> alternativeCatalog() {
+        var catalog=new ArrayList<>(DomainFixtures.verifiedBuild());
+        for(var category:List.of(ComponentCategory.CPU,ComponentCategory.RAM)) {
+            var base=catalog.stream().filter(c->c.category()==category).findFirst().orElseThrow();
+            catalog.add(new CatalogComponent(base.productId()+100,base.name()+" alternative",category,
+                    base.price().add(category==ComponentCategory.CPU?new BigDecimal("0.01"):new BigDecimal("0.02")),1,base.specs()));
+        }
+        catalog.add(catalog.getFirst());return catalog;
+    }
 }

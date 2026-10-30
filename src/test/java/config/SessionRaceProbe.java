@@ -84,7 +84,7 @@ public final class SessionRaceProbe {
 
             SessionManager.clearSession();Product p=product(31);Cart.getInstance().addProduct(p,2);var snapshot=Cart.getInstance().getItems();
             p.setPrice(90000);snapshot.getFirst().getProduct().setPrice(99999);snapshot.getFirst().setQuantity(999);
-            check(Cart.getInstance().getTotal()==2000&&Cart.getInstance().getTotalQuantity()==2,"cart snapshot shared mutable item/product");
+            check(Cart.getInstance().getTotal().compareTo(new java.math.BigDecimal("2000.00"))==0&&Cart.getInstance().getTotalQuantity()==2,"cart snapshot shared mutable item/product");
             expectFailure(snapshot::clear);Cart.getInstance().addProduct(product(32),1);check(snapshot.size()==1,"snapshot is a live list");
             System.out.println("PASS: delayed cart, stale bearer/scope, delayed login/refresh, same-user epochs and detached cart snapshots.");
         } finally {

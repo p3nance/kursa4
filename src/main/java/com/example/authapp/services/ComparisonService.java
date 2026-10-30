@@ -5,6 +5,7 @@ import com.example.authapp.models.Product;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import static com.example.authapp.domain.ComponentSpecs.*;
 
 /** Compares known facts and matching measurements; it never fills absent measurements from specifications. */
@@ -39,21 +40,76 @@ public final class ComparisonService {
         Status status=leftResults.isEmpty()||rightResults.isEmpty()?Status.NO_MEASUREMENTS
                 :comparisons.isEmpty()?Status.NO_COMMON_CONTEXT:Status.COMPARABLE;
         if(specsOnly || status!=Status.COMPARABLE) return specifications(left,right,status,specsOnly,purpose,leftResults,rightResults);
+        boolean gamingRequested=gamingPurpose(purpose);
+        var gaming=comparisons.stream().filter(c->isGaming(c.left().context())).toList();
+        String details=taskDetails(purpose);
+        if(gamingRequested && !gaming.isEmpty()) {
+            if(!details.isBlank()) {
+                var scenario=gamingScenario(gaming,details);
+                if(scenario.isEmpty())return unavailableGamingScenario(left,right,status,gaming);
+                comparisons=scenario;
+            } else comparisons=gaming;
+        } else if(gamingRequested && !details.isBlank()) {
+            return unavailableGamingScenario(left,right,status,gaming);
+        }
         String lead="Сравниваю «"+left.name()+"» и «"+right.name()+"»: нашёл общие тесты. Вывод относится только к их условиям.";
         StringJoiner text=new StringJoiner("\n\n");text.add(lead);
         comparisons.stream().limit(5).forEach(c -> {
             var context=c.left().context();
-            text.add(context.suite()+" "+context.version()+" · "+BenchmarkPresentation.workload(context)
+            text.add(BenchmarkPresentation.title(context)+" · "+BenchmarkPresentation.workload(context)
                     +"\n"+left.name()+": "+c.left().value()+"; "+right.name()+": "+c.right().value()+" "+BenchmarkPresentation.unit(context.unit())
                     +"\n"+BenchmarkPresentation.winner(c,modelNames)
                     +"\n"+BenchmarkPresentation.difference(c)+". "+c.explanation()
                     +"\nУсловия:\n"+String.join("\n",BenchmarkPresentation.conditionLines(context))
                     +"\nИсточники: "+c.left().source()+" ("+c.left().dateDescription()+"); "+c.right().source()+" ("+c.right().dateDescription()+")");
         });
-        String task=purposeNote(purpose);if(!task.isEmpty()) text.add(task);
+        String task=gamingRequested && !gaming.isEmpty()
+                ? "Показан средний FPS в конкретной игре на опубликованном стенде. Это не прогноз для других игр или вашей сборки."
+                    +(details.isBlank()?" В какие игры и с какой видеокартой планируете играть?":" Уточнение не подтверждает эквивалентность вашего ПК опубликованному стенду.")
+                : gamingRequested
+                    ? "Для этой пары нет общих проверенных игровых измерений. Показываю имеющиеся прочие тесты отдельно. "+purposeNote(purpose)
+                    : purposeNote(purpose);
+        if(!task.isEmpty()) text.add(task);
         List<String> suggestions=List.of("Сравнить характеристики", "Для игр", "Для работы");
         return new Outcome(status,new ChatBotService.Reply(text.toString(),lead+(task.isEmpty()?"":" "+task),List.of(),
                 List.of(new ChatBotService.BenchmarksContent(comparisons.stream().limit(5).toList(),modelNames)),null,suggestions));
+    }
+
+    private static boolean isGaming(BenchmarkService.Context context) {
+        return context.unit().equalsIgnoreCase("FPS") && context.workload().toLowerCase(Locale.ROOT).contains("gaming");
+    }
+    private static boolean gamingPurpose(String purpose) {
+        String first=Objects.toString(purpose,"").split("\nУточнение: ",2)[0].toLowerCase(RU);
+        return first.contains("игр") || first.contains("gaming");
+    }
+    private static String taskDetails(String purpose) {
+        String[] split=Objects.toString(purpose,"").split("\nУточнение: ",2);
+        return split.length==2?split[1].strip():"";
+    }
+    /** Deliberately narrow: a named supported game and an optional chart resolution, no inferred PC settings. */
+    private static List<BenchmarkService.Comparison> gamingScenario(List<BenchmarkService.Comparison> gaming,String raw) {
+        String details=ModelResolver.normalize(raw);
+        String game;
+        if(Pattern.compile("\\bstarfield\\b").matcher(details).find())game="Starfield";
+        else if(Pattern.compile("\\bf\\s*1\\s*24\\b").matcher(details).find())game="F1";
+        else return List.of();
+        var resolution=Pattern.compile("(?<![a-z0-9])(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9])").matcher(details);
+        Set<String> requested=new LinkedHashSet<>();while(resolution.find())requested.add(resolution.group());
+        if(requested.size()>1)return List.of();
+        String remaining=details.replaceAll("\\bstarfield\\b|\\bf\\s*1\\s*24\\b","")
+                .replaceAll("(?<![a-z0-9])(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9])","")
+                .replaceAll("(?U)\\b(?:а|в|на|для|игра|игры|играю|при|разрешение|разрешении)\\b","").strip();
+        if(!remaining.isBlank())return List.of();
+        return gaming.stream().filter(c->c.left().context().suite().equalsIgnoreCase(game))
+                .filter(c->game.equals("Starfield") || c.left().context().version().equals("24"))
+                .filter(c->requested.isEmpty() || Pattern.compile("(?<![a-z0-9])"+Pattern.quote(requested.iterator().next())+"(?![a-z0-9])")
+                        .matcher(c.left().context().conditions().getOrDefault("resolution","").toLowerCase(Locale.ROOT)).find()).toList();
+    }
+    private Outcome unavailableGamingScenario(CatalogComponent left,CatalogComponent right,Status status,List<BenchmarkService.Comparison> gaming) {
+        String lead="Продолжаем сравнивать «"+left.name()+"» и «"+right.name()+"». Для указанного сценария нет подтверждённого общего игрового результата; FPS и процентную разницу для него не вывожу.";
+        String available=gaming.isEmpty()?"Для этой пары общих игровых измерений пока нет.":
+                "Для пары доступны другие опубликованные условия: "+String.join("; ",gaming.stream().map(c->BenchmarkPresentation.title(c.left().context())+" · "+c.left().context().conditions().getOrDefault("resolution","разрешение не указано")).distinct().toList())+". Они не подтверждают результат для названного сценария.";
+        return new Outcome(status,new ChatBotService.Reply(lead+"\n"+available+"\nПоддержано только точное название доступной игры и разрешение диаграммы; дополнительные параметры ПК требуют отдельных измерений.",lead+" "+available,List.of(),List.of(),null,List.of("Сравнить характеристики","Показать модели с общим тестом")));
     }
 
     private Outcome specifications(CatalogComponent left,CatalogComponent right,Status status,boolean specsOnly,String purpose,

@@ -58,7 +58,7 @@ public class PromoCodeRepository {
         return result;
     }
     private PromoCode parse(JSONObject row) {
-        return new PromoCode(row.getInt("id"), row.getString("code"), row.getBigDecimal("discount_percent").doubleValue(),
+        return new PromoCode(row.getInt("id"), row.getString("code"), row.getBigDecimal("discount_percent"),
                 row.getInt("max_uses"), row.getInt("used_count"), row.getString("expiry_date"), row.getBoolean("is_active"));
     }
 }

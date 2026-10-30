@@ -1,6 +1,8 @@
 package com.example.authapp.dto;
 
 import com.google.gson.annotations.SerializedName;
+import java.math.BigDecimal;
+import com.example.authapp.network.Money;
 public class CartItemDTO {
 
     @SerializedName("id")
@@ -16,7 +18,7 @@ public class CartItemDTO {
     public String productName;
 
     @SerializedName("price")
-    public double price;
+    public BigDecimal price = Money.ZERO;
 
     @SerializedName("quantity")
     public int quantity;
@@ -27,11 +29,11 @@ public class CartItemDTO {
     public CartItemDTO() {}
 
     public CartItemDTO(int cartItemId, int productId, String productName,
-                       double price, int quantity, String productImage) {
+                       BigDecimal price, int quantity, String productImage) {
         this.cartItemId = cartItemId;
         this.productId = productId;
         this.productName = productName;
-        this.price = price;
+        this.price = Money.amount(price);
         this.quantity = quantity;
         this.productImage = productImage;
     }

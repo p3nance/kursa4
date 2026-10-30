@@ -1,5 +1,7 @@
 package controllers;
 
+import com.example.authapp.network.Money;
+import java.math.BigDecimal;
 import com.example.authapp.models.*;
 import com.example.authapp.services.*;
 import com.example.authapp.ui.Ui;
@@ -26,7 +28,6 @@ public final class CartController {
     private final OrderService orderService=new OrderService(cartService,new ProductService());
     private final ExecutorService worker=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"cart-requests");t.setDaemon(true);return t;});
     private boolean busy,disposed;
-    private double appliedDiscount;
     private String appliedPromoCode;
     @FXML private void initialize(){
         cartGrid.setMinWidth(0);cartItemsContainer.setMinWidth(0);cartSummary.setMinWidth(0);promoCodeField.setMinWidth(0);
@@ -77,8 +78,8 @@ public final class CartController {
         setBusy(true);submitForSession(()->{try{PromoCode promo=promoCodeService.validateAndGetPromoCode(code);Platform.runLater(()->{if(disposed)return;cartService.setAppliedPromoCode(promo);appliedPromoCode=promo.getCode();setBusy(false);promoCodeField.setDisable(true);applyPromoButton.setDisable(true);updateTotal();message("Промокод применён. Итоговая скидка проверяется при оформлении.","success");});}catch(Exception ex){Platform.runLater(()->{if(!disposed){setBusy(false);message("Промокод недоступен или не удалось проверить его. Проверьте код и попробуйте снова.","error");}});}});
     }
     private void updateTotal(){
-        double total=Cart.getInstance().getTotal();PromoCode promo=cartService.getAppliedPromoCode();appliedDiscount=promo==null?0:promoCodeService.calculateDiscount(total,promo);
-        totalLabel.setText(Ui.money(Math.max(0,total-appliedDiscount)));discountLabel.setText("Скидка: −"+Ui.money(appliedDiscount));discountLabel.setVisible(appliedDiscount>0);
+        BigDecimal total=Cart.getInstance().getTotal();PromoCode promo=cartService.getAppliedPromoCode();BigDecimal appliedDiscount=promo==null?Money.ZERO:promoCodeService.calculateDiscount(total,promo);
+        totalLabel.setText(Ui.money(Money.payable(total,appliedDiscount)));discountLabel.setText("Скидка: −"+Ui.money(appliedDiscount));discountLabel.setVisible(appliedDiscount.signum()>0);
         int quantity=Cart.getInstance().getTotalQuantity();cartCountLabel.setText(quantity==0?"Выбранные товары появятся здесь":quantity+" шт. в корзине");checkoutButton.setDisable(busy||quantity==0||SessionManager.getUserId()==null);
     }
     private void checkout(){
@@ -86,7 +87,7 @@ public final class CartController {
         Alert confirm=new Alert(Alert.AlertType.CONFIRMATION);Ui.theme(confirm);confirm.setTitle("Оформить заказ");confirm.setHeaderText("Проверить и оформить заказ?");confirm.setContentText("Предварительная сумма: "+totalLabel.getText()+".\nЦены, наличие и скидка будут проверены сервером.");
         if(confirm.showAndWait().orElse(ButtonType.CANCEL)!=ButtonType.OK)return;
         setBusy(true);message("Проверяем и оформляем заказ…","neutral");
-        submitForSession(()->{try{int id=orderService.createOrderFromCart(appliedPromoCode);Platform.runLater(()->{if(disposed)return;appliedPromoCode=null;appliedDiscount=0;promoCodeField.clear();promoCodeField.setDisable(false);applyPromoButton.setDisable(false);setBusy(false);loadCartItems();message("Заказ №"+id+" создан. Итоговые суммы доступны в истории заказов.","success");});}catch(Exception ex){Platform.runLater(()->{if(!disposed){setBusy(false);message("Не удалось подтвердить оформление. "+Objects.toString(ex.getMessage(),"Повторите позже.")+" При сетевом сбое сначала проверьте историю заказов.","error");}});}});
+        submitForSession(()->{try{int id=orderService.createOrderFromCart(appliedPromoCode);Platform.runLater(()->{if(disposed)return;appliedPromoCode=null;promoCodeField.clear();promoCodeField.setDisable(false);applyPromoButton.setDisable(false);setBusy(false);loadCartItems();message("Заказ №"+id+" создан. Итоговые суммы доступны в истории заказов.","success");});}catch(Exception ex){Platform.runLater(()->{if(!disposed){setBusy(false);message("Не удалось подтвердить оформление. "+Objects.toString(ex.getMessage(),"Повторите позже.")+" При сетевом сбое сначала проверьте историю заказов.","error");}});}});
     }
     private void setBusy(boolean value){busy=value;cartItemsContainer.setDisable(value);promoCodeField.setDisable(value||appliedPromoCode!=null);applyPromoButton.setDisable(value||appliedPromoCode!=null);updateTotal();}
     private void message(String text,String tone){cartStatus.setText(text);cartStatus.getStyleClass().setAll("secondary-status",tone);cartStatus.setVisible(true);}

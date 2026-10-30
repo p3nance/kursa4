@@ -42,10 +42,12 @@
       <VBox fx:id="contextPane" spacing="18" minWidth="220" prefWidth="240" maxWidth="240">
         <VBox spacing="10" styleClass="chat-context-card">
           <Label text="Ваш запрос" styleClass="chat-card-title"/>
-          <Label text="Бюджет системного блока" styleClass="chat-context-label"/>
+          <Label text="Бюджет покупки" styleClass="chat-context-label"/>
           <Label fx:id="budgetValue" text="Не указан" wrapText="true" styleClass="chat-budget"/>
           <Label text="Основные задачи" styleClass="chat-context-label"/>
           <Label fx:id="taskValue" text="Не выбраны" wrapText="true" styleClass="chat-context-tag"/>
+          <Label fx:id="ownedValue" wrapText="true" visible="false" managed="false" styleClass="chat-owned-summary"/>
+          <Label fx:id="constraintsValue" wrapText="true" visible="false" managed="false" styleClass="chat-caption"/>
           <Label text="Включено в подбор" styleClass="chat-context-label"/>
           <Label text="Системный блок" styleClass="chat-context-tag"/>
           <Separator/>

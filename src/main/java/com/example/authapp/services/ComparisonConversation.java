@@ -120,6 +120,8 @@ final class ComparisonConversation {
             }
             return Optional.of(begin(query,"",raw));
         }
+        if(complete() && awaitingTaskDetails && parsed.intent()==ChatIntentParser.Intent.OTHER && goal(raw)==null)
+            return Optional.of(acceptTaskDetails(raw));
         if(complete() && (text.matches("^(?:а |тогда |давай ).*") || goal(raw)!=null)) {
             var next=resolver.resolve(cleanQuery(raw));
             if(next.status()!=ModelResolver.Status.NOT_FOUND && !(awaitingTaskDetails && goal(raw)==null
@@ -132,19 +134,21 @@ final class ComparisonConversation {
             if(hasHardwareToken(raw))return Optional.of(reply("Не распознал новую модель в запросе. Уточните её название; прежняя пара сохранена.",List.of()));
             setPurpose(goal(raw));return Optional.of(finish(false));
         }
-        if(complete() && awaitingTaskDetails && parsed.intent()==ChatIntentParser.Intent.OTHER) {
-            awaitingTaskDetails=false;
-            String details=raw.length()>300?raw.substring(0,300)+"…":raw;
-            taskDetails=details;
-            String limitation=purpose.equals("Для игр")?"В текущем наборе нет игровых измерений для такого сценария. Тесты рендеринга не дают прогноза FPS.":
-                    "В текущем наборе есть отдельные тесты рендеринга; они не описывают скорость всех программ и всей сборки.";
-            return Optional.of(reply("Учёл уточнение: «"+details+"». Продолжаем сравнивать «"+left.name()+"» и «"+right.name()+"». "+limitation,
-                    List.of("Сравнить характеристики","Показать модели с общим тестом")));
-        }
         if(invalidated && (text.matches(".*(?:для игр|для работы|перв|втор|вместо).*"))) {
             invalidated=false;return Optional.of(reply("Каталог изменился, прежний выбор моделей устарел. Назовите новую пару.",List.of()));
         }
         return Optional.empty();
+    }
+    private ChatBotService.Reply acceptTaskDetails(String raw) {
+        awaitingTaskDetails=false;
+        taskDetails=raw.length()>300?raw.substring(0,300)+"…":raw;
+        String ack="Учёл уточнение: «"+taskDetails+"». ";
+        if(purpose.equals("Для игр")) {
+            var answer=responses.compare(left,right,specsMode,purpose+"\nУточнение: "+taskDetails).reply();
+            return new ChatBotService.Reply(ack+answer.text(),ack+answer.lead(),List.of(),answer.content(),null,answer.suggestions());
+        }
+        return reply(ack+"Продолжаем сравнивать «"+left.name()+"» и «"+right.name()+"». В текущем наборе есть отдельные тесты рендеринга; они не описывают скорость всех программ и всей сборки.",
+                List.of("Сравнить характеристики","Показать модели с общим тестом"));
     }
     private ChatBotService.Reply begin(String first,String second,String raw) {
         clear();specsMode=ModelResolver.normalize(raw).contains("характеристик");leftQuery=cleanQuery(first);rightQuery=cleanQuery(second);String goal=goal(raw);if(goal!=null)purpose=goal;

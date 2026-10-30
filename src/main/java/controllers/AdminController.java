@@ -1,6 +1,7 @@
 package controllers;
 
 import com.example.authapp.ui.Ui;
+import com.example.authapp.ui.ProductEditDialog;
 import java.util.concurrent.*;
 
 import com.example.authapp.dto.ProductDTO;
@@ -13,7 +14,9 @@ import com.example.authapp.services.SupabaseStorageService;
 import com.example.authapp.services.AdminRefreshService;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import java.math.BigDecimal;
+import com.example.authapp.network.Money;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -220,11 +223,11 @@ public class AdminController implements Initializable {
         categoryCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().category));
         categoryCol.setPrefWidth(130);
 
-        TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
-        priceCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().price).asObject());
+        TableColumn<ProductDTO, BigDecimal> priceCol = new TableColumn<>("Цена (₽)");
+        priceCol.setCellValueFactory(cd -> new SimpleObjectProperty<>(cd.getValue().price));
         priceCol.setPrefWidth(100);
         priceCol.setCellFactory(column -> new TableCell<>() {
-            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+            @Override protected void updateItem(BigDecimal value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
         });
 
         TableColumn<ProductDTO, Integer> stockCol = new TableColumn<>("Склад");
@@ -282,52 +285,7 @@ public class AdminController implements Initializable {
     }
 
     private void showAddProductDialog() {
-        Dialog<ProductDTO> dialog = new Dialog<>();
-        Ui.theme(dialog);
-        dialog.setTitle("Добавить товар");
-        dialog.setHeaderText(" Введите данные товара");
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-
-        TextField nameField     = new TextField(); nameField.setPromptText("Название");
-        TextField priceField    = new TextField(); priceField.setPromptText("Цена (₽)");
-        TextField stockField    = new TextField(); stockField.setPromptText("Количество");
-        TextField categoryField = new TextField(); categoryField.setPromptText("Категория");
-
-        grid.add(new Label("Название:"),  0, 0); grid.add(nameField,     1, 0);
-        grid.add(new Label("Цена (₽):"),  0, 1); grid.add(priceField,    1, 1);
-        grid.add(new Label("Склад:"),     0, 2); grid.add(stockField,    1, 2);
-        grid.add(new Label("Категория:"), 0, 3); grid.add(categoryField, 1, 3);
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                try {
-                    String name     = nameField.getText().trim();
-                    double price    = Double.parseDouble(priceField.getText());
-                    int    stock    = Integer.parseInt(stockField.getText());
-                    String category = categoryField.getText().trim();
-                    if (name.isEmpty() || category.isEmpty()) {
-                        showAlert("Ошибка", "Заполните поля!");
-                        return null;
-                    }
-                    return new ProductDTO(0, name, "", price, stock, "", category, "");
-                } catch (Exception e) {
-                    showAlert("Ошибка", "Проверьте формат!");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        var result = dialog.showAndWait();
-        if (result.isPresent() && result.get() != null) {
-            saveProduct(result.get());
-        }
+        ProductEditDialog.show(productsTable.getScene()==null?null:productsTable.getScene().getWindow(),null).ifPresent(this::saveProduct);
     }
 
     private void saveProduct(ProductDTO product) {
@@ -347,68 +305,7 @@ public class AdminController implements Initializable {
     }
 
     private void showEditProductDialog(ProductDTO product) {
-        Dialog<ProductDTO> dialog = new Dialog<>();
-        Ui.theme(dialog);
-        dialog.setTitle("Редактировать товар");
-        dialog.setHeaderText(" Редактирование товара #" + product.id);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-
-        TextField nameField         = new TextField(product.name);
-        TextField priceField        = new TextField(String.valueOf(product.price));
-        TextField stockField        = new TextField(String.valueOf(product.stock));
-        TextField categoryField     = new TextField(product.category);
-        TextField manufacturerField = new TextField(product.manufacturer != null ? product.manufacturer : "");
-        TextArea  descriptionArea   = new TextArea(product.description  != null ? product.description  : "");
-        descriptionArea.setPrefRowCount(3);
-        descriptionArea.setWrapText(true);
-
-        grid.add(new Label("Название:"),      0, 0); grid.add(nameField,         1, 0);
-        grid.add(new Label("Цена (₽):"),      0, 1); grid.add(priceField,        1, 1);
-        grid.add(new Label("Склад:"),         0, 2); grid.add(stockField,        1, 2);
-        grid.add(new Label("Категория:"),     0, 3); grid.add(categoryField,     1, 3);
-        grid.add(new Label("Производитель:"), 0, 4); grid.add(manufacturerField, 1, 4);
-        grid.add(new Label("Описание:"),      0, 5); grid.add(descriptionArea,   1, 5);
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                try {
-                    String name         = nameField.getText().trim();
-                    double price        = Double.parseDouble(priceField.getText());
-                    int    stock        = Integer.parseInt(stockField.getText());
-                    String category     = categoryField.getText().trim();
-                    String manufacturer = manufacturerField.getText().trim();
-                    String description  = descriptionArea.getText().trim();
-
-                    if (name.isEmpty() || category.isEmpty()) {
-                        showAlert("Ошибка", "Заполните обязательные поля!");
-                        return null;
-                    }
-
-                    product.name         = name;
-                    product.price        = price;
-                    product.stock        = stock;
-                    product.category     = category;
-                    product.manufacturer = manufacturer;
-                    product.description  = description;
-                    return product;
-                } catch (NumberFormatException e) {
-                    showAlert("Ошибка", "Проверьте формат цены и количества!");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        var result = dialog.showAndWait();
-        if (result.isPresent() && result.get() != null) {
-            updateProduct(result.get());
-        }
+        ProductEditDialog.show(productsTable.getScene()==null?null:productsTable.getScene().getWindow(),product).ifPresent(this::updateProduct);
     }
 
     private void updateProduct(ProductDTO product) {
@@ -620,11 +517,11 @@ public class AdminController implements Initializable {
                 cd.getValue().userId != null ? cd.getValue().userId : "-"));
         userCol.setPrefWidth(150);
 
-        TableColumn<OrderDTO, Double> sumCol = new TableColumn<>("Сумма");
-        sumCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().totalAmount).asObject());
+        TableColumn<OrderDTO, BigDecimal> sumCol = new TableColumn<>("Сумма");
+        sumCol.setCellValueFactory(cd -> new SimpleObjectProperty<>(cd.getValue().totalAmount));
         sumCol.setPrefWidth(100);
         sumCol.setCellFactory(column -> new TableCell<>() {
-            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+            @Override protected void updateItem(BigDecimal value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
         });
 
         TableColumn<OrderDTO, String> statusCol = new TableColumn<>("Статус");
@@ -741,8 +638,8 @@ public class AdminController implements Initializable {
         codeCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().code));
         codeCol.setPrefWidth(150);
 
-        TableColumn<PromoCodeDTO, Double> discountCol = new TableColumn<>("Скидка %");
-        discountCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().discountPercent).asObject());
+        TableColumn<PromoCodeDTO, BigDecimal> discountCol = new TableColumn<>("Скидка %");
+        discountCol.setCellValueFactory(cd -> new SimpleObjectProperty<>(cd.getValue().discountPercent));
         discountCol.setPrefWidth(100);
 
         TableColumn<PromoCodeDTO, Integer> maxUsesCol = new TableColumn<>("Лимит");
@@ -814,14 +711,14 @@ public class AdminController implements Initializable {
             if (btn == ButtonType.OK) {
                 try {
                     String code      = codeField.getText().trim().toUpperCase();
-                    double discount  = Double.parseDouble(discountField.getText());
+                    BigDecimal discount = Money.percent(Money.parsePrice(discountField.getText()));
                     int    maxUses   = Integer.parseInt(maxUsesField.getText());
                     String expiryDate = expiryPicker.getValue().toString();
 
                     if (code.isEmpty() || code.length() > 50) {
                         showAlert("Ошибка", "Код промокода должен быть от 1 до 50 символов!"); return null;
                     }
-                    if (discount < 0 || discount > 100) {
+                    if (discount.signum() < 0 || discount.compareTo(BigDecimal.valueOf(100)) > 0) {
                         showAlert("Ошибка", "Скидка должна быть от 0 до 100%!"); return null;
                     }
                     if (maxUses < 1) {
@@ -830,7 +727,7 @@ public class AdminController implements Initializable {
 
                     return new PromoCodeDTO(0, code, discount, maxUses, 0, expiryDate, true);
 
-                } catch (NumberFormatException e) {
+                } catch (IllegalArgumentException e) {
                     showAlert("Ошибка", "Проверьте формат чисел!"); return null;
                 }
             }

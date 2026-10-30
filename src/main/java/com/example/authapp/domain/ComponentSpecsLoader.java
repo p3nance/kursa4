@@ -28,7 +28,11 @@ public final class ComponentSpecsLoader {
     }
     public Dataset loadDataset(Path path) throws IOException {
         if(Files.size(path)>2_000_000) throw new IOException("Файл характеристик превышает 2 МБ");
-        try(var reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)) {
+        try(var reader=Files.newBufferedReader(path,StandardCharsets.UTF_8)) { return loadDataset(reader); }
+    }
+    /** The caller owns the reader, including readers for embedded distribution resources. */
+    public Dataset loadDataset(Reader reader) throws IOException {
+        try {
             var root=JsonParser.parseReader(reader).getAsJsonObject();
             if(root.get("version").getAsBigDecimal().intValueExact()!=1) throw new IllegalArgumentException("Неизвестная версия характеристик");
             Map<Integer,ComponentSpecs> result=new HashMap<>();

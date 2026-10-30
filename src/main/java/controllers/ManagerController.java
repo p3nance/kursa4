@@ -1,6 +1,7 @@
 package controllers;
 
 import com.example.authapp.ui.Ui;
+import com.example.authapp.ui.ProductEditDialog;
 import java.util.concurrent.*;
 
 import com.example.authapp.dto.ProductDTO;
@@ -8,7 +9,8 @@ import com.example.authapp.repositories.AdminRepository;
 import com.example.authapp.services.SupabaseStorageService;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import java.math.BigDecimal;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -157,11 +159,11 @@ public class ManagerController implements Initializable {
                 cd.getValue().manufacturer != null ? cd.getValue().manufacturer : "-"));
         manufacturerCol.setPrefWidth(140);
 
-        TableColumn<ProductDTO, Double> priceCol = new TableColumn<>("Цена (₽)");
-        priceCol.setCellValueFactory(cd -> new SimpleDoubleProperty(cd.getValue().price).asObject());
+        TableColumn<ProductDTO, BigDecimal> priceCol = new TableColumn<>("Цена (₽)");
+        priceCol.setCellValueFactory(cd -> new SimpleObjectProperty<>(cd.getValue().price));
         priceCol.setPrefWidth(100);
         priceCol.setCellFactory(column -> new TableCell<>() {
-            @Override protected void updateItem(Double value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
+            @Override protected void updateItem(BigDecimal value,boolean empty){super.updateItem(value,empty);setText(empty||value==null?null:Ui.money(value));}
         });
 
         // ✅ Остаток с цветовой индикацией
@@ -226,48 +228,7 @@ public class ManagerController implements Initializable {
     // ============================================
 
     private void showAddProductDialog() {
-        Dialog<ProductDTO> dialog = new Dialog<>();
-        Ui.theme(dialog);
-        dialog.setTitle(" Добавить товар");
-        dialog.setHeaderText("Заполните данные нового товара");
-
-        GridPane grid = buildProductForm(null);
-
-        TextField nameField         = (TextField) grid.getUserData();
-        // поля извлекаем через lookup по индексу — используем отдельный массив
-        TextField[] fields = (TextField[]) grid.getProperties().get("fields");
-        TextField priceField        = fields[0];
-        TextField stockField        = fields[1];
-        TextField categoryField     = fields[2];
-        TextField manufacturerField = fields[3];
-        TextArea  descArea          = (TextArea) grid.getProperties().get("desc");
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setPrefWidth(450);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                try {
-                    String name = nameField.getText().trim();
-                    if (name.isEmpty()) { showAlert(" Ошибка", "Укажите название!"); return null; }
-                    double price = Double.parseDouble(priceField.getText().trim());
-                    int    stock = Integer.parseInt(stockField.getText().trim());
-                    String cat   = categoryField.getText().trim();
-                    String mfr   = manufacturerField.getText().trim();
-                    String desc  = descArea.getText().trim();
-                    return new ProductDTO(0, name, desc, price, stock, "", cat, mfr);
-                } catch (NumberFormatException ex) {
-                    showAlert(" Ошибка", "Проверьте формат цены и остатка!");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(product -> {
-            if (product != null) saveNewProduct(product);
-        });
+        ProductEditDialog.show(productsTable.getScene()==null?null:productsTable.getScene().getWindow(),null).ifPresent(this::saveNewProduct);
     }
 
     private void saveNewProduct(ProductDTO product) {
@@ -291,53 +252,7 @@ public class ManagerController implements Initializable {
     // ============================================
 
     private void showEditProductDialog(ProductDTO product) {
-        Dialog<ProductDTO> dialog = new Dialog<>();
-        Ui.theme(dialog);
-        dialog.setTitle(" Редактировать товар #" + product.id);
-        dialog.setHeaderText("Редактирование: " + product.name);
-
-        GridPane grid = buildProductForm(product);
-
-        TextField nameField         = (TextField) grid.getUserData();
-        TextField[] fields          = (TextField[]) grid.getProperties().get("fields");
-        TextField priceField        = fields[0];
-        TextField stockField        = fields[1];
-        TextField categoryField     = fields[2];
-        TextField manufacturerField = fields[3];
-        TextArea  descArea          = (TextArea) grid.getProperties().get("desc");
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        dialog.getDialogPane().setPrefWidth(450);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                try {
-                    String name = nameField.getText().trim();
-                    if (name.isEmpty()) { showAlert(" Ошибка", "Укажите название!"); return null; }
-                    double price = Double.parseDouble(priceField.getText().trim());
-                    int    stock = Integer.parseInt(stockField.getText().trim());
-                    String cat   = categoryField.getText().trim();
-                    String mfr   = manufacturerField.getText().trim();
-                    String desc  = descArea.getText().trim();
-                    product.name         = name;
-                    product.price        = price;
-                    product.stock        = stock;
-                    product.category     = cat;
-                    product.manufacturer = mfr;
-                    product.description  = desc;
-                    return product;
-                } catch (NumberFormatException ex) {
-                    showAlert(" Ошибка", "Проверьте формат цены и остатка!");
-                    return null;
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(updated -> {
-            if (updated != null) updateProduct(updated);
-        });
+        ProductEditDialog.show(productsTable.getScene()==null?null:productsTable.getScene().getWindow(),product).ifPresent(this::updateProduct);
     }
 
     private void updateProduct(ProductDTO product) {
@@ -386,7 +301,7 @@ public class ManagerController implements Initializable {
                     int add = Integer.parseInt(addField.getText().trim());
                     if (add <= 0) { showAlert(" Ошибка", "Количество должно быть > 0!"); return null; }
                     return product.stock + add;
-                } catch (NumberFormatException e) {
+                } catch (IllegalArgumentException e) {
                     showAlert(" Ошибка", "Введите целое число!");
                     return null;
                 }
@@ -476,47 +391,7 @@ public class ManagerController implements Initializable {
     // ✅ ВСПОМОГАТЕЛЬНЫЙ МЕТОД: форма товара
     // ============================================
 
-    /**
-     * Возвращает GridPane с полями товара.
-     * Данные полей доступны через:
-     *   grid.getUserData()               → nameField (TextField)
-     *   grid.getProperties().get("fields") → TextField[] {price, stock, category, manufacturer}
-     *   grid.getProperties().get("desc")   → TextArea description
-     */
-    private GridPane buildProductForm(ProductDTO product) {
-        GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(20));
 
-        TextField nameField         = new TextField(product != null ? product.name         : "");
-        TextField priceField        = new TextField(product != null ? String.valueOf(product.price) : "");
-        TextField stockField        = new TextField(product != null ? String.valueOf(product.stock) : "0");
-        TextField categoryField     = new TextField(product != null && product.category     != null ? product.category     : "");
-        TextField manufacturerField = new TextField(product != null && product.manufacturer != null ? product.manufacturer : "");
-        TextArea  descArea          = new TextArea (product != null && product.description  != null ? product.description  : "");
-
-        nameField.setPromptText("Название товара");
-        priceField.setPromptText("Например: 9990.00");
-        stockField.setPromptText("Количество на складе");
-        categoryField.setPromptText("Например: Процессоры");
-        manufacturerField.setPromptText("Например: Intel");
-        descArea.setPromptText("Описание товара...");
-        descArea.setPrefRowCount(3);
-        descArea.setWrapText(true);
-
-        grid.add(new Label("Название *"),      0, 0); grid.add(nameField,         1, 0);
-        grid.add(new Label("Цена (₽) *"),      0, 1); grid.add(priceField,        1, 1);
-        grid.add(new Label("Остаток (шт.) *"), 0, 2); grid.add(stockField,        1, 2);
-        grid.add(new Label("Категория"),        0, 3); grid.add(categoryField,     1, 3);
-        grid.add(new Label("Производитель"),   0, 4); grid.add(manufacturerField, 1, 4);
-        grid.add(new Label("Описание"),        0, 5); grid.add(descArea,          1, 5);
-
-        grid.setUserData(nameField);
-        grid.getProperties().put("fields", new TextField[]{priceField, stockField, categoryField, manufacturerField});
-        grid.getProperties().put("desc", descArea);
-
-        return grid;
-    }
 
     // ============================================
     // ✅ УТИЛИТЫ

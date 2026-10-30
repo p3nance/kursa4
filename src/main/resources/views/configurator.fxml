@@ -29,6 +29,9 @@
                 <VBox fx:id="summaryColumn" spacing="20" minWidth="0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <VBox styleClass="surface, config-summary" spacing="15">
                         <Label text="Сводка сборки" styleClass="config-summary-title"/>
+                        <HBox fx:id="cartStatusBox" visible="false" managed="false" styleClass="config-cart-status">
+                            <Label fx:id="cartStatusText" wrapText="true" HBox.hgrow="ALWAYS" minWidth="0"/>
+                        </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="8">
                             <Label text="Ваш бюджет" styleClass="text-muted"/>
                             <Region HBox.hgrow="ALWAYS"/>
@@ -42,7 +45,7 @@
                         </HBox>
                         <Separator/>
                         <HBox alignment="CENTER_LEFT" spacing="8">
-                            <Label text="Итого" styleClass="config-total-caption"/>
+                            <Label text="К покупке" styleClass="config-total-caption"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="totalPrice" text="0 ₽" styleClass="config-total-price"/>
                         </HBox>
@@ -52,6 +55,9 @@
                                 <Label fx:id="compatStatusText" text="Выберите компоненты для проверки." styleClass="config-status-text" wrapText="true"/>
                             </VBox>
                         </HBox>
+                        <ComboBox fx:id="buildUsage" maxWidth="Infinity"/>
+                        <Button fx:id="completeBuildButton" text="Подобрать остальные" onAction="#completeBuild" maxWidth="Infinity" wrapText="true" styleClass="btn, btn-soft"/>
+                        <Label text="Сохраняем выбранные детали. Минимумы ОЗУ/SSD зависят от задачи; неизвестные характеристики требуют проверки." wrapText="true" styleClass="config-summary-footnote"/>
                         <Button fx:id="addBuildToCart" text="Добавить товары в корзину" onAction="#addBuildToCart" maxWidth="Infinity" wrapText="true" styleClass="btn, btn-primary"/>
                         <ProgressIndicator fx:id="addProgress" visible="false" managed="false" prefWidth="22" prefHeight="22" maxWidth="22" maxHeight="22"/>
                         <Button text="Изменить бюджет" onAction="#toggleBudgetEditor" maxWidth="Infinity" styleClass="btn"/>
@@ -59,11 +65,9 @@
                             <TextField fx:id="budgetField" promptText="Бюджет, ₽" minWidth="0" HBox.hgrow="ALWAYS" styleClass="config-budget-field"/>
                             <Button fx:id="applyBudgetButton" text="ОК" onAction="#saveBudget" styleClass="btn, btn-primary"/>
                         </HBox>
-                        <Button fx:id="removeBudgetButton" text="Убрать ограничение бюджета" onAction="#removeBudget" visible="false" managed="false" styleClass="config-clear-button"/>
-                        <Label text="Перед добавлением проверим цены и наличие" styleClass="config-summary-footnote" wrapText="true"/>
-                        <HBox fx:id="cartStatusBox" visible="false" managed="false" styleClass="config-cart-status">
-                            <Label fx:id="cartStatusText" wrapText="true" HBox.hgrow="ALWAYS" minWidth="0"/>
-                        </HBox>
+                        <Button fx:id="removeBudgetButton" text="Убрать ограничение бюджета" wrapText="true" minWidth="0" maxWidth="Infinity" onAction="#removeBudget" visible="false" managed="false" styleClass="config-clear-button"/>
+                        <Label text="Имеющиеся детали не покупаются. Перед добавлением проверим цены и наличие" styleClass="config-summary-footnote" wrapText="true"/>
+
                     </VBox>
                     <VBox spacing="14" styleClass="config-checks-panel">
                         <Label text="Проверка совместимости" styleClass="config-checks-heading"/>
