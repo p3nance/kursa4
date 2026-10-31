@@ -67,6 +67,11 @@ final class ComparisonConversation {
                 parsed=new ChatIntentParser().parse(modelRaw);
             }
         }
+        // Scenario follow-ups remain meaningful after the first clarification was answered.
+        // Only an explicit scenario form may precede model mentions: a GPU inside a game
+        // scenario is a condition, while "сравни ..." still starts a new comparison.
+        if(complete() && purpose.equals("Для игр") && isGamingScenarioFollowUp(raw,parsed))
+            return Optional.of(acceptTaskDetails(continuedGamingDetails(raw)));
         // Fully explicit new model requests take precedence over a pending choice.
         if(parsed.intent()==ChatIntentParser.Intent.COMPARE && parsed.pair().size()==2)
             return Optional.of(begin(parsed.pair().get(0),parsed.pair().get(1),raw));
@@ -167,7 +172,7 @@ final class ComparisonConversation {
                 List.of("Сравнить характеристики","Показать модели с общим тестом"));
     }
     private ChatBotService.Reply begin(String first,String second,String raw) {
-        clear();specsMode=ModelResolver.normalize(raw).contains("характеристик");leftQuery=cleanQuery(first);rightQuery=cleanQuery(second);setPurposeFrom(raw);
+        clear();specsMode=ModelResolver.normalize(raw).matches(".*(?:характеристик|по цене).*");leftQuery=cleanQuery(first);rightQuery=cleanQuery(second);setPurposeFrom(raw);
         return resolve(0,leftQuery);
     }
     private ChatBotService.Reply resolve(int slot,String query) {
@@ -219,6 +224,7 @@ final class ComparisonConversation {
         }
         if(specsOnly)specsMode=true;
         awaitingTaskDetails=!purpose.isBlank() && taskDetails.isBlank();
+        if(!specsMode && !purpose.equals("Для игр") && !taskDetails.isBlank())return acceptTaskDetails(taskDetails);
         return responses.compare(left,right,specsMode,purpose+(taskDetails.isBlank()?"":"\nУточнение: "+taskDetails)).reply();
     }
     private ChatBotService.Reply askModel(int slot) {
@@ -244,9 +250,9 @@ final class ComparisonConversation {
         return ordinal(text);
     }
     private static String cleanQuery(String query) {
-        return query.replaceFirst("(?iu)^(?:(?:а|тогда|давай|из|между|характеристики)\\s+)+","")
+        return ChatIntentParser.modelQuery(query.replaceFirst("(?iu)^(?:(?:а|тогда|давай|из|между|характеристики)\\s+)+","")
                 .replaceAll("(?iu)\\s+(?:для игр|для работы|для монтажа|для офиса|для учебы|в играх).*$","")
-                .replaceAll("[?!.,]+$","").strip();
+                .replaceAll("[?!.,]+$","").strip());
     }
     private static String goal(String raw) {
         String text=ModelResolver.normalize(raw);
@@ -258,6 +264,26 @@ final class ComparisonConversation {
     private static boolean hasHardwareToken(String text) {
         return cleanQuery(text).matches("\\d{4,5}") || Pattern.compile("(?iu)(?:rtx|gtx|\\brx\\s*\\d|ryzen|райзен|radeon|intel|\\bi[3579]\\s*[- ]*\\d|\\b\\d{4,5}(?:k|kf|f|x|x3d)\\b)").matcher(text).find();
     }
+    private static final Pattern SCENARIO_RESOLUTION=Pattern.compile("(?iu)(?<![a-z0-9])(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9])");
+    private static boolean isGamingScenarioFollowUp(String raw,ChatIntentParser.Parsed parsed) {
+        if(parsed.intent()!=ChatIntentParser.Intent.OTHER && parsed.intent()!=ChatIntentParser.Intent.COMPARE)return false;
+        String text=raw.strip();
+        if(Pattern.compile("(?iuU)^(?:а|тогда|давай)\\s+(?:в|на)\\s+.+").matcher(text).matches())return true;
+        // A bare Latin game title is accepted only as a follow-up, never a hardware model.
+        return parsed.intent()==ChatIntentParser.Intent.OTHER && !hasHardwareToken(text)
+                && Pattern.compile("(?iuU)^(?:а|тогда|давай)\\s+[a-z][a-z0-9]*(?:\\s+.*|[?!.,]*)$").matcher(text).matches();
+    }
+    private String continuedGamingDetails(String raw) {
+        String details=raw.replaceFirst("(?iuU)^(?:а|тогда|давай)\\s+","").replaceAll("[?!.,]+$","").strip();
+        var resolution=SCENARIO_RESOLUTION.matcher(details);
+        if(resolution.find() && details.replaceFirst("(?iuU)^(?:на\\s+)?(?:720p|1080p|1440p|2160p|2k|4k)$","").isEmpty()
+                && !taskDetails.isBlank()) {
+            String requested=resolution.group();
+            var previous=SCENARIO_RESOLUTION.matcher(taskDetails);
+            return previous.find()?previous.replaceAll(requested):taskDetails+", на "+requested;
+        }
+        return details;
+    }
     private static final Pattern EXPLICIT_GAMING_GOAL=Pattern.compile("(?iuU)(?<![\\p{L}\\p{N}])(?:для\\s+игр|в\\s+играх)(?![\\p{L}\\p{N}])");
     private static boolean startsGamingGoal(String raw) {
         return Pattern.compile("(?iuU)^(?:(?:а|тогда|давай)\\s+)?(?:для\\s+игр|в\\s+играх)(?![\\p{L}\\p{N}])").matcher(raw.strip()).find();
@@ -265,8 +291,8 @@ final class ComparisonConversation {
     private void setPurposeFrom(String raw) {
         String next=goal(raw);if(next==null)return;
         setPurpose(next);
-        if(!next.equals("Для игр"))return;
-        var marker=EXPLICIT_GAMING_GOAL.matcher(raw);
+        var marker=(next.equals("Для игр")?EXPLICIT_GAMING_GOAL:
+                Pattern.compile("(?iuU)(?<![\\p{L}\\p{N}])для\\s+(?:работы|монтажа|рендеринга|рендера|офиса|уч[её]бы)(?![\\p{L}\\p{N}])")).matcher(raw);
         if(marker.find()) {
             String tail=raw.substring(marker.end()).replaceAll("^[\\s,:;—-]+|[.!?]+$","").strip();
             taskDetails=tail.length()>300?tail.substring(0,300)+"…":tail;

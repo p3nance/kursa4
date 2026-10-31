@@ -2,6 +2,7 @@ package com.example.authapp.domain;
 
 import com.example.authapp.models.Product;
 import com.example.authapp.services.BenchmarkService;
+import com.example.authapp.services.BenchmarkPresentation;
 import com.example.authapp.services.ChatBotService;
 import com.example.authapp.services.ComparisonService;
 import com.example.authapp.services.LocalKnowledgeRepository;
@@ -54,8 +55,9 @@ class VerifiedBenchmarkCatalogTest {
 
     @Test void publishedMeasurementsHaveVerifiedCatalogIdentitiesSourcesAndHonestDates() {
         assertTrue(knowledge.warnings().isEmpty(),()->String.join("\n",knowledge.warnings()));
-        assertEquals(30,results.size());
-        assertEquals(13,results.stream().map(BenchmarkService.Result::modelId).distinct().count());
+        assertEquals(38,results.size());
+        assertEquals(10,results.stream().map(BenchmarkService.Result::context).distinct().count());
+        assertEquals(16,results.stream().map(BenchmarkService.Result::modelId).distinct().count());
         Set<String> verifiedModels=Set.copyOf(modelByProduct.values());
         for(var result:results) {
             assertTrue(verifiedModels.contains(result.modelId()),result.modelId());
@@ -89,7 +91,7 @@ class VerifiedBenchmarkCatalogTest {
 
     @Test void gpuComparisonUsesActualRenderingScoresWithoutInventingAmdRtxResults() {
         var compared=knowledge.benchmarks().compareModels(model(14),model(13));
-        assertEquals(3,compared.size());
+        assertEquals(4,compared.size());
         var cinebench=compared.stream().filter(c->c.left().context().suite().equals("Cinebench")).findFirst().orElseThrow();
         assertScores(cinebench,"19279","17271","11.63");
         var vray=compared.stream().filter(c->c.left().context().suite().equals("V-Ray Benchmark")).findFirst().orElseThrow();
@@ -114,19 +116,19 @@ class VerifiedBenchmarkCatalogTest {
                 r.context().workload().equals("GPU rendering (RTX Mode)")));
     }
 
-    @Test void missingModelsAndUncoveredRtx4060DoNotReceiveManufacturedMeasurements() {
-        assertTrue(knowledge.benchmarks().resultsFor(model(12)).isEmpty());
-        assertTrue(knowledge.benchmarks().compareModels(model(12),model(13)).isEmpty());
+    @Test void missingModelsAndUncoveredRtx4060Ti16GbDoNotReceiveManufacturedMeasurements() {
+        assertTrue(knowledge.benchmarks().resultsFor(model(20)).isEmpty());
+        assertTrue(knowledge.benchmarks().compareModels(model(20),model(13)).isEmpty());
         assertTrue(knowledge.benchmarks().compareModels("UNKNOWN_MODEL_999",model(13)).isEmpty());
         var answer=withLocalKnowledge(()->new ChatBotService(products)).reply(
-                "Сравни "+productsById.get(12).getName()+" и "+productsById.get(13).getName());
+                "Сравни "+productsById.get(20).getName()+" и "+productsById.get(13).getName());
         assertInstanceOf(ChatBotService.SpecificationsContent.class,answer.content().getFirst());
-        assertTrue(answer.text().contains("нет проверенных измерений для NVIDIA GeForce RTX 4060 8GB"));
+        assertTrue(answer.text().contains("нет проверенных измерений для NVIDIA GeForce RTX 4060 Ti 16GB"));
         assertFalse(answer.text().contains("%"));
     }
 
     @Test void chatResolvesFullCatalogCpuAndGpuNamesIntoPublishedComparisons() {
-        for(int[] pair:List.of(new int[]{3,2,2},new int[]{14,13,3})) {
+        for(int[] pair:List.of(new int[]{3,2,2},new int[]{14,13,4})) {
             var bot=withLocalKnowledge(()->new ChatBotService(products));
             var answer=bot.reply("Сравни "+productsById.get(pair[0]).getName()+" и "+productsById.get(pair[1]).getName());
             assertEquals(1,answer.content().size());
@@ -143,7 +145,8 @@ class VerifiedBenchmarkCatalogTest {
     }
 
     @Test void gamingMeasurementsRetainThePublishedAmdCohortWithoutInventingMissingSettings() {
-        var gaming=results.stream().filter(r->r.context().suite().equals("F1")).toList();
+        var gaming=results.stream().filter(r->r.context().conditions().getOrDefault("review_cohort","")
+                .equals("gn-7600x3d-2024-11-19-amd-f1-24-1080p-high")).toList();
         assertEquals(4,gaming.size());
         assertEquals(Set.of(model(7),model(8),model(9),model(10)),
                 gaming.stream().map(BenchmarkService.Result::modelId).collect(Collectors.toSet()));
@@ -178,8 +181,10 @@ class VerifiedBenchmarkCatalogTest {
         assertEquals("F1",comparison.left().context().suite());
         assertScores(comparison,"438.3","311.5","40.71");
         assertEquals(model(8),comparison.betterModelId());
-        assertTrue(knowledge.benchmarks().compareModels(model(8),model(4)).isEmpty(),
-                "An Intel rendering result cannot be joined to the AMD-only gaming cohort");
+        var crossPlatform=knowledge.benchmarks().compareModels(model(8),model(4));
+        assertEquals(1,crossPlatform.size());
+        assertFalse(knowledge.benchmarks().compare(comparison.left(),crossPlatform.getFirst().right()).isPresent(),
+                "Equal 7800X3D labels in different published reviews must not join their cohorts");
         assertTrue(knowledge.benchmarks().compareModels(model(8),model(13)).isEmpty());
     }
 
@@ -190,7 +195,7 @@ class VerifiedBenchmarkCatalogTest {
         assertEquals(1,content.comparisons().size());
         assertScores(content.comparisons().getFirst(),"438.3","311.5","40.71");
         assertTrue(answer.text().contains("FPS"));assertTrue(answer.text().contains("F1 24"));
-        var fallback=bot.reply("Сравни i9-14900K и Ryzen 7 7800X3D");
+        var fallback=bot.reply("Сравни i9-14900K и Ryzen 5 7600X");
         assertInstanceOf(ChatBotService.SpecificationsContent.class,fallback.content().getFirst());
         assertTrue(fallback.text().contains("есть измерения"));
         assertTrue(fallback.text().contains("нет общего теста"));
@@ -198,11 +203,40 @@ class VerifiedBenchmarkCatalogTest {
         assertFalse(fallback.text().contains("%"));
         var byId=knowledge.components().stream().collect(Collectors.toMap(CatalogComponent::productId,Function.identity()));
         assertEquals(ComparisonService.Status.NO_COMMON_CONTEXT,
-                new ComparisonService(knowledge,products).compare(byId.get(4),byId.get(8),false,"").status());
+                new ComparisonService(knowledge,products).compare(byId.get(4),byId.get(7),false,"").status());
+    }
+
+    @Test void cpuPlatformComparisonKeepsExactBaselineRowsAndExposesItsLimitedScope() {
+        String cohort="gn-285k-2024-10-29-f1-24-1080p-high-baseline-two-platforms";
+        var samples=results.stream().filter(r->cohort.equals(r.context().conditions().get("review_cohort"))).toList();
+        assertEquals(2,samples.size());assertEquals(Set.of(model(4),model(8)),samples.stream()
+                .map(BenchmarkService.Result::modelId).collect(Collectors.toSet()));
+        assertEquals(samples.getFirst().context(),samples.getLast().context());
+        var compared=knowledge.benchmarks().compareModels(model(4),model(8));assertEquals(1,compared.size());
+        assertScores(compared.getFirst(),"384.5","438.3","-12.27");
+        assertScores(knowledge.benchmarks().compareModels(model(8),model(4)).getFirst(),"438.3","384.5","13.99");
+        assertEquals(model(8),compared.getFirst().betterModelId());
+        assertTrue(samples.stream().noneMatch(r->r.value().compareTo(new BigDecimal("389.3"))==0),"APO ON is a separate excluded row");
+        for(var sample:samples) {
+            assertNull(sample.measuredAt());assertEquals(java.time.LocalDate.of(2024,10,29),sample.publishedAt());
+            var conditions=sample.context().conditions();
+            assertEquals("PUBLISHED_PLATFORM_COMPARISON",conditions.get("comparison_kind"));
+            assertEquals("[10/24] (published chart tag; exact measurement date not reported)",conditions.get("chart_row_tag"));
+            assertTrue(conditions.get("ram").contains("per-CPU kit assignment and capacity not reported"));
+            assertTrue(conditions.get("motherboard").startsWith("Not reported per gaming sample"));
+            assertFalse(conditions.get("motherboard").contains("Z790 Hero"));
+            assertTrue(conditions.get("bios").contains("exact per-sample versions not reported"));
+            assertTrue(conditions.get("power_policy").contains("not independently established"));
+            assertTrue(BenchmarkPresentation.scopeNote(sample.context()).contains("двух тестовых платформ"));
+        }
+        var reply=withLocalKnowledge(()->new ChatBotService(products)).reply("сравни i9-14900k и ryzen 7 7800x3d");
+        var card=assertInstanceOf(ChatBotService.BenchmarksContent.class,reply.content().getFirst());
+        assertEquals(1,card.comparisons().size());assertTrue(reply.lead().contains("двух тестовых платформ"));
+        assertTrue(reply.text().contains("распределение памяти по CPU"));assertTrue(reply.text().contains("не прогноз FPS готовой сборки"));
     }
 
     @Test void starfieldGpuScoresPreserveTheExactSampleScopeAndRawPublishedTag() {
-        var gaming=results.stream().filter(r->r.context().suite().equals("Starfield")).toList();
+        var gaming=starfieldCohort("gn-4070super-2024-02-13-starfield-4k-high-gpu");
         assertEquals(5,gaming.size());
         var expected=Map.of(model(13),new BigDecimal("46.5"),model(14),new BigDecimal("52.9"),
                 model(16),new BigDecimal("91.8"),model(19),new BigDecimal("51.0"),model(21),new BigDecimal("83.0"));
@@ -236,13 +270,15 @@ class VerifiedBenchmarkCatalogTest {
 
     @Test void starfieldGpuComparisonRejectsDifferentVariantsAndForeignChartTags() {
         var comparisons=knowledge.benchmarks().compareModels(model(14),model(13));
-        assertEquals(3,comparisons.size(),"Two rendering contexts plus the separate Starfield context");
-        var game=comparisons.stream().filter(c->c.left().context().suite().equals("Starfield")).findFirst().orElseThrow();
+        assertEquals(4,comparisons.size(),"Two rendering contexts plus two separate Starfield resolutions");
+        var game=comparisons.stream().filter(c->c.left().context().conditions().getOrDefault("review_cohort","")
+                .equals("gn-4070super-2024-02-13-starfield-4k-high-gpu")).findFirst().orElseThrow();
         assertScores(game,"52.9","46.5","13.76");assertEquals(model(14),game.betterModelId());
         for(int excluded:List.of(12,15,20))
             assertTrue(knowledge.benchmarks().resultsFor(model(excluded)).stream()
-                    .noneMatch(row->row.context().suite().equals("Starfield")),
-                    "Do not substitute a legacy4060 row,4080 non-SUPER or4060 Ti8GB for catalogue model "+excluded);
+                    .noneMatch(row->row.context().conditions().getOrDefault("review_cohort","")
+                            .equals("gn-4070super-2024-02-13-starfield-4k-high-gpu")),
+                    "Do not substitute another chart4060 row,4080 non-SUPER or4060 Ti8GB into the4K cohort for catalogue model "+excluded);
         var right=game.right();var context=right.context();
         var conditions=new java.util.HashMap<>(context.conditions());
         conditions.put("chart_row_tag","(8/23) (different published chart tag)");
@@ -257,11 +293,69 @@ class VerifiedBenchmarkCatalogTest {
     @Test void chatAddsThePublishedStarfieldFpsWithoutReplacingRenderingComparisons() {
         var answer=withLocalKnowledge(()->new ChatBotService(products)).reply("Сравни RTX 4070 SUPER и RTX 4070");
         var content=assertInstanceOf(ChatBotService.BenchmarksContent.class,answer.content().getFirst());
-        assertEquals(3,content.comparisons().size());
-        var game=content.comparisons().stream().filter(c->c.left().context().suite().equals("Starfield")).findFirst().orElseThrow();
+        assertEquals(4,content.comparisons().size());
+        var game=content.comparisons().stream().filter(c->c.left().context().conditions().getOrDefault("review_cohort","")
+                .equals("gn-4070super-2024-02-13-starfield-4k-high-gpu")).findFirst().orElseThrow();
         assertScores(game,"52.9","46.5","13.76");
         assertTrue(answer.text().contains("Starfield"));assertTrue(answer.text().contains("FPS"));
         assertTrue(answer.text().contains("точная дата измерения не указана"));
+    }
+
+    @Test void starfield1440pScoresRetainSixExactSamplesAndUnpublishedDetails() {
+        var gaming=starfieldCohort("gn-7600xt-2024-03-07-starfield-1440p-high-gpu");
+        assertEquals(6,gaming.size());
+        var expected=Map.of(model(12),new BigDecimal("48.5"),model(13),new BigDecimal("78.7"),
+                model(14),new BigDecimal("86.4"),model(17),new BigDecimal("46.6"),
+                model(18),new BigDecimal("66.3"),model(19),new BigDecimal("84.6"));
+        assertEquals(expected.keySet(),gaming.stream().map(BenchmarkService.Result::modelId).collect(Collectors.toSet()));
+        for(var result:gaming) {
+            assertEquals(0,expected.get(result.modelId()).compareTo(result.value()));
+            assertEquals(gaming.getFirst().context(),result.context());
+            assertEquals("GPU gaming benchmark (1440p/High/No Upscaling)",result.context().workload());
+            assertEquals("FPS",result.context().unit());assertEquals("Average framerate",result.context().metric());
+            assertEquals("Not reported",result.context().version());assertNull(result.measuredAt());
+            assertEquals(java.time.LocalDate.of(2024,3,7),result.publishedAt());
+            assertTrue(result.source().getPath().endsWith("amd-radeon-rx-7600-xt-gpu-benchmarks-review-power-efficiency-gaming"));
+            var conditions=result.context().conditions();
+            assertEquals("1440p (chart title; exact pixel dimensions not stated)",conditions.get("resolution"));
+            assertEquals("(1/24) (published chart tag; exact measurement date not reported)",conditions.get("chart_row_tag"));
+            assertFalse(conditions.containsKey("chart_measurement_month"));
+            assertEquals("High",conditions.get("preset"));assertEquals("No Upscaling (chart title)",conditions.get("upscaling"));
+            assertEquals("MSI Z690 Unify",conditions.get("motherboard"));
+            assertTrue(conditions.get("cpu").contains("4.9 GHz P-cores / 3.9 GHz E-cores"));
+            for(String key:List.of("bios","gpu_driver","storage","benchmark_patch","frame_generation"))
+                assertTrue(conditions.get(key).startsWith("Not reported"),key);
+            var samples=conditions.get("tested_samples");
+            for(String sample:List.of("ASUS RTX 4060 Dual 8GB","NVIDIA RTX 4070 FE 12GB", "AMD RX 7600 Ref 8GB",
+                    "XFX QICK 319 RX 7700 XT Black 12GB","NVIDIA RTX 4070 Super 12GB (FE/AIB not specified)",
+                    "AMD RX 7800 XT 16GB (AIB not specified)","not the identified store AIB/SKU"))assertTrue(samples.contains(sample),sample);
+            assertTrue(conditions.get("power_policy").contains("does not establish reference clocks"));
+        }
+        assertTrue(knowledge.benchmarks().resultsFor(model(20)).isEmpty(),"The chart4060Ti8GB is not the store4060Ti16GB");
+    }
+
+    @Test void starfieldResolutionsRemainSeparateAndNewCoverageDoesNotInventOtherScenarios() {
+        var compared=knowledge.benchmarks().compareModels(model(14),model(13));
+        var at1440=compared.stream().filter(c->c.left().context().conditions().getOrDefault("review_cohort","")
+                .equals("gn-7600xt-2024-03-07-starfield-1440p-high-gpu")).findFirst().orElseThrow();
+        var at4k=compared.stream().filter(c->c.left().context().conditions().getOrDefault("review_cohort","")
+                .equals("gn-4070super-2024-02-13-starfield-4k-high-gpu")).findFirst().orElseThrow();
+        assertScores(at1440,"86.4","78.7","9.78");assertScores(at4k,"52.9","46.5","13.76");
+        assertTrue(knowledge.benchmarks().compare(at1440.left(),at4k.right()).isEmpty(),"Matching raw tags do not merge reviews or resolutions");
+        assertTrue(knowledge.benchmarks().compare(at4k.left(),at1440.right()).isEmpty());
+        var answer=withLocalKnowledge(()->new ChatBotService(products)).reply("Сравни RTX 4060 и RX 7600 для игр в Starfield 1440p");
+        var content=assertInstanceOf(ChatBotService.BenchmarksContent.class,answer.content().getFirst());
+        assertEquals(1,content.comparisons().size());assertScores(content.comparisons().getFirst(),"48.5","46.6","4.08");
+        for(String resolution:List.of("1080p","4K")) {
+            var unavailable=withLocalKnowledge(()->new ChatBotService(products)).reply(
+                    "Сравни RTX 4060 и RX 7600 для игр в Starfield "+resolution);
+            assertTrue(unavailable.content().isEmpty());assertFalse(unavailable.text().contains("%"));
+            assertTrue(unavailable.suggestions().contains("Для игр в Starfield 1440p"));
+        }
+    }
+
+    private static List<BenchmarkService.Result> starfieldCohort(String cohort) {
+        return results.stream().filter(r->r.context().conditions().getOrDefault("review_cohort","").equals(cohort)).toList();
     }
 
     private static String model(int productId) {

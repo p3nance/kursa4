@@ -174,7 +174,14 @@ class ComparisonServiceTest {
         assertTrue(snapshot.warnings().isEmpty());
         var byId=new HashMap<Integer,CatalogComponent>();snapshot.components().forEach(c->byId.put(c.productId(),c));
         var service=new ComparisonService(snapshot,products);
-        var missing=service.compare(byId.get(4),byId.get(8),false,"");
+        var platform=service.compare(byId.get(4),byId.get(8),false,"");
+        assertEquals(ComparisonService.Status.COMPARABLE,platform.status());
+        assertTrue(platform.reply().lead().contains("двух тестовых платформ"));
+        assertTrue(platform.reply().text().contains("распределение памяти по CPU"));
+        assertTrue(platform.reply().text().contains("-12.27 %"));
+        var platformCard=assertInstanceOf(ChatBotService.BenchmarksContent.class,platform.reply().content().getFirst());
+        assertEquals(1,platformCard.comparisons().size());
+        var missing=service.compare(byId.get(4),byId.get(7),false,"");
         assertEquals(ComparisonService.Status.NO_COMMON_CONTEXT,missing.status());
         assertTrue(missing.reply().lead().contains("нет общего"));
         var spec=assertInstanceOf(ChatBotService.SpecificationsContent.class,missing.reply().content().getFirst());
@@ -182,9 +189,29 @@ class ComparisonServiceTest {
         var compared=service.compare(byId.get(14),byId.get(13),false,"");
         assertEquals(ComparisonService.Status.COMPARABLE,compared.status());
         var benchmark=assertInstanceOf(ChatBotService.BenchmarksContent.class,compared.reply().content().getFirst());
-        assertEquals(3,benchmark.comparisons().size());
+        assertEquals(4,benchmark.comparisons().size());
         assertTrue(compared.reply().text().contains("Starfield"));assertTrue(compared.reply().text().contains("13.76 %"));
         assertTrue(compared.reply().text().contains("11.63 %"));assertTrue(compared.reply().text().contains("19.46 %"));
+    }
+
+    @Test void nonGamingTasksNeverOfferAnUnavailableGamingOnlyBenchmarkAction() {
+        var cpus=cpus();var service=service(snapshot(cpus,gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        for(String purpose:List.of("Для работы","Для офиса","Для учёбы","Для учебы","Для монтажа","Для рендеринга")) {
+            for(boolean specsOnly:List.of(false,true)) {
+                var reply=service.compare(cpus.get(0),cpus.get(1),specsOnly,purpose).reply();
+                assertInstanceOf(ChatBotService.SpecificationsContent.class,reply.content().getFirst(),purpose);
+                assertFalse(reply.suggestions().contains("Сравнить по бенчмаркам"),purpose);
+                assertFalse(reply.content().stream().anyMatch(ChatBotService.BenchmarksContent.class::isInstance),purpose);
+            }
+        }
+        var work=service(snapshot(cpus,result("fixture-processor-a",100,"same"),result("fixture-processor-b",125,"same"),
+                gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        for(String purpose:List.of("Для офиса","Для учёбы")) {
+            var reply=work.compare(cpus.get(0),cpus.get(1),false,purpose).reply();
+            var content=assertInstanceOf(ChatBotService.BenchmarksContent.class,reply.content().getFirst());
+            assertEquals(1,content.comparisons().size());assertNotEquals("FPS",content.comparisons().getFirst().left().context().unit());
+            assertTrue(work.compare(cpus.get(0),cpus.get(1),true,purpose).reply().suggestions().contains("Сравнить по бенчмаркам"));
+        }
     }
 
     private static BenchmarkService.Result gamingResult(String id,int fps) {
@@ -207,6 +234,23 @@ class ComparisonServiceTest {
         assertTrue(rendering.lead().contains("Тесты рендеринга не определяют выбор для игр"));
         assertEquals(1,assertInstanceOf(ChatBotService.BenchmarksContent.class,rendering.content().getFirst()).comparisons().size());
     }
+    @Test void explicitWorkGoalsUseRenderingOnlyAndNeverTreatGamingFpsAsWorkScores() {
+        var cpus=cpus();
+        var mixed=service(snapshot(cpus,result("fixture-processor-a",100,"same"),result("fixture-processor-b",125,"same"),
+                gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        var onlyGaming=service(snapshot(cpus,gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        for(String purpose:List.of("Для работы","Для рендеринга","Для монтажа")) {
+            var reply=mixed.compare(cpus.get(0),cpus.get(1),false,purpose).reply();
+            var card=assertInstanceOf(ChatBotService.BenchmarksContent.class,reply.content().getFirst());
+            assertEquals(1,card.comparisons().size());assertEquals("SYNTHETIC_FIXTURE",card.comparisons().getFirst().left().context().suite());
+            assertFalse(reply.text().contains("Starfield"));assertTrue(BenchmarkPresentation.scopeNote(card.comparisons().getFirst().left().context()).isEmpty());
+            var missing=onlyGaming.compare(cpus.get(0),cpus.get(1),false,purpose).reply();
+            assertInstanceOf(ChatBotService.SpecificationsContent.class,missing.content().getFirst());
+            assertTrue(missing.lead().contains("нет общих проверенных измерений рабочих задач"));
+            assertFalse(missing.text().contains("%"));assertFalse(missing.text().contains("Starfield"));
+        }
+    }
+
     @Test void onlyBareKnownGameAndVerifiedResolutionReceiveNumericalGamingCards() {
         var cpus=cpus();var service=service(snapshot(cpus,gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
         for(String details:List.of("Starfield","Starfield, 4K","а Starfield в 4K")) {

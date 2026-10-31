@@ -160,6 +160,44 @@ class UiSmokeTest {
             render(chat,"benchmark-comparison",1440,900);render(chat,"benchmark-comparison-900",900,600);return null;
         });
     }
+    @Test void naturalComparisonWrappersAndRepeatedScenarioChangesSurviveTheUiWorker() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        Node initial=chatReplyAfter(chat,()->submitChat(chat,"Сравни видеокарты 4070 SUPER и 4070 по бенчмаркам"));
+        onFx(()->{assertEquals(4,initial.lookupAll(".chat-benchmark-card").size());return null;});
+        Node at4k=chatReplyAfter(chat,()->submitChat(chat,"Для игр в Starfield 4K"));
+        onFx(()->{assertEquals(1,at4k.lookupAll(".chat-benchmark-card").size());assertTrue(text(at4k).contains("52.9"));assertFalse(text(at4k).contains("86.4"));return null;});
+        Node at1440=chatReplyAfter(chat,()->submitChat(chat,"а на 1440p?"));
+        onFx(()->{
+            assertEquals(1,at1440.lookupAll(".chat-benchmark-card").size());
+            assertTrue(text(at1440).contains("86.4"));assertTrue(text(at1440).contains("78.7"));assertTrue(text(at1440).contains("9.78 %"));
+            assertFalse(text(at1440).contains("52.9"));assertFalse(text(at1440).contains("13.76 %"));return null;
+        });
+        Node unavailable=chatReplyAfter(chat,()->submitChat(chat,"а в Cyberpunk 2077?"));
+        onFx(()->{
+            assertTrue(unavailable.lookupAll(".chat-benchmark-card").isEmpty());assertFalse(text(unavailable).contains("9.78 %"));
+            assertTrue(text(unavailable).contains("NVIDIA GeForce RTX 4070 SUPER 12GB"));
+            assertTrue(text(unavailable).contains("NVIDIA GeForce RTX 4070 12GB"));
+            assertTrue(text(unavailable).contains("нет подтверждённого общего игрового результата"));return null;
+        });
+        Node restored=chatReplyAfter(chat,()->{
+            Button supported=findButton(unavailable,"Для игр в Starfield 1440p");assertNotNull(supported);supported.fire();
+        });
+        onFx(()->{
+            assertEquals(1,restored.lookupAll(".chat-benchmark-card").size());assertTrue(text(restored).contains("86.4"));assertFalse(text(restored).contains("52.9"));
+            render(chat,"r24-repeated-scenarios",1440,900);render(chat,"r24-repeated-scenarios-900",900,600);return null;
+        });
+    }
+
+    private static Node chatReplyAfter(Parent chat,Runnable action) throws Exception {
+        Node previous=onFx(()->((VBox)lookup(chat,"#messages")).getChildren().getLast());
+        onFx(()->{action.run();return null;});
+        waitUntil(()->{
+            Node last=((VBox)lookup(chat,"#messages")).getChildren().getLast();
+            return last!=previous && last.getStyleClass().contains("chat-bot-row") && !((Button)lookup(chat,"#sendButton")).isDisabled();
+        });
+        return onFx(()->((VBox)lookup(chat,"#messages")).getChildren().getLast());
+    }
+
     @Test void inlineGameScenarioNeverShowsAnotherGamesFpsAsItsResult() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Cyberpunk 1440p");return null;});
@@ -174,6 +212,57 @@ class UiSmokeTest {
         waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
         onFx(()->{String displayed=text(lookup(chat,"#messages"));assertTrue(displayed.contains("13.76 %"));assertTrue(displayed.contains("52.9"));assertTrue(displayed.contains("46.5"));render(chat,"r22-inline-supported",1440,900);return null;});
     }
+    @Test void starfield1440pUsesItsOwnFpsAndKeepsConditionsReadableAtBothWindowSizes() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Starfield 1440p");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{
+            String displayed=text(lookup(chat,"#messages"));
+            for(String value:List.of("Starfield","1440p","86.4","78.7","9.78 %","средняя частота кадров",
+                    "опубликовано 2024-03-07; точная дата измерения не указана","ASUS RTX 4060 Dual", "XFX QICK 319 RX 7700 XT Black"))
+                assertTrue(displayed.contains(value),"1440p comparison is missing "+value);
+            assertFalse(displayed.contains("13.76 %"));assertFalse(displayed.contains("52.9"));
+            assertFalse(displayed.contains("Not reported"));assertFalse(displayed.contains("GPU gaming benchmark"));
+            var details=detailsPanes(chat,"Условия и источники");assertEquals(1,details.size());
+            ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
+            for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                details.getFirst().setExpanded(false);chat.resize(size[0],size[1]);chat.applyCss();chat.layout();conversation.setVvalue(0);conversation.layout();
+                double width=conversation.getViewportBounds().getWidth();assertTrue(width>0);
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=width+1);
+                render(chat,size[0]==1440?"r23-starfield-1440p":"r23-starfield-1440p-900",size[0],size[1]);
+                details.getFirst().setExpanded(true);chat.applyCss();chat.layout();
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=width+1);
+                assertTrue(nodes(chat,Label.class).stream().filter(l->l.getStyleClass().contains("chat-condition"))
+                        .allMatch(l->l.getHeight()+1>=l.prefHeight(l.getWidth())),"1440p source conditions must retain their full wrapped height");
+                conversation.setVvalue(1);conversation.layout();
+                render(chat,size[0]==1440?"r23-starfield-1440p-sources":"r23-starfield-1440p-sources-900",size[0],size[1]);
+            }
+            return null;
+        });
+        Parent at4k=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(at4k,"Сравни 4070 super и 4070 для игр в Starfield 4K");return null;});
+        waitUntil(()->!((Button)lookup(at4k,"#sendButton")).isDisabled() && at4k.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{
+            String displayed=text(lookup(at4k,"#messages"));assertTrue(displayed.contains("13.76 %"));assertTrue(displayed.contains("52.9"));
+            assertTrue(displayed.contains("46.5"));assertFalse(displayed.contains("9.78 %"));assertFalse(displayed.contains("86.4"));return null;
+        });
+    }
+
+    @Test void newlyCoveredGpuPairOffersOnlyItsMeasured1440pScenario() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни RTX 4060 и RX 7600 для игр в Starfield 1080p");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && text(lookup(chat,"#messages")).contains("указанного сценария"));
+        onFx(()->{
+            assertTrue(chat.lookupAll(".chat-benchmark-card").isEmpty());assertFalse(text(lookup(chat,"#messages")).contains("4.08 %"));
+            assertNull(findButton(chat,"Для игр в Starfield 4K"));
+            Button available=findButton(chat,"Для игр в Starfield 1440p");assertNotNull(available);available.fire();return null;
+        });
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{
+            String displayed=text(lookup(chat,"#messages"));assertTrue(displayed.contains("48.5"));assertTrue(displayed.contains("46.6"));assertTrue(displayed.contains("4.08 %"));return null;
+        });
+    }
+
     @Test void realGamingComparisonShowsAverageFpsAndHonestUnknownsAtBothWindowSizes() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни Ryzen 7 7800X3D и Ryzen 5 7600X для игр");return null;});
@@ -208,9 +297,9 @@ class UiSmokeTest {
         waitUntil(()->text(lookup(chat,"#messages")).contains("Разница значений: 19.46 %"));
         onFx(()->{
             String displayed=text(lookup(chat,"#messages"));
-            assertEquals(3,chat.lookupAll(".chat-benchmark-card").size());
-            assertEquals(6,nodes(chat,Hyperlink.class).stream().filter(n->n.getStyleClass().contains("chat-source")).count());
-            for(String value:List.of("19279","17271","3112","2605","52.9","46.5","11.63 %","19.46 %","13.76 %",
+            assertEquals(4,chat.lookupAll(".chat-benchmark-card").size());
+            assertEquals(8,nodes(chat,Hyperlink.class).stream().filter(n->n.getStyleClass().contains("chat-source")).count());
+            for(String value:List.of("19279","17271","3112","2605","52.9","46.5","86.4","78.7","11.63 %","19.46 %","13.76 %","9.78 %",
                     "опубликовано 2024-02-01; точная дата измерения не указана",
                     "NVIDIA GeForce RTX 4070 SUPER 12GB", "NVIDIA GeForce RTX 4070 12GB", "AMD Ryzen Threadripper 7970X"))
                 assertTrue(displayed.contains(value),"Real comparison is missing "+value);
@@ -219,7 +308,7 @@ class UiSmokeTest {
             assertTrue(displayed.contains("(1/24)"));assertTrue(displayed.contains("Nitro+ — образец лаборатории"));
             assertFalse(displayed.contains("Blender"));
             assertFalse(displayed.contains("sourceReview:"));assertFalse(displayed.contains("review_cohort:"));
-            var panes=detailsPanes(chat,"Условия и источники");assertEquals(3,panes.size());
+            var panes=detailsPanes(chat,"Условия и источники");assertEquals(4,panes.size());
             assertTrue(panes.stream().noneMatch(TitledPane::isExpanded));
             assertFalse(visibleText(chat).contains("AMD Ryzen Threadripper 7970X"));
             ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
@@ -249,13 +338,13 @@ class UiSmokeTest {
             return null;
         });
     }
-    @Test void userAbbreviationsProduceUsefulSpecificationsWhenOneModelHasNoBenchmarks() throws Exception {
+    @Test void userAbbreviationsStillShowSpecificationsWithoutACommonContext() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
-        onFx(()->{submitChat(chat,"сравни i9-14900k и ryzen 7 7800x3d");return null;});
+        onFx(()->{submitChat(chat,"сравни i9-14900k и ryzen 5 7600x");return null;});
         waitUntil(()->!lookup(chat,"#messages").lookupAll(".chat-specifications-card").isEmpty());
         onFx(()->{
             String displayed=visibleText(lookup(chat,"#messages"));String lower=displayed.toLowerCase(Locale.ROOT);
-            assertTrue(displayed.contains("Intel Core i9-14900K"));assertTrue(displayed.contains("AMD Ryzen 7 7800X3D"));
+            assertTrue(displayed.contains("Intel Core i9-14900K"));assertTrue(displayed.contains("AMD Ryzen 5 7600X"));
             assertTrue(lower.contains("нет") || lower.contains("отсутств"));
             assertTrue(lower.contains("измерен") || lower.contains("бенчмарк"));
             assertTrue(displayed.contains("LGA1700"));assertTrue(displayed.contains("AM5"));
@@ -265,6 +354,51 @@ class UiSmokeTest {
             assertFalse(chat.lookupAll(".chat-chip").isEmpty());
             assertTrue(detailsPanes(chat,"Источники и ограничения").stream().noneMatch(TitledPane::isExpanded));
             render(chat,"r9-specifications-fallback",1440,900);render(chat,"r9-specifications-fallback-900",900,600);return null;
+        });
+    }
+    @Test void originalCpuQuestionShowsPublishedPlatformsAndKeepsScopeVisibleAboveCollapsedDetails() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"сравни i9-14900k и ryzen 7 7800x3d");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{
+            Node card=chat.lookup(".chat-benchmark-card");String displayed=text(lookup(chat,"#messages"));
+            for(String value:List.of("Intel Core i9-14900K","AMD Ryzen 7 7800X3D","F1 24","384.5","438.3","-12.27 %",
+                    "двух тестовых платформ","распределение памяти по CPU","не прогноз FPS готовой сборки",
+                    "опубликовано 2024-10-29; точная дата измерения не указана"))
+                assertTrue(displayed.contains(value),"Published CPU comparison is missing "+value);
+            assertFalse(displayed.contains("389.3"));assertFalse(displayed.contains("PUBLISHED_PLATFORM_COMPARISON"));
+            Label scope=(Label)card.lookup(".chat-benchmark-scope");assertNotNull(scope);
+            for(Node parent=scope.getParent();parent!=null && parent!=card;parent=parent.getParent())
+                assertFalse(parent instanceof TitledPane,"The platform limitation must remain outside collapsed details");
+            var details=detailsPanes(chat,"Условия и источники");assertEquals(1,details.size());
+            ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
+            for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                details.getFirst().setExpanded(false);chat.resize(size[0],size[1]);chat.applyCss();chat.layout();conversation.setVvalue(0);conversation.layout();
+                assertTrue(visibleText(card).contains("распределение памяти по CPU"));
+                assertTrue(visibleText(card).contains("Игровой тест процессора · 1080p"));
+                assertTrue(scope.getHeight()+1>=scope.prefHeight(scope.getWidth()),"The visible platform note must retain its wrapped height");
+                double width=conversation.getViewportBounds().getWidth();assertTrue(width>0);
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=width+1);
+                render(chat,size[0]==1440?"r25-cpu-platforms":"r25-cpu-platforms-900",size[0],size[1]);
+                details.getFirst().setExpanded(true);chat.applyCss();chat.layout();
+                assertTrue(nodes(card,Label.class).stream().filter(l->l.getStyleClass().contains("chat-condition"))
+                        .allMatch(l->l.getHeight()+1>=l.prefHeight(l.getWidth())),"CPU platform source conditions must not clip");
+                assertEquals(2,nodes(card,Hyperlink.class).stream().filter(n->n.getStyleClass().contains("chat-source")).count());
+                conversation.setVvalue(1);conversation.layout();
+                render(chat,size[0]==1440?"r25-cpu-platform-sources":"r25-cpu-platform-sources-900",size[0],size[1]);
+            }
+            findButton(chat,"Сравнить характеристики").fire();return null;
+        });
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-specifications-card").size()==1);
+        onFx(()->{
+            VBox messages=(VBox)lookup(chat,"#messages");Node last=messages.getChildren().getLast();
+            assertTrue(text(last).contains("LGA1700"));assertTrue(text(last).contains("AM5"));assertTrue(last.lookupAll(".chat-benchmark-card").isEmpty());
+            submitChat(chat,"Сравни 14900K и 7800X3D для работы");return null;
+        });
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-specifications-card").size()==2);
+        onFx(()->{
+            Node last=((VBox)lookup(chat,"#messages")).getChildren().getLast();assertTrue(last.lookupAll(".chat-benchmark-card").isEmpty());
+            assertTrue(text(last).contains("нет общих проверенных измерений рабочих задач"));assertFalse(text(last).contains("-12.27 %"));return null;
         });
     }
     @Test void shortCpuPairShowsHumanNamesAndCollapsedMethodology() throws Exception {

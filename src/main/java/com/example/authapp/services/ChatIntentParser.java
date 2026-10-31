@@ -16,7 +16,7 @@ public final class ChatIntentParser {
     private static final Pattern SEARCH_PREFIX=p("^"+COURTESY+"(?:найди(?:те)?|найти|покажи(?:те)?|показать|ищу|поиск|есть\\s+ли(?:\\s+у\\s+вас)?|есть\\s+у\\s+вас)\\s+");
     private static final Pattern DEFINE_PREFIX=p("^"+COURTESY+"(?:что\\s+(?:такое|значит|означает)|объясни(?:те|ть)?|расскажи(?:те)?\\s+(?:про|о)|дай\\s+определение)\\s+");
     private static final Pattern DIVIDER=p("\\s+(?:и|или|с|против|от)\\s+|\\s*\\bvs\\b\\s*|(?<=[\\p{L}\\p{N}])vs(?=[\\p{L}\\p{N}])|\\s*;\\s*");
-    private static final Pattern PURPOSE=p("(?:^|\\s+)(?:для\\s+(?:игр|работы|рендеринга|рендера|офиса)|в\\s+играх)(?=\\s|$)");
+    private static final Pattern PURPOSE=p("(?:^|\\s+)(?:для\\s+(?:игр|работы|рендеринга|рендера|монтажа|офиса|уч[её]бы)|в\\s+играх)(?=\\s|$)");
 
     public Parsed parse(String raw) {
         String text=clean(raw),lower=text.toLowerCase(Locale.ROOT).replace('ё','е');
@@ -51,15 +51,28 @@ public final class ChatIntentParser {
         return p("^"+COURTESY+"(?:(?:покажи|показать|дай|предложи|подбери|найди)\\s+)?(?:еще\\s+)?(?:(?:[0-9]+|два|три)\\s+)?(?:вариант(?:ы|а|ов)|альтернативы)(?:\\s+(?:сборк\\p{L}*|пк|компьютер\\p{L}*))?(?:\\s+(?:до|для|на|в пределах|с бюджетом)\\s+.+)?[.!?]*$").matcher(text).matches();
     }
     private static Parsed comparison(String text) {
-        String body=trim(text);
-        String[] parts=DIVIDER.split(body,2);
+        String body=trim(text),models=body;
+        var purpose=PURPOSE.matcher(body);
+        if(purpose.find()) {
+            // A trailing purpose owns its complete scenario. Removing only "для работы"
+            // would accidentally turn "в Blender" into part of the second model.
+            String before=body.substring(0,purpose.start());
+            models=before.matches(".*[0-9].*")?before:PURPOSE.matcher(body).replaceAll(" ");
+        }
+        String[] parts=DIVIDER.split(models,2);
         var pair=new ArrayList<String>();
         for(String part:parts) {
-            String model=trim(PURPOSE.matcher(part).replaceAll(" "));
-            model=model.replaceFirst("(?iu)^(?:(?:между|из|пожалуйста|характеристики)\\s+)+","");
+            String model=modelQuery(part);
             if(!model.isBlank()) pair.add(model);
         }
         return new Parsed(Intent.COMPARE,body,pair);
+    }
+    /** Remove only explicit presentation wrappers, never unknown model/variant words. */
+    static String modelQuery(String raw) {
+        String query=trim(raw);
+        query=query.replaceFirst("(?iu)^(?:(?:между|из|пожалуйста|характеристики|процессор(?:ы|а)?|видеокарт[ыау]|модел[ьи]|cpu|gpu)\\s+)+","");
+        query=query.replaceFirst("(?iu)^(?:по\\s+(?:бенчмаркам|характеристикам|цене)\\s+)+","");
+        return trim(query.replaceFirst("(?iu)\\s+по\\s+(?:бенчмаркам|характеристикам|цене)$",""));
     }
     private static Parsed parsed(Intent intent,String body) {return new Parsed(intent,body,List.of());}
     private static Pattern p(String expression) {return Pattern.compile(expression,FLAGS);}

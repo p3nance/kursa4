@@ -65,4 +65,23 @@ class ChatIntentParserTest {
         assertEquals(COMPARE,parser.parse("Привет, сравни 14900K и 7800X3D").intent());
         assertEquals(OTHER,parser.parse(null).intent());
     }
+    @Test void boundedCategoryAndModeWrappersDoNotBecomePartOfModelIdentity() {
+        for(String phrase:List.of("сравни процессоры 14700K и процессор 14600K",
+                "сравни CPU 14700K и CPU 14600K по бенчмаркам",
+                "сравни по характеристикам 14700K и 14600K",
+                "сравни модели 14700K и 14600K по цене")) {
+            var result=parser.parse(phrase);assertEquals(COMPARE,result.intent(),phrase);
+            assertEquals(List.of("14700K","14600K"),result.pair(),phrase);
+        }
+        assertEquals(List.of("4070 SUPER Ti","4070"),parser.parse("сравни видеокарты 4070 SUPER Ti и 4070 по бенчмаркам").pair());
+        assertEquals(List.of("4060 Ti 16GB","4070"),parser.parse("сравни видеокарты 4060 Ti 16GB и 4070").pair());
+    }
+    @Test void aTrailingWorkPurposeKeepsItsScenarioOutsideModelQueries() {
+        for(String purpose:List.of("для работы в Blender", "для монтажа в DaVinci Resolve", "для учёбы в CAD")) {
+            var result=parser.parse("сравни 14700K и 14600K "+purpose);
+            assertEquals(List.of("14700K","14600K"),result.pair(),purpose);
+            assertTrue(result.body().contains(purpose),purpose);
+        }
+    }
+
 }

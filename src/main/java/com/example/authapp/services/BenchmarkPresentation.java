@@ -16,14 +16,22 @@ public final class BenchmarkPresentation {
                 ? context.suite() : context.suite()+" "+context.version();
     }
 
+    /** Visible alongside the values; source platform differences must not hide in collapsed methodology. */
+    public static String scopeNote(BenchmarkService.Context context) {
+        return "PUBLISHED_PLATFORM_COMPARISON".equals(context.conditions().get("comparison_kind"))
+                ? "Сравнение двух тестовых платформ. Платы, прошивки и распределение памяти по CPU раскрыты не полностью; различия платформ входят в результат. Это не изолированная разница процессоров и не прогноз FPS готовой сборки."
+                : "";
+    }
+
     public static String resolution(BenchmarkService.Context context) {
         return conditionValue("resolution",context.conditions().getOrDefault("resolution","Не опубликовано"));
     }
 
     public static String workload(BenchmarkService.Context context) {
         return switch(context.workload().toLowerCase(Locale.ROOT)) {
-            case "gpu gaming benchmark (4k/high/no upscaling)" -> "Игровой тест видеокарты · средняя частота кадров";
-            case "cpu gaming benchmark (1080p/high)" -> "Игровой тест процессора · средняя частота кадров";
+            case "gpu gaming benchmark (4k/high/no upscaling)" -> "Игровой тест видеокарты · 4K · средняя частота кадров";
+            case "gpu gaming benchmark (1440p/high/no upscaling)" -> "Игровой тест видеокарты · 1440p · средняя частота кадров";
+            case "cpu gaming benchmark (1080p/high)" -> "Игровой тест процессора · 1080p · средняя частота кадров";
             case "cpu multi core" -> "Рендеринг на процессоре · все ядра";
             case "cpu single core" -> "Рендеринг на процессоре · одно ядро";
             case "gpu rendering" -> "Рендеринг на видеокарте";
@@ -95,7 +103,8 @@ public final class BenchmarkPresentation {
             case "testSystem", "test_system" -> "Испытательный стенд";
             case "scene" -> "Тестовая сцена";
             case "chart_row_tag" -> "Метка серии в источнике";
-            case "tested_samples" -> "Испытанные образцы видеокарт";
+            case "tested_samples" -> "Испытанные образцы";
+            case "comparison_kind" -> "Тип сравнения";
             case "resizable_bar" -> "Resizable BAR";
             case "hardware_scheduling" -> "Планирование GPU и ReBAR";
             case "power_plan" -> "План электропитания ОС";
@@ -117,6 +126,11 @@ public final class BenchmarkPresentation {
             Map.entry("Same AMD platform group and single published chart only; not a prediction for another game or a complete store build", "Одна платформа AMD и одна опубликованная диаграмма; это не прогноз для другой игры или готовой сборки")
     );
     private static final Map<String,String> GPU_GAMING_NOTES=Map.ofEntries(
+            Map.entry("Published test samples: ASUS RTX 4060 Dual 8GB; NVIDIA RTX 4070 FE 12GB; NVIDIA RTX 4070 Super 12GB (FE/AIB not specified); AMD RX 7600 Ref 8GB; XFX QICK 319 RX 7700 XT Black 12GB; AMD RX 7800 XT 16GB (AIB not specified). These are published laboratory samples, not the identified store AIB/SKU; generic store GPU names do not establish the shipped board", "Опубликованные образцы: ASUS RTX 4060 Dual 8GB; RTX 4070 FE 12GB; RTX 4070 SUPER 12GB (FE/AIB не указаны); AMD RX 7600 Ref 8GB; XFX QICK 319 RX 7700 XT Black 12GB; RX 7800 XT 16GB (исполнение не указано). Это образцы лаборатории, а не установленный артикул магазина; общее название GPU не подтверждает конкретную плату"),
+            Map.entry("Not reported in this article or chart; compare only this chart", "Не опубликована в статье или диаграмме; сравнение ограничено этой диаграммой"),
+            Map.entry("1440p (chart title; exact pixel dimensions not stated)", "1440p по подписи источника; точные размеры кадра не опубликованы"),
+            Map.entry("Rasterized game benchmark section; no ray-tracing result imported", "Растеризация; результаты трассировки лучей не импортированы"),
+            Map.entry("Only six catalogue-matching rows with the same published (1/24) tag in this one Starfield 1440p/High/No Upscaling chart. Not merged with another article, resolution, global GPU ranking or FPS prediction for a complete store build", "Только шесть соответствующих каталогу строк одной диаграммы Starfield 1440p/High с меткой (1/24). Они не объединяются с другим обзором или разрешением; это не общий рейтинг GPU и не прогноз FPS готовой сборки"),
             Map.entry("GN Intel Core i7-12700KF GPU test bench; this single Starfield chart only", "Стенд GPU на Intel Core i7-12700KF; только эта диаграмма Starfield"),
             Map.entry("Intel Core i7-12700KF, overclocked to 4.9 GHz P-cores / 3.9 GHz E-cores", "Intel Core i7-12700KF, разгон P-ядер до 4,9 ГГц/E-ядер до 3,9 ГГц"),
             Map.entry("DDR5-6000 G.Skill Trident Z with manually tightened timings; capacity and exact timings not reported", "DDR5-6000 G.Skill Trident Z с ручной настройкой таймингов; объём и точные тайминги не опубликованы"),
@@ -136,7 +150,23 @@ public final class BenchmarkPresentation {
             Map.entry("Not reported in this article or chart; no frame-generation setting is inferred", "Не опубликована; режим генерации кадров не предполагается"),
             Map.entry("Only five catalogue-matching rows with the same published (1/24) tag in this one Starfield 4K/High/No Upscaling chart. Not a global GPU ranking or FPS prediction for a complete store build", "Только пять соответствующих каталогу строк одной диаграммы Starfield 4K/High с меткой (1/24). Это не общий рейтинг GPU и не прогноз FPS готовой сборки")
     );
+    private static final Map<String,String> CPU_PLATFORM_NOTES=Map.ofEntries(
+            Map.entry("Two distinct CPU test platforms compared by the source in one chart: Intel Core i9-14900K and AMD Ryzen 7 7800X3D; not identical motherboards or an isolated CPU-only effect", "Две разные тестовые платформы Intel Core i9-14900K и AMD Ryzen 7 7800X3D в одной диаграмме источника. Платы могут отличаться; результат не выделяет влияние только процессора"),
+            Map.entry("Published baseline chart rows: Intel i9-14900K (8P/16E/32T) [10/24]; AMD R7 7800X3D (8C/16T) [10/24]. These laboratory platform samples do not identify a complete store configuration", "Строки источника без дополнительных пометок: Intel i9-14900K (8P/16E/32T) [10/24] и AMD R7 7800X3D (8C/16T) [10/24]. Образцы лаборатории не определяют полную конфигурацию магазина"),
+            Map.entry("Not reported per gaming sample; do not assign boards from separate power tests or other reviews", "Для каждого игрового образца не опубликована; платы из отдельных тестов мощности и других обзоров не подставляются"),
+            Map.entry("Article reports new microcode and AGESA for the retested F1 24 cohort; exact per-sample versions not reported", "Статья сообщает новые microcode/AGESA при повторном тестировании F1 24; точные версии для каждого образца не опубликованы"),
+            Map.entry("Chart header: DDR5-6000 Lexar 30-36-36-68 (DDR4-3200 14-14-14); per-CPU kit assignment and capacity not reported", "Подпись диаграммы: DDR5-6000 Lexar 30-36-36-68 (DDR4-3200 14-14-14). Объём и распределение комплектов по CPU не опубликованы"),
+            Map.entry("Windows 11 24H2; exact build and patch revision not reported", "Windows 11 24H2; точная сборка и ревизия обновлений не опубликованы"),
+            Map.entry("Article generally uses High Performance with Balanced for some X3D cases; assignment to these gaming samples not reported", "Обычно High Performance, в отдельных случаях X3D — Balanced. Распределение по этим игровым образцам не опубликовано"),
+            Map.entry("Only the unqualified baseline rows are imported. The separately labelled i9-14900K APO ON row is excluded; exact per-sample power and boost limits and unlabelled-row APO state are not independently established", "Включены только строки без дополнительных пометок; строка i9-14900K APO ON исключена. Точные лимиты питания/boost и состояние APO в строке без пометки независимо не установлены"),
+            Map.entry("Average FPS derived from frametime; chart states run-to-run AVG STDEV 2.6, not per-CPU uncertainty; run count not reported", "Средний FPS рассчитан из времени кадра; диаграмма указывает общий run-to-run AVG STDEV 2,6. Это не индивидуальная погрешность каждого CPU; число запусков не опубликовано"),
+            Map.entry("Not reported; compare only these two baseline rows in this published chart", "Не опубликована; сравнение ограничено двумя выбранными строками одной диаграммы"),
+            Map.entry("Only these two published test-platform samples in the single F1 24 1080p/High chart; per-platform differences remain part of the result. Not a global CPU ranking, another review cohort, an isolated CPU-only effect or a prediction for a complete store build", "Только две тестовые платформы одной диаграммы F1 24 при 1080p/High; различия платформ входят в результат. Это не общий рейтинг CPU, не изолированный эффект процессора и не прогноз FPS готовой сборки"),
+            Map.entry("PUBLISHED_PLATFORM_COMPARISON", "Опубликованное сравнение разных тестовых платформ")
+    );
     private static String conditionValue(String key, String value) {
+        String platformNote=CPU_PLATFORM_NOTES.get(value);
+        if(platformNote!=null)return platformNote;
         String gamingNote=GAMING_NOTES.get(value);
         if(gamingNote!=null)return gamingNote;
         String gpuNote=GPU_GAMING_NOTES.get(value);

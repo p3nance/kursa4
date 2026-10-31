@@ -41,6 +41,11 @@ public final class ComparisonService {
                 :comparisons.isEmpty()?Status.NO_COMMON_CONTEXT:Status.COMPARABLE;
         if(specsOnly || status!=Status.COMPARABLE) return specifications(left,right,status,specsOnly,purpose,leftResults,rightResults);
         boolean gamingRequested=gamingPurpose(purpose);
+        if(nonGamingPurpose(purpose) && !gamingRequested) {
+            var work=comparisons.stream().filter(c->!isGaming(c.left().context())).toList();
+            if(work.isEmpty())return unavailableWorkMeasurements(left,right,status,purpose,leftResults,rightResults);
+            comparisons=work;
+        }
         var gaming=comparisons.stream().filter(c->isGaming(c.left().context())).toList();
         String details=taskDetails(purpose);
         if(gamingRequested && !gaming.isEmpty()) {
@@ -52,11 +57,14 @@ public final class ComparisonService {
         } else if(gamingRequested && !details.isBlank()) {
             return unavailableGamingScenario(left,right,status,gaming);
         }
-        String lead="Сравниваю «"+left.name()+"» и «"+right.name()+"»: нашёл общие тесты. Вывод относится только к их условиям.";
+        boolean platformComparison=comparisons.stream().anyMatch(c->!BenchmarkPresentation.scopeNote(c.left().context()).isEmpty());
+        String lead="Сравниваю «"+left.name()+"» и «"+right.name()+"»: нашёл общие тесты. Вывод относится только к их условиям."
+                +(platformComparison?" Это опубликованное сравнение двух тестовых платформ.":"");
         StringJoiner text=new StringJoiner("\n\n");text.add(lead);
         comparisons.stream().limit(5).forEach(c -> {
             var context=c.left().context();
             text.add(BenchmarkPresentation.title(context)+" · "+BenchmarkPresentation.workload(context)
+                    +(BenchmarkPresentation.scopeNote(context).isEmpty()?"":"\n"+BenchmarkPresentation.scopeNote(context))
                     +"\n"+left.name()+": "+c.left().value()+"; "+right.name()+": "+c.right().value()+" "+BenchmarkPresentation.unit(context.unit())
                     +"\n"+BenchmarkPresentation.winner(c,modelNames)
                     +"\n"+BenchmarkPresentation.difference(c)+". "+c.explanation()
@@ -81,6 +89,20 @@ public final class ComparisonService {
     private static boolean gamingPurpose(String purpose) {
         String first=Objects.toString(purpose,"").split("\nУточнение: ",2)[0].toLowerCase(RU);
         return first.contains("игр") || first.contains("gaming");
+    }
+    private static boolean nonGamingPurpose(String purpose) {
+        String first=Objects.toString(purpose,"").split("\nУточнение: ",2)[0].toLowerCase(RU).replace('ё','е');
+        return first.contains("работ") || first.contains("work") || first.contains("рендер")
+                || first.contains("render") || first.contains("монтаж") || first.contains("офис")
+                || first.contains("учеб") || first.contains("office") || first.contains("study");
+    }
+    private Outcome unavailableWorkMeasurements(CatalogComponent left,CatalogComponent right,Status status,String purpose,
+                                                List<BenchmarkService.Result> leftResults,List<BenchmarkService.Result> rightResults) {
+        var facts=specifications(left,right,status,true,purpose,leftResults,rightResults).reply();
+        String lead="Для этой пары нет общих проверенных измерений рабочих задач. Показываю проверенные характеристики; игровые результаты не определяют скорость работы.";
+        return new Outcome(status,new ChatBotService.Reply(lead+"\n"+facts.text(),lead+" "+purposeNote(purpose),
+                facts.build(),facts.content(),facts.request(),
+                List.of("Сравнить характеристики","Для игр","Показать модели с общим тестом")));
     }
     private static String taskDetails(String purpose) {
         String[] split=Objects.toString(purpose,"").split("\nУточнение: ",2);
@@ -112,7 +134,7 @@ public final class ComparisonService {
         List<String> actions=new ArrayList<>();
         for(var comparison:gaming) {
             var context=comparison.left().context();
-            var resolution=Pattern.compile("(?i)^(1080p|4k)\\b").matcher(context.conditions().getOrDefault("resolution",""));
+            var resolution=Pattern.compile("(?i)^(1080p|1440p|4k)\\b").matcher(context.conditions().getOrDefault("resolution",""));
             if(resolution.find()) {
                 String scenario="в "+BenchmarkPresentation.title(context)+" "+resolution.group();
                 String action="Для игр "+scenario;
@@ -160,7 +182,10 @@ public final class ComparisonService {
         String task=purposeNote(purpose);
         if(task.isEmpty()) task="Для каких задач выбираете?";
         text.add(task);
-        List<String> actions=specsOnly && status==Status.COMPARABLE
+        boolean measurementsForPurpose=status==Status.COMPARABLE && (!nonGamingPurpose(purpose)
+                || knowledge.benchmarks().compareModels(modelId(left),modelId(right)).stream()
+                    .anyMatch(c->!isGaming(c.left().context())));
+        List<String> actions=specsOnly && measurementsForPurpose
                 ?List.of("Сравнить по бенчмаркам","Для игр","Для работы")
                 :List.of("Для игр","Для работы","Показать модели с общим тестом");
         return new Outcome(status,new ChatBotService.Reply(text.toString(),lead+" "+task,List.of(),List.of(card),null,actions));
@@ -211,7 +236,7 @@ public final class ComparisonService {
         if(Objects.toString(purpose,"").contains("\nУточнение: "))return "Задача уточнена: "+purpose.replace("\nУточнение: ","; ")+". Выводы ограничены имеющимися тестами; скорость конкретной игры или другой программы по ним не установлена.";
         String task=Objects.toString(purpose,"").toLowerCase(RU);
         if(task.contains("игр") || task.contains("gaming")) return "Тесты рендеринга не определяют выбор для игр. В какие игры и с какой видеокартой планируете играть?";
-        if(task.contains("работ") || task.contains("work")) return "Результат зависит от рабочей нагрузки. С какими программами и задачами будете работать?";
+        if(nonGamingPurpose(purpose)) return "Результат зависит от рабочей нагрузки. С какими программами и задачами будете работать?";
         if(task.contains("офис") || task.contains("office")) return "Для офисного выбора важны задачи и остальная сборка. Какие программы планируете использовать?";
         return "";
     }
