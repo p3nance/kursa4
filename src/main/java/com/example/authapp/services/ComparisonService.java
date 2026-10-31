@@ -260,7 +260,7 @@ public final class ComparisonService {
             case STORAGE -> List.of(STORAGE_INTERFACE,CAPACITY_GB,FORM_FACTOR);
             case PSU -> List.of(PSU_WATTS,PSU_FORM_FACTOR,POWER_CONNECTORS);
             case CASE -> List.of(SUPPORTED_FORM_FACTORS,SUPPORTED_PSU_FORM_FACTORS,MAX_GPU_LENGTH_MM,MAX_COOLER_HEIGHT_MM);
-            case COOLER -> List.of(HEIGHT_MM,SUPPORTED_SOCKETS,COOLING_WATTS);
+            case COOLER -> List.of(COOLER_KIND,RADIATOR_NOMINAL_MM,HEIGHT_MM,SUPPORTED_SOCKETS,COOLING_WATTS);
         };
     }
     private static String label(Attribute<?> attribute) {
@@ -285,18 +285,26 @@ public final class ComparisonService {
             case "supported_psu_form_factors" -> "Форматы блоков питания";
             case "max_gpu_length_mm" -> "Максимальная длина видеокарты";
             case "max_cooler_height_mm" -> "Максимальная высота кулера";
-            case "height_mm" -> "Высота";
+            case "cooler_kind" -> "Тип охлаждения";
+            case "radiator_nominal_mm" -> "Номинальный класс радиатора";
+            case "height_mm" -> "Высота воздушного кулера";
             case "supported_sockets" -> "Крепления для сокетов";
             case "cooling_watts" -> "Подтверждённая мощность охлаждения";
             default -> "Характеристика";
         };
     }
     private static String value(CatalogComponent part,Attribute<?> attribute) {
+        if(part.category()==ComponentCategory.COOLER) {
+            String kind=part.specs().fact(COOLER_KIND).filter(Fact::verified).map(Fact::value).orElse("");
+            if(attribute.equals(HEIGHT_MM) && kind.equals("AIO"))return "Не применяется к СЖО";
+            if(attribute.equals(RADIATOR_NOMINAL_MM) && kind.equals("AIR"))return "Не применяется";
+        }
         var fact=part.specs().fact(attribute).filter(Fact::verified);
         if(fact.isEmpty())return UNKNOWN;
         Object value=fact.get().value();
         String text=value instanceof Set<?> values ? values.stream().map(Object::toString).sorted().reduce((a,b)->a+", "+b).orElse("Нет") : value.toString();
         String name=attribute.name();
+        if(attribute.equals(COOLER_KIND))return switch(text) {case "AIR" -> "Воздушное";case "AIO" -> "Жидкостное (AIO)";default -> UNKNOWN;};
         if(name.endsWith("_watts"))return text+" Вт";
         if(name.endsWith("_mm"))return text+" мм";
         if(name.endsWith("_gb"))return text+" ГБ";

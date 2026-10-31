@@ -67,4 +67,34 @@ class ComponentSpecsLoaderTest {
         var differentSku=new CatalogComponent(6,"AMD Ryzen 5 7600X",ComponentCategory.CPU,BigDecimal.ONE,1,empty());
         assertFalse(loader.applyValidated(List.of(differentSku),data).warnings().isEmpty());
     }
+    @Test void loadsExplicitCoolerKindAndNominalRadiatorClassWithoutInventingHeight() throws Exception {
+        var facts=new ComponentSpecsLoader().load(file("""
+                {"version":1,"products":[{"productId":1,"facts":{
+                  "cooler_kind":{"value":"AIO","source":"https://example.test/fixture","verification":"VERIFIED"},
+                  "radiator_nominal_mm":{"value":360,"source":"https://example.test/fixture","verification":"VERIFIED"}
+                }}]}
+                """));
+        assertEquals("AIO",facts.get(1).value(COOLER_KIND).orElseThrow());
+        assertEquals(360,facts.get(1).value(RADIATOR_NOMINAL_MM).orElseThrow());assertTrue(facts.get(1).fact(HEIGHT_MM).isEmpty());
+    }
+    @Test void invalidCoolerKindsAndUntypedRadiatorNumbersAreRejected() {
+        for(String invalid:List.of("LIQUID","UNKNOWN","air","")) {
+            String json="{\"version\":1,\"products\":[{\"productId\":1,\"facts\":{\"cooler_kind\":{\"value\":\""+invalid+"\",\"source\":\"fixture\",\"verification\":\"IMPORTED\"}}}]}";
+            assertThrows(IOException.class,()->new ComponentSpecsLoader().load(file(json)),invalid);
+        }
+        for(String invalid:List.of("\"360\"","360.5","0","-360")) {
+            String json="{\"version\":1,\"products\":[{\"productId\":1,\"facts\":{\"radiator_nominal_mm\":{\"value\":"+invalid+",\"source\":\"fixture\",\"verification\":\"IMPORTED\"}}}]}";
+            assertThrows(IOException.class,()->new ComponentSpecsLoader().load(file(json)),invalid);
+        }
+        assertThrows(IllegalArgumentException.class,()->builder().set(COOLER_KIND,"LIQUID","fixture",Verification.VERIFIED));
+    }
+    @Test void legacyHeightOnlyDataDoesNotAcquireAnAirType() throws Exception {
+        var facts=new ComponentSpecsLoader().load(file("""
+                {"version":1,"products":[{"productId":1,"facts":{
+                  "height_mm":{"value":155,"source":"https://example.test/fixture","verification":"VERIFIED"}
+                }}]}
+                """));
+        assertEquals(155,facts.get(1).value(HEIGHT_MM).orElseThrow());assertTrue(facts.get(1).fact(COOLER_KIND).isEmpty());
+    }
+
 }

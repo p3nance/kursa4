@@ -198,6 +198,32 @@ class UiSmokeTest {
         return onFx(()->((VBox)lookup(chat,"#messages")).getChildren().getLast());
     }
 
+    @Test void coolerComparisonKeepsRadiatorClassSeparateFromAirCoolerHeight() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        Node reply=chatReplyAfter(chat,()->submitChat(chat,"Сравни Noctua NH-D15 и Corsair iCUE H150i Elite Capellix"));
+        onFx(()->{
+            assertTrue(reply.lookupAll(".chat-benchmark-card").isEmpty());assertEquals(1,reply.lookupAll(".chat-specifications-card").size());
+            GridPane table=nodes(reply,GridPane.class).stream().filter(n->n.getStyleClass().contains("chat-table")).findFirst().orElseThrow();
+            java.util.function.Function<String,List<String>> rowValues=title->{
+                Label label=nodes(table,Label.class).stream().filter(l->title.equals(l.getText())).findFirst().orElseThrow();
+                int row=GridPane.getRowIndex(label);
+                return table.getChildren().stream().filter(n->Objects.equals(GridPane.getRowIndex(n),row))
+                        .sorted(Comparator.comparingInt(n->GridPane.getColumnIndex(n)))
+                        .map(n->((Label)n).getText()).toList();
+            };
+            assertEquals(List.of("Тип охлаждения","Воздушное","Жидкостное (AIO)"),rowValues.apply("Тип охлаждения"));
+            assertEquals(List.of("Номинальный класс радиатора","Не применяется","360 мм"),rowValues.apply("Номинальный класс радиатора"));
+            assertEquals(List.of("Высота воздушного кулера","Не подтверждено","Не применяется к СЖО"),rowValues.apply("Высота воздушного кулера"));
+            ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
+            for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                chat.resize(size[0],size[1]);chat.applyCss();chat.layout();conversation.setVvalue(0);conversation.layout();
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=conversation.getViewportBounds().getWidth()+1);
+                render(chat,size[0]==1440?"r26-cooler-comparison":"r26-cooler-comparison-900",size[0],size[1]);
+            }
+            return null;
+        });
+    }
+
     @Test void inlineGameScenarioNeverShowsAnotherGamesFpsAsItsResult() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Cyberpunk 1440p");return null;});

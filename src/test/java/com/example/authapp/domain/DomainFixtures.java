@@ -27,7 +27,7 @@ final class DomainFixtures {
         set(psu,POWER_CONNECTORS,Set.of("PCIE8x1","ATX24x1","EPS8x1"));
         var chassis=builder();set(chassis,SUPPORTED_FORM_FACTORS,Set.of("ATX","MATX"));
         set(chassis,MAX_GPU_LENGTH_MM,330);set(chassis,MAX_COOLER_HEIGHT_MM,165);set(chassis,SUPPORTED_PSU_FORM_FACTORS,Set.of("ATX"));
-        var cooler=builder();set(cooler,SUPPORTED_SOCKETS,Set.of("AM5"));set(cooler,HEIGHT_MM,155);set(cooler,COOLING_WATTS,150);
+        var cooler=builder();set(cooler,COOLER_KIND,"AIR");set(cooler,SUPPORTED_SOCKETS,Set.of("AM5"));set(cooler,HEIGHT_MM,155);set(cooler,COOLING_WATTS,150);
         return List.of(part(1,CPU,cpu.build()),part(2,MOTHERBOARD,board.build()),part(3,GPU,gpu.build()),
                 part(4,RAM,ram.build()),part(5,STORAGE,drive.build()),part(6,PSU,psu.build()),
                 part(7,CASE,chassis.build()),part(8,COOLER,cooler.build()));

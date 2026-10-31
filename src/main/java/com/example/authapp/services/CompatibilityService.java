@@ -48,8 +48,20 @@ public final class CompatibilityService {
                     (bus,supported)->contains(supported,bus),"Интерфейс накопителя не поддерживается платой");
         if (gpu != null && chassis != null)
             compare(findings,"gpu_length",gpu,LENGTH_MM,chassis,MAX_GPU_LENGTH_MM,(a,b)->a<=b,"Видеокарта не помещается в корпус");
-        if (cooler != null && chassis != null)
-            compare(findings,"cooler_height",cooler,HEIGHT_MM,chassis,MAX_COOLER_HEIGHT_MM,(a,b)->a<=b,"Кулер не помещается в корпус по высоте");
+        if (cooler != null) {
+            var kind=cooler.specs().fact(COOLER_KIND);
+            if (kind.isEmpty() || !kind.get().verified()) {
+                unknown(findings,"cooler_kind","Тип охлаждения не подтверждён: воздушное или жидкостное. Без этого нельзя выбрать проверку высоты кулера или размещения радиатора СЖО");
+            } else if (kind.get().value().equals("AIR")) {
+                if (chassis != null)
+                    compare(findings,"cooler_height",cooler,HEIGHT_MM,chassis,MAX_COOLER_HEIGHT_MM,(a,b)->a<=b,"Воздушный кулер не помещается в корпус по высоте");
+            } else if (kind.get().value().equals("AIO")) {
+                String nominal=cooler.specs().fact(RADIATOR_NOMINAL_MM).filter(Fact::verified)
+                        .map(f->" Номинальный класс радиатора: "+f.value()+" мм; это не фактический размер радиатора.").orElse("");
+                unknown(findings,"radiator_fit","Размещение радиатора СЖО не подтверждено."+nominal
+                        +" Нужны проверенные позиции крепления и фактические размеры радиатора с вентиляторами, а также ограничения корпуса; лимит высоты воздушного кулера этого не проверяет.");
+            }
+        }
         if (cpu != null && cooler != null) {
             compare(findings,"cooler_socket",cpu,SOCKET,cooler,SUPPORTED_SOCKETS,
                     (socket,supported)->contains(supported,socket),"Крепление кулера не подходит к сокету CPU");
@@ -82,7 +94,7 @@ public final class CompatibilityService {
                 findings.stream().anyMatch(f->f.status()==Status.INSUFFICIENT_DATA)?Status.INSUFFICIENT_DATA:Status.COMPATIBLE;
         return new Result(status, findings, List.of(
                 "Проверка охватывает только перечисленные характеристики, а не все возможные ограничения оборудования.",
-                "Поддержка CPU должна соответствовать установленной версии BIOS; длина GPU и высота кулера — фактической конфигурации корпуса.",
+                "Поддержка CPU должна соответствовать установленной версии BIOS; длина GPU и высота воздушного кулера — фактической конфигурации корпуса. Для СЖО отдельно проверяются позиции и размеры радиатора с вентиляторами.",
                 "Рекомендация производителя GPU по мощности БП относится к эталонной системе и не заменяет проверку конкретной карты, кабелей и нагрузки.",
                 "Тепловые рейтинги разных производителей не стандартизованы; расчёт БП — консервативная оценка, а не измерение."));
     }

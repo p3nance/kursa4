@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "checkedAt": "2026-10-25",
+  "checkedAt": "2026-11-01",
   "scope": "Local manufacturer-verified facts bound to the current catalog identity. Not a full compatibility certificate.",
   "sourcePolicy": "Official primary sources read on checkedAt. Revision, kit, BIOS and physical configuration uncertainties remain unverified; TDP is not maximum electrical power.",
   "catalogReference": "knowledge/catalog-reference.json",
   "summary": {
     "productsReviewed": 67,
-    "productsWithVerifiedFacts": 64,
-    "verifiedFacts": 204,
+    "productsWithVerifiedFacts": 66,
+    "verifiedFacts": 207,
     "importedFacts": 5
   },
   "products": [
@@ -2419,13 +2419,22 @@
           "checkedAt": "2026-10-25",
           "evidence": "Current datasheet lists these sockets.",
           "note": "NOT unconditional for oldstock: AM4kit since2019; LGA1700kit since2021. Verifybox/mountingkit beforeuse."
+        },
+        "cooler_kind": {
+          "value": "AIR",
+          "source": "https://www.noctua.at/en/products/nh-d15/specifications",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Official original NH-D15 specifications describe a six-heatpipe dual-tower heatsink with two NF-A15 fans; air-cooler classification only.",
+          "note": "This type does not resolve the official165/168mm height conflict, fan position over RAM, exact retail EAN or included mounting kit. No G2 or SE-AM4 dimensions are substituted."
         }
       },
       "notes": [
         "У прежнего официального datasheet и индексированной страницы NH-D15 высота 165 мм. Новая страница Specifications и актуальный FAQ указывают 168 мм; артикул/EAN каталога неизвестен. Значение 165 мм оставлено IMPORTED до уточнения ревизии.",
         "В двухвентиляторном режиме RAM выше 32 мм требует подъёма переднего вентилятора и увеличивает полную высоту. Это условие код пока не моделирует.",
         "Крепления AM4/AM5 включены с 2019 года, LGA1700 с 2021 года; возраст коробки неизвестен. Современные сокеты не получают безусловный VERIFIED.",
-        "Noctua применяет NSPR. Значение cooling_watts не выводится из маркетингового TDP или NSPR."
+        "Noctua применяет NSPR. Значение cooling_watts не выводится из маркетингового TDP или NSPR.",
+        "01.11.2026 подтверждён только тип AIR исходной NH-D15. Текущие Specifications/FAQ указывают 168 мм с вентиляторами, а доступный официальный infosheet — 165 мм и другой EAN. Этот конфликт и положение вентилятора над RAM не разрешены; высота и комплект креплений остаются непроверенными."
       ],
       "unknownFields": [
         "cooling_watts",
@@ -2571,14 +2580,31 @@
           ],
           "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww",
           "verification": "IMPORTED",
-          "checkedAt": "2026-10-25",
+          "checkedAt": "2026-11-01",
           "evidence": "TechSpecs CPU Socket list plus explicitLGA1700sparepartfootnote.",
-          "note": "LGA1700 requiresCW-8960091orCW-8960093 purchasedseparately; kitunverified."
+          "note": "The product-page LGA1700 footnote requires separately purchased CW-8960091orCW-8960093, while the current linked49-002401AA QSG shows LGA1700standoffs as INCLUDED HARDWARE. Retail revision and supplied kit are unknown; neither inclusion nor a required extra purchase is asserted for every catalog box."
+        },
+        "cooler_kind": {
+          "value": "AIO",
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Official original iCUE H150i ELITE CAPELLIX CW-9060048-WW page identifies an all-in-one liquid CPU cooler.",
+          "note": "Base-model type only, excluding XT and LCD. The catalog name does not establish the exact retail SKU, revision or mounting-kit contents."
+        },
+        "radiator_nominal_mm": {
+          "value": 360,
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Official original H150i ELITE CAPELLIX Tech Specs list Radiator Size360mm; the H150i size description also identifies the360mm class.",
+          "note": "Nominal radiator class only, not actual length, height, thickness or a case-fit certificate. No XT/LCD specifications or included socket kit are inferred for the catalog box."
         }
       },
       "notes": [
-        "Проверен исходный H150i ELITE CAPELLIX CW-9060048-WW, без XT. Официальная страница требует для LGA1700 покупку CW-8960091 или CW-8960093; комплект каталога неизвестен.",
-        "Обозначение радиатора 360 мм не гарантирует установку в любом корпусе. Поле Product Height 119,6 мм на странице не используется как height_mm воздушного кулера."
+        "Подтверждены только тип AIO и номинальный класс радиатора 360 мм для исходного H150i ELITE CAPELLIX, без XT/LCD. Точный артикул, ревизия и комплект коробки каталога не установлены.",
+        "Страница CW-9060048-WW требует для LGA1700 отдельные CW-8960091/CW-8960093, но текущая связанная инструкция 49-002401 AA показывает стойки LGA1700 в комплекте. Поэтому список сокетов остаётся IMPORTED: нельзя утверждать ни наличие крепления во всех коробках, ни обязательную допокупку для каждой. Инструкция: https://assets.corsair.com/image/upload/v1783106163/cwsmgmt/documents/49_002401_AA_WW_iCUE_H100i_H115i_H150i_H170i_Elite_Capellix_QSG_Web.pdf",
+        "Номинальный класс радиатора 360 мм не равен его фактической длине или высоте и не гарантирует установку в корпусе. Поле Product Height119,6мм не используется как height_mm воздушного кулера; место установки, полный объём радиатора с вентиляторами и зазоры требуют проверки."
       ],
       "unknownFields": [
         "height_mm",

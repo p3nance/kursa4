@@ -27,6 +27,9 @@ public final class ComponentSpecs {
     public static final Attribute<Integer> MIN_PSU_WATTS = number("min_psu_watts");
     public static final Attribute<Integer> LENGTH_MM = number("length_mm");
     public static final Attribute<Integer> MAX_GPU_LENGTH_MM = number("max_gpu_length_mm");
+    public static final Attribute<String> COOLER_KIND = text("cooler_kind");
+    /** Radiator mounting class, e.g. 360; not an air-cooler height or physical radiator dimension. */
+    public static final Attribute<Integer> RADIATOR_NOMINAL_MM = number("radiator_nominal_mm");
     public static final Attribute<Integer> HEIGHT_MM = number("height_mm");
     public static final Attribute<Integer> MAX_COOLER_HEIGHT_MM = number("max_cooler_height_mm");
     public static final Attribute<Integer> COOLING_WATTS = number("cooling_watts");
@@ -67,6 +70,8 @@ public final class ComponentSpecs {
                 if (s.isBlank()) throw new IllegalArgumentException("Пустая характеристика");
                 @SuppressWarnings("unchecked") T trimmed = (T) s.trim(); value = trimmed;
             }
+            if (attribute.equals(COOLER_KIND) && !Set.of("AIR", "AIO").contains(value))
+                throw new IllegalArgumentException("Тип охлаждения должен быть AIR или AIO");
             if (value instanceof Set<?> values) {
                 if (values.stream().anyMatch(v -> !(v instanceof String s) || s.isBlank()))
                     throw new IllegalArgumentException("Ожидался набор непустых строк");

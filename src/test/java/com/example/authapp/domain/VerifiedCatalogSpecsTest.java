@@ -2,6 +2,8 @@ package com.example.authapp.domain;
 
 import com.example.authapp.models.Product;
 import com.example.authapp.services.BuildRecommendationService;
+import com.example.authapp.services.ChatBotService;
+import com.example.authapp.services.ComparisonService;
 import com.example.authapp.services.CompatibilityService;
 import com.example.authapp.services.LocalKnowledgeRepository;
 import com.google.gson.JsonObject;
@@ -94,7 +96,7 @@ class VerifiedCatalogSpecsTest {
                 assertDoesNotThrow(() -> LocalDate.parse(fact.get("checkedAt").getAsString()), context);
             }
         }
-        assertTrue(verifiedFacts > 0, "The offline dataset must actually contain researched facts");
+        assertEquals(207,verifiedFacts,"Only three newly researched cooler type/class facts are added");
     }
 
     @Test
@@ -102,7 +104,6 @@ class VerifiedCatalogSpecsTest {
         assertConflict("socket", 6, 26);           // AM5 CPU and LGA1700 motherboard
         assertConflict("memory_type", 26, 34);    // DDR4 motherboard and DDR5 memory kit
         assertConflict("gpu_min_psu", 16, 45);    // RTX 4090 reference minimum 850W and a 750W PSU
-        assertConflict("cooler_height", 62, 69);  // O11 Dynamic 155mm and Dark Rock Pro 4 163mm
     }
 
     @Test
@@ -135,6 +136,48 @@ class VerifiedCatalogSpecsTest {
         assertNotVerified(part(68), HEIGHT_MM); // NH-D15 catalog name does not identify the 165/168mm revision
         assertFinding(compatibility.assess(List.of(part(62), part(68)), false),
                 "cooler_height", CompatibilityService.Status.INSUFFICIENT_DATA);
+    }
+
+    @Test
+    void coolerTypeAndNominalClassLeaveUnconfirmedDimensionsAndMountingKitsUnknown() {
+        assertEquals("AIR",part(68).specs().fact(COOLER_KIND).filter(Fact::verified).orElseThrow().value());
+        assertEquals("AIO",part(72).specs().fact(COOLER_KIND).filter(Fact::verified).orElseThrow().value());
+        assertEquals(360,part(72).specs().fact(RADIATOR_NOMINAL_MM).filter(Fact::verified).orElseThrow().value());
+        for(int coolerId:List.of(68,72)) {
+            assertNotVerified(part(coolerId),HEIGHT_MM);
+            assertNotVerified(part(coolerId),SUPPORTED_SOCKETS);
+            assertNotVerified(part(coolerId),COOLING_WATTS);
+        }
+        assertNotVerified(part(68),RADIATOR_NOMINAL_MM);
+        var aio=compatibility.assess(List.of(part(62),part(72)),false);
+        assertFinding(aio,"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        assertTrue(aio.findings().stream().noneMatch(f->f.code().equals("cooler_height")),
+                "A360mm nominal class and ProductHeight must not be tested against air-cooler clearance");
+        var unresolvedAir=compatibility.assess(List.of(part(62),part(68)),false);
+        assertFinding(unresolvedAir,"cooler_height",CompatibilityService.Status.INSUFFICIENT_DATA);
+    }
+
+    @Test
+    void aLegacyCoolerHeightDoesNotSilentlyEstablishAnAirCoolerType() {
+        assertNotVerified(part(69),COOLER_KIND);
+        assertTrue(part(69).specs().fact(HEIGHT_MM).filter(Fact::verified).isPresent());
+        var result=compatibility.assess(List.of(part(62),part(69)),false);
+        assertFinding(result,"cooler_kind",CompatibilityService.Status.INSUFFICIENT_DATA);
+        assertTrue(result.findings().stream().noneMatch(f->f.code().equals("cooler_height")),
+                "Unknown type must be checked before interpreting a legacy height fact");
+        assertFalse(result.hasConflict());
+    }
+
+    @Test
+    void coolerSpecificationComparisonShowsTranslatedTypeAndAnExplicitNominalRadiatorClass() {
+        var reply=new ComparisonService(snapshot,products.values()).compare(part(68),part(72),true,"").reply();
+        var card=assertInstanceOf(ChatBotService.SpecificationsContent.class,reply.content().getFirst());
+        var kind=card.rows().stream().filter(r->r.label().equals("Тип охлаждения")).findFirst().orElseThrow();
+        assertEquals("Воздушное",kind.left());assertEquals("Жидкостное (AIO)",kind.right());
+        var nominal=card.rows().stream().filter(r->r.label().equals("Номинальный класс радиатора")).findFirst().orElseThrow();
+        assertEquals("Не применяется",nominal.left());assertEquals("360 мм",nominal.right());
+        var height=card.rows().stream().filter(r->r.label().equals("Высота воздушного кулера")).findFirst().orElseThrow();
+        assertEquals("Не подтверждено",height.left());assertEquals("Не применяется к СЖО",height.right());
     }
 
     @Test
