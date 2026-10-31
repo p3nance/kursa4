@@ -30,11 +30,15 @@ public final class ChatIntentParser {
         if(lower.matches("(?:сравни(?:ть)?|покажи|показать)(?: по)? бенчмарк(?:и|ам)?[.!?]*"))return parsed(Intent.OTHER,text);
         var compare=COMPARE_PREFIX.matcher(text);
         if(compare.find()) return comparison(text.substring(compare.end()));
+        if(variantRequest(text))return parsed(Intent.BUILD,text);
         var search=SEARCH_PREFIX.matcher(text);
         if(search.find()) return parsed(Intent.SEARCH,trim(text.substring(search.end())));
         var define=DEFINE_PREFIX.matcher(text);
         if(define.find()) return parsed(Intent.DEFINE,trim(text.substring(define.end())));
+        if(OwnedBuildConversation.isCommand(text))return parsed(Intent.BUILD,text);
         if(lower.matches(".*(?:собери|собрать|соберите|подбери|подобрать|подберите|сборк[ауи]|хочу\\s+(?:пк|компьютер)|нужен\\s+(?:пк|компьютер)).*")) return parsed(Intent.BUILD,text);
+        if(lower.matches("(?U).*(?:\\bозу\\b|\\bram\\b|\\bssd\\b|\\bссд\\b|оперативн|накопител).*") && lower.matches(".*[0-9].*"))
+            return parsed(Intent.OTHER,text);
         if(DIVIDER.matcher(text).find()) {
             String[] parts=DIVIDER.split(text,2);
             // A conjunction in a purpose answer (e.g. "для учёбы и офиса") is not a comparison intent.
@@ -42,6 +46,9 @@ public final class ChatIntentParser {
         }
         if(lower.matches(".*(?:бенчмарк|benchmark).*")) return parsed(Intent.COMPARE_HELP,text);
         return parsed(Intent.OTHER,text);
+    }
+    private static boolean variantRequest(String text) {
+        return p("^"+COURTESY+"(?:(?:покажи|показать|дай|предложи|подбери|найди)\\s+)?(?:еще\\s+)?(?:(?:[0-9]+|два|три)\\s+)?(?:вариант(?:ы|а|ов)|альтернативы)(?:\\s+(?:сборк\\p{L}*|пк|компьютер\\p{L}*))?(?:\\s+(?:до|для|на|в пределах|с бюджетом)\\s+.+)?[.!?]*$").matcher(text).matches();
     }
     private static Parsed comparison(String text) {
         String body=trim(text);

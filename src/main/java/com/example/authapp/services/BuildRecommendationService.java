@@ -45,6 +45,11 @@ public final class BuildRecommendationService {
         this.maxCandidatesPerCategory=maxCandidatesPerCategory; this.maxCombinations=maxCombinations;
     }
     public Recommendation recommend(Collection<CatalogComponent> catalog,Request request) {
+        return recommendAlternatives(catalog,request,1).getFirst();
+    }
+    /** Up to three distinct compositions from the same bounded traversal, including the baseline. */
+    public List<Recommendation> recommendAlternatives(Collection<CatalogComponent> catalog,Request request,int limit) {
+        if(limit<1 || limit>3) throw new IllegalArgumentException("Доступно от одного до трёх вариантов");
         Objects.requireNonNull(catalog); Objects.requireNonNull(request);
         checkCancelled();
         var groups = new EnumMap<ComponentCategory,List<CatalogComponent>>(ComponentCategory.class);
@@ -63,19 +68,22 @@ public final class BuildRecommendationService {
             if(candidates.size()>maxCandidatesPerCategory) capped=true;
             groups.put(category,candidates.stream().limit(maxCandidatesPerCategory).toList());
         }
-        if(!messages.isEmpty()) return new Recommendation(Status.NO_MATCH,List.of(),BigDecimal.ZERO,
-                compatibility.assess(List.of()),messages,0,capped);
-        Search search=new Search(request,groups,capped);
+        if(!messages.isEmpty()) return List.of(new Recommendation(Status.NO_MATCH,List.of(),BigDecimal.ZERO,
+                compatibility.assess(List.of()),messages,0,capped));
+        Search search=new Search(request,groups,capped,limit);
         search.visit(0,new ArrayList<>(),BigDecimal.ZERO);
         checkCancelled();
-        if(search.best==null) {
+        if(search.choices.isEmpty()) {
             String reason=search.truncated?"Поиск ограничен: среди проверенных вариантов сборка не найдена.":
                     "Сборка в бюджете с указанными ограничениями не найдена.";
-            return new Recommendation(search.truncated?Status.SEARCH_LIMIT:Status.NO_MATCH,List.of(),BigDecimal.ZERO,
-                    compatibility.assess(List.of()),List.of(reason,"Бюджет учитывает только покупаемые компоненты."),search.examined,search.truncated);
+            return List.of(new Recommendation(search.truncated?Status.SEARCH_LIMIT:Status.NO_MATCH,List.of(),BigDecimal.ZERO,
+                    compatibility.assess(List.of()),List.of(reason,"Бюджет учитывает только покупаемые компоненты."),search.examined,search.truncated));
         }
-        var assessment=compatibility.assess(search.best);
-        boolean unknownCapacity=search.best.stream().anyMatch(c->capacityUnknown(c,request));
+        return search.choices.stream().map(choice->present(choice,request,search.examined,search.truncated)).toList();
+    }
+    private Recommendation present(Choice choice,Request request,int examined,boolean truncated) {
+        var assessment=compatibility.assess(choice.parts());
+        boolean unknownCapacity=choice.parts().stream().anyMatch(c->capacityUnknown(c,request));
         Status status=assessment.status()==CompatibilityService.Status.COMPATIBLE && !unknownCapacity?Status.READY:Status.NEEDS_VERIFICATION;
         var explanations=new ArrayList<String>();
         explanations.add("Подобраны все 8 категорий системного блока из доступного каталога; периферия и ОС не включены.");
@@ -83,9 +91,9 @@ public final class BuildRecommendationService {
         explanations.add("Базовая сборка, без прогноза FPS и скорости рабочих задач. Минимальные объёмы — стартовые требования, их можно изменить.");
         explanations.add("Сценарий: "+request.usage()+". Минимум RAM: "+request.minRamGb()+" ГБ; накопитель: "+request.minStorageGb()+" ГБ.");
         if(status==Status.NEEDS_VERIFICATION) explanations.add("Это черновик: не хватает проверенных характеристик. Перед покупкой требуется проверка совместимости и объёмов.");
-        if(search.truncated) explanations.add("Поиск ограничен числом кандидатов/комбинаций; глобальная оптимальность не гарантируется.");
+        if(truncated) explanations.add("Поиск ограничен числом кандидатов/комбинаций; глобальная оптимальность не гарантируется.");
         explanations.add("Цена и остатки — снимок каталога; перепроверьте перед добавлением в корзину. Имеющиеся детали в стоимость покупки не входят.");
-        return new Recommendation(status,search.best,search.bestPrice,assessment,explanations,search.examined,search.truncated);
+        return new Recommendation(status,choice.parts(),choice.price(),assessment,explanations,examined,truncated);
     }
     private static void checkCancelled() {
         if(Thread.currentThread().isInterrupted()) throw new CancellationException("Подбор отменён");
@@ -99,16 +107,22 @@ public final class BuildRecommendationService {
         if(c.category()!=ComponentCategory.RAM && c.category()!=ComponentCategory.STORAGE) return false;
         return c.specs().fact(CAPACITY_GB).map(f->!f.verified()).orElse(true);
     }
+    private record Choice(List<CatalogComponent> parts,BigDecimal price,int unknown) {}
+    private static boolean sameComposition(List<CatalogComponent> left,List<CatalogComponent> right) {
+        if(left.size()!=right.size())return false;
+        for(int i=0;i<left.size();i++)if(left.get(i).productId()!=right.get(i).productId())return false;
+        return true;
+    }
     private final class Search {
         private final Request request;
         private final Map<ComponentCategory,List<CatalogComponent>> groups;
         private final BigDecimal[] minimumRemaining=new BigDecimal[ComponentCategory.values().length+1];
-        private List<CatalogComponent> best;
-        private BigDecimal bestPrice;
-        private int bestUnknown=Integer.MAX_VALUE,examined,visitedNodes;
+        private final List<Choice> choices=new ArrayList<>();
+        private final int limit;
+        private int examined,visitedNodes;
         private boolean truncated;
-        Search(Request r,Map<ComponentCategory,List<CatalogComponent>> groups,boolean truncated) {
-            request=r;this.groups=groups;this.truncated=truncated;
+        Search(Request r,Map<ComponentCategory,List<CatalogComponent>> groups,boolean truncated,int limit) {
+            request=r;this.groups=groups;this.truncated=truncated;this.limit=limit;
             minimumRemaining[ComponentCategory.values().length]=BigDecimal.ZERO;
             for(int i=ComponentCategory.values().length-1;i>=0;i--) {
                 var category=ComponentCategory.values()[i];
@@ -127,8 +141,10 @@ public final class BuildRecommendationService {
                 int unknown=(int)result.findings().stream().filter(f->f.status()==CompatibilityService.Status.INSUFFICIENT_DATA).count();
                 unknown+=(int)selected.stream().filter(c->capacityUnknown(c,request)).count();
                 if(request.requireVerified() && unknown>0) return;
-                if(best==null || unknown<bestUnknown || (unknown==bestUnknown && price.compareTo(bestPrice)<0)) {
-                    best=List.copyOf(selected);bestPrice=price;bestUnknown=unknown;
+                if(choices.stream().noneMatch(choice->sameComposition(choice.parts(),selected))) {
+                    choices.add(new Choice(List.copyOf(selected),price,unknown));
+                    choices.sort(Comparator.comparingInt(Choice::unknown).thenComparing(Choice::price));
+                    if(choices.size()>limit)choices.removeLast();
                 }
                 return;
             }

@@ -1,0 +1,2 @@
+.product-editor-form { -fx-hgap: 12; -fx-vgap: 12; -fx-padding: 14 0; }
+.product-editor-error { -fx-text-fill: #b34536; -fx-padding: 0 0 12 0; -fx-font-size: 12px; }

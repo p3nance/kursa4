@@ -15,20 +15,35 @@ public final class ChatBotService {
                               String imageUrl, String category, String manufacturer) {
         public static ProductInfo from(Product p) {
             return new ProductInfo(p.getId(), Objects.toString(p.getName(), ""), Objects.toString(p.getDescription(), ""),
-                    BigDecimal.valueOf(p.getPrice()), p.getStock(), Objects.toString(p.getImageUrl(), ""),
+                    p.getPrice(), p.getStock(), Objects.toString(p.getImageUrl(), ""),
                     Objects.toString(p.getCategory(), ""), Objects.toString(p.getManufacturer(), ""));
         }
-        public Product toProduct() { return new Product(id, name, description, price.doubleValue(), stock, imageUrl, category, manufacturer); }
+        public Product toProduct() { return new Product(id, name, description, price, stock, imageUrl, category, manufacturer); }
     }
-    public record RequestSummary(BigDecimal budget, BuildRecommendationService.Usage usage) {}
+    public record RequestSummary(BigDecimal budget, BuildRecommendationService.Usage usage,
+                                 Integer minRamGb, Integer minStorageGb, boolean requireVerified, List<ProductInfo> ownedParts) {
+        public RequestSummary { ownedParts=List.copyOf(ownedParts); }
+        public RequestSummary(BigDecimal budget, BuildRecommendationService.Usage usage) {this(budget,usage,null,null,false,List.of());}
+        public RequestSummary(BigDecimal budget, BuildRecommendationService.Usage usage,Integer ram,Integer storage,boolean verified) {
+            this(budget,usage,ram,storage,verified,List.of());
+        }
+    }
     public record TermContent(GlossaryService.Term term) implements Content {}
     public record ProductsContent(List<ProductInfo> items, int total) implements Content {
         public ProductsContent { items = List.copyOf(items); }
     }
     public record BuildContent(List<ProductInfo> parts, BigDecimal total, BigDecimal budget,
                                BuildRecommendationService.Usage usage, boolean verified,
-                               List<String> findings, List<String> limitations) implements Content {
-        public BuildContent { parts = List.copyOf(parts); findings = List.copyOf(findings); limitations = List.copyOf(limitations); }
+                               List<String> findings, List<String> limitations, Set<Integer> ownedProductIds) implements Content {
+        public BuildContent {
+            parts=List.copyOf(parts);findings=List.copyOf(findings);limitations=List.copyOf(limitations);ownedProductIds=Set.copyOf(ownedProductIds);
+            var ids=parts.stream().map(ProductInfo::id).collect(java.util.stream.Collectors.toSet());
+            if(!ids.containsAll(ownedProductIds))throw new IllegalArgumentException("Имеющаяся деталь отсутствует в составе");
+        }
+        public BuildContent(List<ProductInfo> parts,BigDecimal total,BigDecimal budget,BuildRecommendationService.Usage usage,
+                            boolean verified,List<String> findings,List<String> limitations) {
+            this(parts,total,budget,usage,verified,findings,limitations,Set.of());
+        }
     }
     public record BenchmarksContent(List<BenchmarkService.Comparison> comparisons, Map<String,String> modelNames) implements Content {
         public BenchmarksContent { comparisons = List.copyOf(comparisons); modelNames=Map.copyOf(modelNames); }
@@ -66,37 +81,42 @@ public final class ChatBotService {
     private final GlossaryService glossary;
     private final ChatIntentParser intents = new ChatIntentParser();
     private ComparisonConversation comparison;
+    private OwnedBuildConversation owned;
     private LocalKnowledgeRepository.Snapshot knowledge;
     private BigDecimal budget;
     private BuildRecommendationService.Usage usage;
     private boolean waitingForBuild;
+    private int variantCount=1;
+    private final BuildRequestParser buildRequests=new BuildRequestParser();
+    private BuildRequestParser.Preferences preferences=BuildRequestParser.Preferences.defaults();
 
     public ChatBotService(Collection<Product> products) {
         glossary=new GlossaryService();updateCatalog(products);
     }
     private ChatBotService(ChatBotService source) {
         glossary=source.glossary;products=source.products;knowledge=source.knowledge;
-        budget=source.budget;usage=source.usage;waitingForBuild=source.waitingForBuild;comparison=source.comparison.copy();
+        budget=source.budget;usage=source.usage;waitingForBuild=source.waitingForBuild;comparison=source.comparison.copy();preferences=source.preferences;owned=source.owned.copy();variantCount=source.variantCount;
     }
     public synchronized ChatBotService fork() { return new ChatBotService(this); }
     private record ConversationState(BigDecimal budget,BuildRecommendationService.Usage usage,
-                                     boolean waitingForBuild,ComparisonConversation comparison) {}
+                                     boolean waitingForBuild,ComparisonConversation comparison,BuildRequestParser.Preferences preferences,OwnedBuildConversation owned,int variantCount) {}
     private synchronized ConversationState checkpoint() {
-        return new ConversationState(budget,usage,waitingForBuild,comparison.copy());
+        return new ConversationState(budget,usage,waitingForBuild,comparison.copy(),preferences,owned.copy(),variantCount);
     }
     /** The UI commits a completed draft only after its request-generation check. Catalog data stays current. */
     public void commitConversation(ChatBotService draft) {
         var state=draft.checkpoint();
         synchronized(this) {
-            budget=state.budget();usage=state.usage();waitingForBuild=state.waitingForBuild();comparison.commit(state.comparison());
+            budget=state.budget();usage=state.usage();waitingForBuild=state.waitingForBuild();comparison.commit(state.comparison());preferences=state.preferences();owned.commit(state.owned());variantCount=state.variantCount();
         }
     }
-    public synchronized void reset() { budget=null;usage=null;waitingForBuild=false;comparison.clear(); }
-    public synchronized RequestSummary summary() { return new RequestSummary(budget, usage); }
+    public synchronized void reset() { budget=null;usage=null;waitingForBuild=false;comparison.clear();preferences=BuildRequestParser.Preferences.defaults();owned.clear();variantCount=1; }
+    public synchronized RequestSummary summary() { return new RequestSummary(budget,usage,preferences.minRamGb(),preferences.minStorageGb(),preferences.requireVerified(),ownedProducts()); }
     public synchronized void updateCatalog(Collection<Product> products) {
         this.products = snapshotProducts(products);
         knowledge = new LocalKnowledgeRepository().load(this.products);
         comparison=comparison==null?new ComparisonConversation(knowledge,this.products):comparison.refreshed(knowledge,this.products);
+        owned=owned==null?new OwnedBuildConversation(knowledge.components()):owned.refreshed(knowledge.components());
     }
 
     public synchronized Reply reply(String raw) {
@@ -107,7 +127,7 @@ public final class ChatBotService {
             if(Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException("Запрос отменён");
             return answer.withRequest(summary());
         } catch(RuntimeException ex) {
-            budget=before.budget();usage=before.usage();waitingForBuild=before.waitingForBuild();comparison=before.comparison();throw ex;
+            budget=before.budget();usage=before.usage();waitingForBuild=before.waitingForBuild();comparison=before.comparison();preferences=before.preferences();owned=before.owned();variantCount=before.variantCount();throw ex;
         }
     }
     private Reply replyTo(String raw) {
@@ -117,32 +137,45 @@ public final class ChatBotService {
         String text=raw.toLowerCase(RU).replace('ё','е').trim();
         var parsed=intents.parse(raw);
         if(parsed.intent()==ChatIntentParser.Intent.RESET) {reset();return new Reply("Начнём заново. "+HELP);}
-        if(parsed.intent()==ChatIntentParser.Intent.GREETING) {comparison.clear();waitingForBuild=false;return new Reply(HELP);}
+        if(parsed.intent()==ChatIntentParser.Intent.GREETING) {owned.cancelPending();comparison.clear();waitingForBuild=false;return new Reply(HELP);}
         if(parsed.intent()==ChatIntentParser.Intent.THANKS)return new Reply("Пожалуйста! Можно продолжить сравнение, найти товар или уточнить задачу.");
-        if(parsed.intent()==ChatIntentParser.Intent.SEARCH) {comparison.clear();waitingForBuild=false;return search(parsed.body());}
-        if(parsed.intent()==ChatIntentParser.Intent.DEFINE) {comparison.clear();waitingForBuild=false;return definition(parsed.body());}
-        if(parsed.intent()==ChatIntentParser.Intent.BUILD)comparison.clear();
+        if(parsed.intent()==ChatIntentParser.Intent.SEARCH) {owned.cancelPending();comparison.clear();waitingForBuild=false;return search(parsed.body());}
+        if(parsed.intent()==ChatIntentParser.Intent.DEFINE) {owned.cancelPending();comparison.clear();waitingForBuild=false;return definition(parsed.body());}
+        boolean comparing=parsed.intent()==ChatIntentParser.Intent.COMPARE || parsed.intent()==ChatIntentParser.Intent.COMPARE_HELP;
+        if(comparing)owned.cancelPending();
+        var ownership=comparing?OwnedBuildConversation.Outcome.none(raw):owned.respond(raw);
+        String buildRaw=ownership.handled()?ownership.remaining():raw;
+        String buildText=buildRaw.toLowerCase(RU).replace('ё','е').trim();
+        var constraints=buildRequests.parse(buildRaw);
+        boolean refine=ownership.handled() || owned.pending() || parsed.intent()==ChatIntentParser.Intent.OTHER &&
+                ((waitingForBuild || budget!=null) && constraints.hasChanges() || constraints.ram()!=null || constraints.storage()!=null || constraints.verified()!=null || constraints.reset());
+        if(!comparing && (parsed.intent()==ChatIntentParser.Intent.BUILD || refine))comparison.clear();
         else {
             var compared=comparison.respond(raw,parsed);
             if(compared.isPresent()) {waitingForBuild=false;return compared.get();}
         }
         var terms=glossary.search(raw,3);
-        if(!terms.isEmpty() && parsed.intent()!=ChatIntentParser.Intent.BUILD && !containsBuildIntent(text) && !waitingForBuild) {
+        if(!terms.isEmpty() && parsed.intent()!=ChatIntentParser.Intent.BUILD && !containsBuildIntent(text) && !waitingForBuild && !refine) {
             comparison.clear();return definition(raw);
         }
-        if (parsed.intent()==ChatIntentParser.Intent.BUILD || containsBuildIntent(text) || waitingForBuild || SHORT_BUDGET.matcher(text).matches()) {
+        if (parsed.intent()==ChatIntentParser.Intent.BUILD || containsBuildIntent(text) || waitingForBuild || refine || SHORT_BUDGET.matcher(text).matches()) {
             waitingForBuild = true;
-            if (text.matches(".*(?:доллар|usd|eur|евро|[$€]).*")) return new Reply("Пока подбираю по ценам каталога в рублях. Укажите бюджет в рублях.");
-            Optional<BigDecimal> parsedBudget = budgetFrom(raw);
+            if(!constraints.problems().isEmpty()) return new Reply(String.join("\n",constraints.problems()));
+            preferences=constraints.apply(preferences);
+            if(!buildText.isBlank() && (parsed.intent()==ChatIntentParser.Intent.BUILD || alternativeCount(buildText)>1))variantCount=alternativeCount(buildText);
+            if (buildText.matches(".*(?:доллар|usd|eur|евро|[$€]).*")) return new Reply("Пока подбираю по ценам каталога в рублях. Укажите бюджет в рублях.");
+            Optional<BigDecimal> parsedBudget = budgetFrom(buildRaw);
             if (parsedBudget.isPresent()) budget = parsedBudget.get();
-            if (text.matches(".*(?:игр|гейм).*")) usage = BuildRecommendationService.Usage.GAMING;
-            else if (text.matches(".*(?:офис|учеб|учеб|документ|браузер).*")) usage = BuildRecommendationService.Usage.OFFICE;
-            else if (text.matches(".*(?:монтаж|рендер|рабоч|программ|разработ|3d).*")) usage = BuildRecommendationService.Usage.WORKSTATION;
-            if (budget == null) return new Reply("Какой бюджет системного блока в рублях? Например: «до 100 000 рублей». Монитор и периферия считаются отдельно.").withSuggestions("До 60 000 рублей", "До 100 000 рублей", "До 150 000 рублей");
+            if (buildText.matches(".*(?:игр|гейм).*")) usage = BuildRecommendationService.Usage.GAMING;
+            else if (buildText.matches(".*(?:офис|учеб|учеб|документ|браузер).*")) usage = BuildRecommendationService.Usage.OFFICE;
+            else if (buildText.matches(".*(?:монтаж|рендер|рабоч|программ|разработ|3d).*")) usage = BuildRecommendationService.Usage.WORKSTATION;
+            if(ownership.response()!=null)return ownership.response();
+            var ownedProblem=owned.problem();if(ownedProblem!=null)return ownedProblem;
+            if (budget == null) return new Reply("Какой бюджет покупки в рублях? Имеющиеся детали в него не входят. Например: «до 100 000 рублей». Монитор и периферия считаются отдельно.").withSuggestions("До 60 000 рублей", "До 100 000 рублей", "До 150 000 рублей");
             if (budget.signum() <= 0 || budget.compareTo(new BigDecimal("100000000")) > 0)
                 return new Reply("Укажите бюджет больше нуля и не более 100 млн рублей.");
             if (usage == null) return new Reply("Для каких задач нужен ПК: игры, офис/учёба или монтаж/рабочие приложения?").withSuggestions("Для игр", "Для учёбы и офиса", "Для монтажа и рабочих задач");
-            return recommend();
+            return recommend(variantCount);
         }
         if (text.matches(".*(?:совместим|подойдет|подходит).*")) return new Reply("Откройте конфигуратор и выберите компоненты: он проверит сокет, память, питание, габариты и другие доступные характеристики. Если данных недостаточно, это будет указано отдельно.");
         return new Reply("Пока не распознал запрос. " + HELP);
@@ -191,31 +224,55 @@ public final class ChatBotService {
         }
         if (matches.isEmpty()) return new Reply("В текущем каталоге ничего не найдено по запросу «" + query + "». Уточните название или категорию.");
         StringJoiner answer = new StringJoiner("\n", "В каталоге:\n", "\nЦены и остатки могут измениться.");
-        matches.stream().limit(10).forEach(p -> answer.add(p.getName() + " — " + money(BigDecimal.valueOf(p.getPrice())) + (p.getStock() > 0 ? ", в наличии: " + p.getStock() : ", нет в наличии")));
+        matches.stream().limit(10).forEach(p -> answer.add(p.getName() + " — " + money(p.getPrice()) + (p.getStock() > 0 ? ", в наличии: " + p.getStock() : ", нет в наличии")));
         if (matches.size() > 10) answer.add("Показано 10 из " + matches.size() + ". Уточните запрос.");
         return new Reply(answer.toString(), "Нашёл товары в текущем каталоге. Цены и наличие могут измениться.", List.of(),
                 List.of(new ProductsContent(matches.stream().limit(10).map(ProductInfo::from).toList(), matches.size())), null, List.of());
     }
-    private Reply recommend() {
+    private static int alternativeCount(String text) {
+        if(text.matches("(?U).*(?:\\b2|\\bдва)\\s+вариант.*"))return 2;
+        return text.matches(".*(?:вариант[ыа]|альтернатив).*")?3:1;
+    }
+    private List<ProductInfo> ownedProducts() {
+        return owned.components().values().stream().sorted(Comparator.comparing(CatalogComponent::category)).map(c->
+                ProductInfo.from(products.stream().filter(p->p.getId()==c.productId()).findFirst().orElseThrow())).toList();
+    }
+    private Reply recommend(int count) {
+        var ownedProblem=owned.problem();if(ownedProblem!=null)return ownedProblem;
+        var inherited=owned.components();
+        var rejected=inherited.values().stream().filter(c->!preferences.accepts(c)).toList();
+        if(!rejected.isEmpty())return new Reply("Имеющиеся детали не подтверждают заданный минимум объёма: "+rejected.stream().map(CatalogComponent::name).collect(java.util.stream.Collectors.joining(", "))+". Измените минимум или список имеющихся деталей.");
         if (knowledge.components().isEmpty()) return new Reply("В каталоге пока нет комплектующих для подбора. Бюджет " + money(budget) + " запомнил. " + warnings());
-        var result = new BuildRecommendationService().recommend(knowledge.components(), BuildRecommendationService.Request.forUsage(budget, usage));
-        if (result.components().isEmpty()) return new Reply(String.join("\n", result.explanations()) + "\nБюджет: " + money(budget) + ".\n" + warnings());
+        var results = new BuildRecommendationService().recommendAlternatives(knowledge.components().stream().filter(preferences::accepts).toList(), purchaseRequest(inherited),count);
+        var replies=results.stream().map(this::presentBuild).toList();
+        if(replies.size()==1)return replies.getFirst();
+        var cards=replies.stream().flatMap(reply->reply.content().stream()).toList();
+        StringJoiner text=new StringJoiner("\n\n");
+        for(int i=0;i<replies.size();i++)text.add("Вариант "+(i+1)+". "+replies.get(i).text());
+        return new Reply(text.toString(),"Подготовил "+replies.size()+" варианта, включая базовый. Они отличаются составом; цена не означает превосходства в FPS или скорости приложений.",
+                replies.getFirst().build(),cards,null,List.of("ОЗУ 32 ГБ", "Что такое совместимость?"));
+    }
+    private BuildRecommendationService.Request purchaseRequest(Map<ComponentCategory,CatalogComponent> inherited) {
+        var base=preferences.request(budget,usage);
+        return new BuildRecommendationService.Request(base.budget(),base.usage(),base.minRamGb(),base.minStorageGb(),inherited,base.requireVerified());
+    }
+    private Reply presentBuild(BuildRecommendationService.Recommendation result) {
+        if (result.components().isEmpty()) return new Reply(String.join("\n", result.explanations()) + (preferences.minRamGb()!=null || preferences.minStorageGb()!=null ? "\nДля заданных минимумов объёма учитываю только проверенные характеристики ОЗУ/SSD." : "") + "\nБюджет: " + money(budget) + ".\n" + warnings());
         StringJoiner answer = new StringJoiner("\n");
         answer.add(result.status() == BuildRecommendationService.Status.READY ? "Вариант сборки:" : "Черновой вариант — совместимость ещё не подтверждена:");
-        result.components().forEach(c -> answer.add(c.category().displayName() + ": " + c.name() + " — " + money(c.price())));
-        answer.add("Итого: " + money(result.purchaseTotal()) + " из " + money(budget));
+        result.components().forEach(c -> answer.add(c.category().displayName() + ": " + c.name() + (owned.components().containsKey(c.category())?" — уже есть, не покупаем":" — "+money(c.price()))));
+        answer.add("К покупке: " + money(result.purchaseTotal()) + " из " + money(budget));
         result.explanations().forEach(answer::add);
         result.compatibility().findings().stream().filter(f -> f.status() != CompatibilityService.Status.COMPATIBLE).limit(5).forEach(f -> answer.add("• " + f.message()));
         if (!knowledge.warnings().isEmpty()) answer.add(warnings());
-        var ids = result.components().stream().map(CatalogComponent::productId).toList();
         var selected = result.components().stream().map(c -> products.stream().filter(p -> p.getId() == c.productId()).findFirst().orElseThrow()).toList();
         var findings = result.compatibility().findings().stream().filter(f -> f.status() != CompatibilityService.Status.COMPATIBLE).map(CompatibilityService.Finding::message).toList();
         var limitations = new ArrayList<>(result.compatibility().limitations());
         limitations.addAll(result.explanations()); limitations.addAll(knowledge.warnings());
         boolean verified = result.status() == BuildRecommendationService.Status.READY;
-        var card = new BuildContent(selected.stream().map(ProductInfo::from).toList(), result.purchaseTotal(), budget, usage, verified, findings, limitations);
+        var card = new BuildContent(selected.stream().map(ProductInfo::from).toList(), result.purchaseTotal(), budget, usage, verified, findings, limitations,owned.components().values().stream().map(CatalogComponent::productId).collect(java.util.stream.Collectors.toSet()));
         return new Reply(answer.toString(), verified ? "Подготовил вариант в вашем бюджете." : "Подготовил черновой вариант. Перед покупкой нужно проверить характеристики деталей.",
-                selected, List.of(card), null, List.of("Что такое совместимость?"));
+                selected, List.of(card), null, owned.components().isEmpty()?List.of("Покажи варианты сборки", "Что такое совместимость?"):List.of("Покажи варианты сборки", "Сбросить имеющиеся детали"));
     }
     private Reply definition(String query) {
         var terms=glossary.search(query,3);

@@ -1,5 +1,6 @@
 package com.example.authapp.repositories;
 
+import java.math.BigDecimal;
 import com.example.authapp.dto.*;
 import com.example.authapp.models.PromoCode;
 import com.google.gson.Gson;
@@ -68,7 +69,7 @@ public class AdminRepository {
                 .method("PATCH", HttpRequest.BodyPublishers.ofString("{\"stock\":0}")).build());
     }
 
-    public static void addProduct(String name, String description, double price,
+    public static void addProduct(String name, String description, BigDecimal price,
                                   int stock, String category, String manufacturer, String imageUrl) throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/products";
@@ -102,7 +103,7 @@ public class AdminRepository {
         }
     }
 
-    public static void updateProduct(int productId, String name, String description, double price,
+    public static void updateProduct(int productId, String name, String description, BigDecimal price,
                                      int stock, String category, String manufacturer) throws Exception {
         try {
             String url = SUPABASE_URL + "/rest/v1/products?id=eq." + productId;
@@ -301,7 +302,7 @@ public class AdminRepository {
                 }
 
                 dto.totalAmount   = orderJson.has("total_amount")
-                        ? orderJson.get("total_amount").getAsDouble() : 0.0;
+                        ? orderJson.get("total_amount").getAsBigDecimal() : BigDecimal.ZERO;
                 dto.status        = orderJson.has("status") && !orderJson.get("status").isJsonNull()
                         ? orderJson.get("status").getAsString() : "unknown";
                 dto.orderDate     = orderJson.has("created_at") && !orderJson.get("created_at").isJsonNull()
@@ -309,9 +310,9 @@ public class AdminRepository {
                 dto.promoCodeId   = orderJson.has("promo_code_id") && !orderJson.get("promo_code_id").isJsonNull()
                         ? orderJson.get("promo_code_id").getAsInt() : null;
                 dto.discountAmount = orderJson.has("discount_amount") && !orderJson.get("discount_amount").isJsonNull()
-                        ? orderJson.get("discount_amount").getAsDouble() : 0.0;
+                        ? orderJson.get("discount_amount").getAsBigDecimal() : BigDecimal.ZERO;
                 dto.finalAmount   = orderJson.has("final_amount")
-                        ? orderJson.get("final_amount").getAsDouble() : dto.totalAmount;
+                        ? orderJson.get("final_amount").getAsBigDecimal() : dto.totalAmount;
 
                 dto.items = getOrderItemsAdmin(dto.orderId);
                 orders.add(dto);

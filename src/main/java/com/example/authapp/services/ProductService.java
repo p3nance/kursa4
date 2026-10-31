@@ -2,6 +2,7 @@ package com.example.authapp.services;
 
 import com.example.authapp.models.Product;
 import com.example.authapp.repositories.ProductRepository;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +50,8 @@ public class ProductService {
         }
     }
 
-    public void addProduct(String name, double price, String description, int stock, String imageUrl, String category) throws Exception {
-        if (name == null || name.isEmpty() || price <= 0 || stock < 0) {
+    public void addProduct(String name, BigDecimal price, String description, int stock, String imageUrl, String category) throws Exception {
+        if (name == null || name.isEmpty() || price == null || price.signum() <= 0 || stock < 0) {
             throw new IllegalArgumentException("Некорректные данные товара");
         }
 
@@ -58,7 +59,7 @@ public class ProductService {
         productRepository.addProduct(product);
     }
 
-    public void updateProduct(int productId, String name, double price, int stock, String description, String category, String manufacturer) throws Exception {
+    public void updateProduct(int productId, String name, BigDecimal price, int stock, String description, String category, String manufacturer) throws Exception {
         Product product = getProductById(productId);
         product.setName(name);
         product.setPrice(price);

@@ -47,6 +47,14 @@ class ChatIntentParserTest {
         assertEquals(BUILD,parser.parse("Хочу компьютер до 100к").intent());
         assertEquals(BUILD,parser.parse("Подбери комплектующие для работы").intent());
     }
+    @Test void ownershipAndVariantWordsCannotHijackAnExplicitSearchOrDefinition() {
+        assertEquals(SEARCH,parser.parse("Найди RTX 4070, у меня есть Ryzen 5 7600").intent());
+        assertEquals(DEFINE,parser.parse("Что значит фраза «у меня есть RTX 4070»?").intent());
+        assertEquals(DEFINE,parser.parse("Что такое варианты сборки?").intent());
+        assertEquals(SEARCH,parser.parse("Найди RTX 4070 и варианты сборки").intent());
+        assertEquals(BUILD,parser.parse("Покажи 2 варианта сборки").intent());
+        assertEquals(BUILD,parser.parse("Можешь показать варианты сборки?").intent());
+    }
     @Test void helpDoesNotDemandUserMeasurementsAndControlIntentsAreWholePhrases() {
         assertEquals(COMPARE_HELP,parser.parse("Как сравнить комплектующие по бенчмаркам?").intent());
         assertEquals(COMPARE_HELP,parser.parse("бенчмарки").intent());

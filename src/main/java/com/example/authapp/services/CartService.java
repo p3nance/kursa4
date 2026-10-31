@@ -1,5 +1,7 @@
 package com.example.authapp.services;
 
+import com.example.authapp.network.Money;
+import java.math.BigDecimal;
 import com.example.authapp.models.Cart;
 import com.example.authapp.models.Cart.CartItem;
 import com.example.authapp.models.Product;
@@ -72,18 +74,18 @@ public class CartService {
             SessionManager.runIfCurrent(lease,()->{Cart.getInstance().clear();appliedPromoCode=null;});
         }catch(Exception ex){throw new Exception("Не удалось очистить корзину текущего аккаунта.",ex);}
     }
-    public double getCartTotal(){return Cart.getInstance().getTotal();}
+    public BigDecimal getCartTotal(){return Cart.getInstance().getTotal();}
     public int getCartSize(){return Cart.getInstance().getTotalQuantity();}
     public int getCartItemsCount(){return Cart.getInstance().getUniqueItemsCount();}
     public List<CartItem> getCartItems(){return Cart.getInstance().getItems();}
     public Cart getCurrentCart(){return Cart.getInstance();}
-    public double applyDiscount(String code) throws Exception {
+    public BigDecimal applyDiscount(String code) throws Exception {
         if(code==null||code.isBlank())throw new IllegalArgumentException("Промокод не может быть пустым");
         var lease=SessionManager.requireSession();
         try(var scope=SupabaseHttp.forSession(lease)){
             PromoCode promo=new com.example.authapp.repositories.PromoCodeRepository().validatePromoCode(code);
             SessionManager.assertCurrent(lease);
-            return com.example.authapp.network.Money.discount(getCartTotal(),promo.getDiscountPercent()).doubleValue();
+            return Money.discount(getCartTotal(),promo.getDiscountPercent());
         }
     }
     public int getProductQuantity(Product product){return Cart.getInstance().getItems().stream().filter(item->item.getProduct().getId()==product.getId()).mapToInt(CartItem::getQuantity).sum();}

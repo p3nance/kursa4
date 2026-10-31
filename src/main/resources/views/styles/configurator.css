@@ -64,3 +64,5 @@
 .config-picker-stock { -fx-font-size: 11px; -fx-text-fill: #65748b; }
 .config-picker-empty { -fx-padding: 35 15; -fx-font-size: 13px; -fx-text-fill: #65748b; -fx-line-spacing: 4; }
 .config-picker-footer { -fx-font-size: 11px; -fx-text-fill: #65748b; }
+
+.config-owned-toggle { -fx-font-size: 11px; -fx-text-fill: #65748b; }

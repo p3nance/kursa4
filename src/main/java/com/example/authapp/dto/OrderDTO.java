@@ -1,59 +1,38 @@
 package com.example.authapp.dto;
 
+import com.example.authapp.network.Money;
+import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Data Transfer Object для Order
- */
+/** Server order snapshot. Monetary JSON numbers remain decimal throughout the client. */
 public class OrderDTO {
     public int orderId;
     public String userId;
-    public double totalAmount;        // Сумма заказа до скидки
+    public BigDecimal totalAmount = Money.ZERO;
     public String status;
     public String orderDate;
-
-    // ✅ ПОЛЯ ДЛЯ ПРОМОКОДОВ
-    public Integer promoCodeId;       // ID примененного промокода
-    public String promoCode;          // Код промокода
-    public Double discountAmount;     // Сумма скидки
-    public Double discountPercent;    // Процент скидки
-
-    // ✅ ПОЛЕ ДЛЯ СПИСКА ТОВАРОВ
-    public List<OrderItemDTO> items;  // Список товаров в заказе
-
-    // ✅ ИТОГОВАЯ СУММА С УЧЕТОМ СКИДКИ
-    public double finalAmount;        // Итоговая сумма к оплате (totalAmount - discountAmount)
+    public Integer promoCodeId;
+    public String promoCode;
+    public BigDecimal discountAmount = Money.ZERO;
+    public BigDecimal discountPercent;
+    public List<OrderItemDTO> items;
+    public BigDecimal finalAmount = Money.ZERO;
 
     public OrderDTO() {}
-
-    // Старый конструктор (для обратной совместимости)
-    public OrderDTO(int orderId, String userId, double totalAmount, String status, String orderDate) {
-        this.orderId = orderId;
-        this.userId = userId;
-        this.totalAmount = totalAmount;
-        this.status = status;
-        this.orderDate = orderDate;
-        this.promoCodeId = null;
-        this.promoCode = null;
-        this.discountAmount = 0.0;
-        this.discountPercent = 0.0;
-        this.finalAmount = totalAmount; // Если нет скидки, итог = полная сумма
+    public OrderDTO(int orderId, String userId, BigDecimal totalAmount, String status, String orderDate) {
+        this(orderId, userId, totalAmount, status, orderDate, null, null, Money.ZERO, null);
     }
-
-    // ✅ НОВЫЙ КОНСТРУКТОР с промокодом
-    public OrderDTO(int orderId, String userId, double totalAmount, String status, String orderDate,
-                    Integer promoCodeId, String promoCode, Double discountAmount, Double discountPercent) {
+    public OrderDTO(int orderId, String userId, BigDecimal totalAmount, String status, String orderDate,
+                    Integer promoCodeId, String promoCode, BigDecimal discountAmount, BigDecimal discountPercent) {
         this.orderId = orderId;
         this.userId = userId;
-        this.totalAmount = totalAmount;
+        this.totalAmount = Money.amount(totalAmount);
         this.status = status;
         this.orderDate = orderDate;
         this.promoCodeId = promoCodeId;
         this.promoCode = promoCode;
-        this.discountAmount = discountAmount != null ? discountAmount : 0.0;
-        this.discountPercent = discountPercent != null ? discountPercent : 0.0;
-
-        // ✅ Автоматически рассчитываем итоговую сумму
-        this.finalAmount = totalAmount - this.discountAmount;
+        this.discountAmount = discountAmount == null ? Money.ZERO : Money.amount(discountAmount);
+        this.discountPercent = discountPercent;
+        this.finalAmount = Money.payable(this.totalAmount, this.discountAmount);
     }
 }

@@ -72,7 +72,7 @@ class ChatBotServiceTest {
         assertFalse(build.verified());
         assertFalse(build.findings().isEmpty());
         catalog.getFirst().setPrice(99999);
-        assertEquals(new BigDecimal("1000.0"),build.parts().getFirst().price());
+        assertEquals(new BigDecimal("1000.00"),build.parts().getFirst().price());
         reply.build().getFirst().setName("Changed by UI");
         assertNotEquals("Changed by UI",reply.build().getFirst().getName());
     }

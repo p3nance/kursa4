@@ -165,7 +165,7 @@ class ComparisonServiceTest {
             for(var element:JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("products")) {
                 var row=element.getAsJsonObject();
                 products.add(new Product(row.get("id").getAsInt(),row.get("name").getAsString(),row.get("description").getAsString(),
-                        row.get("price").getAsDouble(),row.get("stock").getAsInt(),"",row.get("category").getAsString(),row.get("manufacturer").getAsString()));
+                        row.get("price").getAsBigDecimal(),row.get("stock").getAsInt(),"",row.get("category").getAsString(),row.get("manufacturer").getAsString()));
             }
         }
         String previous=System.getProperty("techstore.knowledge.dir");LocalKnowledgeRepository.Snapshot snapshot;
@@ -175,14 +175,51 @@ class ComparisonServiceTest {
         var byId=new HashMap<Integer,CatalogComponent>();snapshot.components().forEach(c->byId.put(c.productId(),c));
         var service=new ComparisonService(snapshot,products);
         var missing=service.compare(byId.get(4),byId.get(8),false,"");
-        assertEquals(ComparisonService.Status.NO_MEASUREMENTS,missing.status());
-        assertTrue(missing.reply().lead().contains("нет проверенных измерений для AMD Ryzen 7 7800X3D"));
+        assertEquals(ComparisonService.Status.NO_COMMON_CONTEXT,missing.status());
+        assertTrue(missing.reply().lead().contains("нет общего"));
         var spec=assertInstanceOf(ChatBotService.SpecificationsContent.class,missing.reply().content().getFirst());
         assertTrue(spec.rows().stream().anyMatch(r->r.label().equals("Сокет") && r.left().equals("LGA1700") && r.right().equals("AM5")));
         var compared=service.compare(byId.get(14),byId.get(13),false,"");
         assertEquals(ComparisonService.Status.COMPARABLE,compared.status());
         var benchmark=assertInstanceOf(ChatBotService.BenchmarksContent.class,compared.reply().content().getFirst());
-        assertEquals(2,benchmark.comparisons().size());
+        assertEquals(3,benchmark.comparisons().size());
+        assertTrue(compared.reply().text().contains("Starfield"));assertTrue(compared.reply().text().contains("13.76 %"));
         assertTrue(compared.reply().text().contains("11.63 %"));assertTrue(compared.reply().text().contains("19.46 %"));
+    }
+
+    private static BenchmarkService.Result gamingResult(String id,int fps) {
+        var context=new BenchmarkService.Context("Starfield","Fixture patch","GPU gaming benchmark (4K/High)","Average framerate","FPS",
+                BenchmarkService.Direction.HIGHER_IS_BETTER,Map.of("resolution","4K","preset","High","review_cohort","synthetic-gaming-fixture"));
+        return new BenchmarkService.Result(id,context,BigDecimal.valueOf(fps),URI.create("https://example.test/gaming-benchmark"),null,LocalDate.of(2026,1,1));
+    }
+    @Test void gamingPurposeSelectsCommonGamingContextsAndRenderingRemainsAvailableOtherwise() {
+        var cpus=cpus();var service=service(snapshot(cpus,result("fixture-processor-a",100,"same"),result("fixture-processor-b",125,"same"),
+                gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        var all=assertInstanceOf(ChatBotService.BenchmarksContent.class,service.compare(cpus.get(0),cpus.get(1),false,"").reply().content().getFirst());
+        assertEquals(2,all.comparisons().size());
+        var reply=service.compare(cpus.get(0),cpus.get(1),false,"Для игр").reply();
+        var gaming=assertInstanceOf(ChatBotService.BenchmarksContent.class,reply.content().getFirst());
+        assertEquals(1,gaming.comparisons().size());assertEquals("Starfield",gaming.comparisons().getFirst().left().context().suite());
+        assertFalse(reply.text().contains("Тесты рендеринга не определяют"));assertFalse(reply.text().contains("SYNTHETIC_FIXTURE"));
+        var rendering=service(snapshot(cpus,result("fixture-processor-a",100,"same"),result("fixture-processor-b",125,"same")))
+                .compare(cpus.get(0),cpus.get(1),false,"Для игр").reply();
+        assertTrue(rendering.lead().contains("нет общих проверенных игровых измерений"));
+        assertTrue(rendering.lead().contains("Тесты рендеринга не определяют выбор для игр"));
+        assertEquals(1,assertInstanceOf(ChatBotService.BenchmarksContent.class,rendering.content().getFirst()).comparisons().size());
+    }
+    @Test void onlyBareKnownGameAndVerifiedResolutionReceiveNumericalGamingCards() {
+        var cpus=cpus();var service=service(snapshot(cpus,gamingResult("fixture-processor-a",50),gamingResult("fixture-processor-b",60)));
+        for(String details:List.of("Starfield","Starfield, 4K","а Starfield в 4K")) {
+            var reply=service.compare(cpus.get(0),cpus.get(1),false,"Для игр\nУточнение: "+details).reply();
+            assertInstanceOf(ChatBotService.BenchmarksContent.class,reply.content().getFirst(),details);
+            assertFalse(reply.text().contains("нет подтверждённого общего игрового результата"),details);
+        }
+        for(String details:List.of("Cyberpunk 2077, 4K","Starfield, 1440p","Starfield, RTX 4070, 4K","Starfield, 4K, DLSS","Starfield, 4K, RT","Starfield, 4K, FG","Starfield на моём ПК, 4K","Starfield, Ultra, 4K")) {
+            var reply=service.compare(cpus.get(0),cpus.get(1),false,"Для игр\nУточнение: "+details).reply();
+            assertTrue(reply.content().isEmpty(),details);assertFalse(reply.text().contains("%"),details);
+            assertTrue(reply.text().contains("Для указанного сценария нет подтверждённого"),details);
+            assertTrue(reply.text().contains("доступны другие опубликованные условия: Starfield"),details);
+            assertFalse(reply.text().contains("Для этой пары общих игровых измерений пока нет"),details);
+        }
     }
 }

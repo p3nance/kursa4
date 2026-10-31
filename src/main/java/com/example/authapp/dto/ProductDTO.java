@@ -1,6 +1,8 @@
 package com.example.authapp.dto;
 
 import com.google.gson.annotations.SerializedName;
+import java.math.BigDecimal;
+import com.example.authapp.network.Money;
 
 public class ProductDTO {
 
@@ -14,7 +16,7 @@ public class ProductDTO {
     public String description;
 
     @SerializedName("price")
-    public double price;
+    public BigDecimal price = Money.ZERO;
 
     @SerializedName("stock")
     public int stock;
@@ -32,12 +34,12 @@ public class ProductDTO {
     public ProductDTO() {}
 
     // Конструктор со всеми полями
-    public ProductDTO(int id, String name, String description, double price,
+    public ProductDTO(int id, String name, String description, BigDecimal price,
                       int stock, String imageUrl, String category, String manufacturer) {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.price = price;
+        this.price = Money.amount(price);
         this.stock = stock;
         this.imageUrl = imageUrl;
         this.category = category;

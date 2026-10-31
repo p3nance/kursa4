@@ -1,5 +1,7 @@
 package com.example.authapp.models;
 
+import java.math.BigDecimal;
+import com.example.authapp.network.Money;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public final class Cart {
     public synchronized void clear(){items.clear();}
     public synchronized void replaceItems(List<CartItem> replacement){items.clear();for(CartItem item:replacement)if(item.getQuantity()>0)items.add(item.snapshot());}
     public synchronized List<CartItem> getItems(){return items.stream().map(CartItem::snapshot).toList();}
-    public synchronized double getTotal(){return items.stream().mapToDouble(item->item.product.getPrice()*item.quantity).sum();}
+    public synchronized BigDecimal getTotal(){return items.stream().map(item->Money.lineTotal(item.product.getPrice(),item.quantity)).reduce(Money.ZERO,BigDecimal::add);}
     public synchronized int getTotalQuantity(){return items.stream().mapToInt(item->item.quantity).sum();}
     public synchronized int getUniqueItemsCount(){return items.size();}
 }

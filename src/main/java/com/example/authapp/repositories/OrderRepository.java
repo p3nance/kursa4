@@ -35,9 +35,9 @@ public final class OrderRepository {
             JSONObject row = data.getJSONObject(i);
             OrderDTO order = new OrderDTO();
             order.orderId = row.getInt("id"); order.userId = row.getString("user_id");
-            order.totalAmount = row.getBigDecimal("total_amount").doubleValue();
-            order.finalAmount = row.optBigDecimal("final_amount", row.getBigDecimal("total_amount")).doubleValue();
-            order.discountAmount = row.optBigDecimal("discount_amount", java.math.BigDecimal.ZERO).doubleValue();
+            order.totalAmount = row.getBigDecimal("total_amount");
+            order.finalAmount = row.optBigDecimal("final_amount", row.getBigDecimal("total_amount"));
+            order.discountAmount = row.optBigDecimal("discount_amount", java.math.BigDecimal.ZERO);
             order.promoCodeId = row.isNull("promo_code_id") ? null : row.optInt("promo_code_id");
             order.promoCode = row.optString("promo_code", null);
             order.status = row.optString("status", "pending"); order.orderDate = row.optString("created_at", "");
@@ -58,7 +58,7 @@ public final class OrderRepository {
             OrderItemDTO item = new OrderItemDTO(); item.id = row.getInt("id"); item.orderId = row.getInt("order_id");
             item.productId = row.optInt("product_id"); item.productName = row.getString("product_name");
             item.productImage = row.optString("product_image", ""); item.quantity = row.getInt("quantity");
-            item.price = row.getBigDecimal("price").doubleValue(); item.subtotal = row.getBigDecimal("subtotal").doubleValue();
+            item.price = row.getBigDecimal("price"); item.subtotal = row.getBigDecimal("subtotal");
             result.add(item);
         }
         return result;

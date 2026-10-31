@@ -1,6 +1,9 @@
 package controllers;
 
 import com.example.authapp.domain.ComponentCategory;
+import com.example.authapp.domain.BuildSelection;
+import com.example.authapp.domain.CatalogComponent;
+import com.example.authapp.services.BuildRecommendationService;
 import com.example.authapp.models.Product;
 import com.example.authapp.repositories.ProductRepository;
 import com.example.authapp.services.CartService;
@@ -33,7 +36,8 @@ public final class ConfiguratorController {
     @FXML private ProgressIndicator addProgress;
     @FXML private ListView<String> componentsList;
     @FXML private Button addBuildToCart, clearBuildButton, closeOverlayBtn, clearSelectionBtn;
-    @FXML private Button applyBudgetButton, removeBudgetButton;
+    @FXML private Button applyBudgetButton, removeBudgetButton, completeBuildButton;
+    @FXML private ComboBox<String> buildUsage;
     @FXML private TextField budgetField, pickerSearch;
     @FXML private CheckBox onlyAvailable;
     @FXML private StackPane overlayPane;
@@ -42,14 +46,15 @@ public final class ConfiguratorController {
     private MainController host;
     private List<Product> catalog = List.of();
     private Map<Integer, Product> currentProducts = Map.of();
-    private final EnumMap<ComponentCategory, Product> selected = new EnumMap<>(ComponentCategory.class);
+    private final BuildSelection selection=new BuildSelection();
+    private final Map<ComponentCategory,Product> selected=selection.products();
     private LocalKnowledgeRepository.Snapshot knowledge;
     private CompatibilityService.Result assessment;
     private ComponentCategory editingCategory;
     private BigDecimal budget;
-    private boolean catalogLoaded, adding, disposed;
+    private boolean catalogLoaded, adding, completing, disposed;
     private long operation;
-    private Future<?> addTask;
+    private Future<?> pendingTask;
     private final ExecutorService worker = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "configured-build-cart"); thread.setDaemon(true); return thread;
     });
@@ -65,6 +70,7 @@ public final class ConfiguratorController {
 
     @FXML private void initialize() {
         addBuildToCart.setGraphic(Ui.icon("bag"));
+        buildUsage.getItems().setAll("Игры","Офис / учёба","Рабочие задачи");buildUsage.getSelectionModel().selectFirst();
         clearBuildButton.setGraphic(Ui.icon("trash"));
         closeOverlayBtn.setGraphic(Ui.icon("close"));
         pickerSearch.textProperty().addListener((o, before, after) -> renderPicker());
@@ -80,34 +86,54 @@ public final class ConfiguratorController {
 
     /** Updates prices and stock without losing selections or a user-entered budget. */
     public void setProducts(List<Product> products) {
-        catalog = products.stream().filter(p -> Double.isFinite(p.getPrice()) && p.getPrice() >= 0).toList();
+        cancelCompletion();
+        catalog = products.stream().filter(p -> p.getPrice().signum() >= 0).toList();
         Map<Integer, Product> fresh = new LinkedHashMap<>();
         catalog.forEach(product -> fresh.put(product.getId(), product));
         currentProducts = Map.copyOf(fresh);
         catalogLoaded = true;
-        selected.replaceAll((category, previous) -> fresh.getOrDefault(previous.getId(), previous));
-        knowledge = new LocalKnowledgeRepository().load(catalog);
+        var removed=selection.refresh(fresh);
+        refreshKnowledge();
+        if(!removed.isEmpty())showStatus("Модель товара изменилась в каталоге. Повторно выберите: "+removed.stream().map(ComponentCategory::displayName).collect(Collectors.joining(", ")),false);
         recalculate();
         if (editingCategory != null) renderPicker();
     }
 
-    public void selectSuggestedBuild(List<Product> products) {
-        if (adding) return;
-        selected.clear();
-        for (Product product : products) if(Double.isFinite(product.getPrice()) && product.getPrice() >= 0) ComponentCategory.fromDisplayName(product.getCategory()).ifPresent(category ->
-                selected.put(category, currentProducts.getOrDefault(product.getId(), product)));
-        hideStatus(); recalculate();
+    public void selectSuggestedBuild(List<Product> products) { selectSuggestedBuild(products,Set.of()); }
+
+    /** Apply a card atomically; its owned flags cannot move to a new model under a reused ID. */
+    public boolean selectSuggestedBuild(List<Product> products,Set<Integer> ownedIds) {
+        if(busy()){showStatus("Дождитесь окончания текущего действия со сборкой.",false);return false;}
+        var prepared=new EnumMap<ComponentCategory,Product>(ComponentCategory.class);
+        var ids=new HashSet<Integer>();
+        for(var product:products) {
+            var category=ComponentCategory.fromDisplayName(product.getCategory());
+            if(category.isEmpty() || prepared.containsKey(category.get()) || !ids.add(product.getId())) {
+                showStatus("Состав карточки неоднозначен. Выберите компоненты заново.",false);return false;
+            }
+            var current=currentProducts.get(product.getId());
+            if(current!=null && !BuildSelection.sameIdentity(product,current)) {
+                showStatus("Карточка устарела: модель в каталоге изменилась. Запросите новую сборку.",false);return false;
+            }
+            prepared.put(category.get(),current==null?product:current);
+        }
+        if(!ids.containsAll(ownedIds)){showStatus("Имеющаяся деталь отсутствует в составе карточки.",false);return false;}
+        selection.clear();prepared.forEach(selection::select);
+        prepared.forEach((category,product)->{if(ownedIds.contains(product.getId()))selection.setOwned(category,true);});
+        refreshKnowledge();hideStatus();recalculate();return true;
     }
 
     public void setBudget(BigDecimal value) {
+        cancelCompletion();
         if (value != null && (value.signum() <= 0 || value.compareTo(new BigDecimal("100000000")) > 0))
             throw new IllegalArgumentException("Бюджет должен быть больше нуля и не более 100 млн рублей");
         budget = value; updateBudget(total());
     }
     public BigDecimal getBudget() { return budget; }
-    public List<Product> getSelectedProducts() { return List.copyOf(selected.values()); }
-    public void setActive(boolean active) { if (!active) closePicker(); }
-    public void dispose() { disposed = true; operation++; if (addTask != null) addTask.cancel(true); worker.shutdownNow(); }
+    public List<Product> getSelectedProducts() { return selection.allProducts(); }
+    public Set<ComponentCategory> getOwnedCategories() { return selection.ownedCategories(); }
+    public void setActive(boolean active) { if (!active) {cancelCompletion();closePicker();} }
+    public void dispose() { disposed = true; operation++; if (pendingTask != null) pendingTask.cancel(true); worker.shutdownNow(); }
 
     private void layoutColumns(double width) {
         boolean stacked = width > 0 && width < 650;
@@ -123,7 +149,7 @@ public final class ConfiguratorController {
     }
 
     @FXML private void askForHelp() { if (host != null) host.openChat(); }
-    @FXML private void clearBuild() { if (!adding) { selected.clear(); hideStatus(); recalculate(); } }
+    @FXML private void clearBuild() { if (!busy()) { selection.clear(); hideStatus(); recalculate(); } }
     @FXML private void toggleBudgetEditor() {
         budgetEditor.setVisible(!budgetEditor.isVisible()); budgetEditor.setManaged(budgetEditor.isVisible());
         if (budgetEditor.isVisible()) { budgetField.setText(budget == null ? "" : budget.toPlainString()); budgetField.requestFocus(); budgetField.selectAll(); }
@@ -137,7 +163,43 @@ public final class ConfiguratorController {
     }
     @FXML private void removeBudget() { setBudget(null); budgetEditor.setVisible(false); budgetEditor.setManaged(false); }
 
-    private BigDecimal total() { return selected.values().stream().map(p -> BigDecimal.valueOf(p.getPrice())).reduce(BigDecimal.ZERO, BigDecimal::add); }
+    private boolean busy() { return adding || completing; }
+    private void cancelCompletion() {
+        if(!completing)return;
+        operation++;if(pendingTask!=null)pendingTask.cancel(true);completing=false;recalculate();
+    }
+    @FXML private void completeBuild() {
+        if(busy() || disposed)return;
+        if(budget==null){showStatus("Сначала укажите бюджет покупки. Имеющиеся детали не входят в эту сумму.",false);return;}
+        if(selection.purchases().stream().anyMatch(this::unavailable)){showStatus("Сначала замените недоступные покупаемые детали или отметьте их как имеющиеся.",false);return;}
+        var owned=new EnumMap<ComponentCategory,CatalogComponent>(ComponentCategory.class);
+        var fixed=new EnumMap<ComponentCategory,Integer>(ComponentCategory.class);selected.forEach((category,p)->fixed.put(category,p.getId()));
+        for(var c:knowledge.components())if(selection.isOwned(c.category()) && Objects.equals(fixed.get(c.category()),c.productId()))owned.put(c.category(),c);
+        var candidates=knowledge.components().stream().filter(c->!fixed.containsKey(c.category()) || fixed.get(c.category())==c.productId()).toList();
+        var usage=switch(buildUsage.getSelectionModel().getSelectedIndex()){case 1->BuildRecommendationService.Usage.OFFICE;case 2->BuildRecommendationService.Usage.WORKSTATION;default->BuildRecommendationService.Usage.GAMING;};
+        var base=BuildRecommendationService.Request.forUsage(budget,usage);
+        var request=new BuildRecommendationService.Request(budget,usage,base.minRamGb(),base.minStorageGb(),owned,false);
+        var models=new HashMap<Integer,Product>(currentProducts);selection.allProducts().forEach(p->models.putIfAbsent(p.getId(),p));
+        long id=++operation;completing=true;hideStatus();recalculate();
+        pendingTask=worker.submit(()->{
+            try {
+                var result=new BuildRecommendationService().recommend(candidates,request);
+                update(id,()->{
+                    if(result.components().isEmpty()){showStatus(String.join(" ",result.explanations()),false);return;}
+                    for(var component:result.components())if(!selected.containsKey(component.category()))selection.select(component.category(),models.get(component.productId()));
+                    refreshKnowledge();recalculate();
+                    showStatus(result.status()==BuildRecommendationService.Status.READY?"Недостающие детали подобраны. Имеющиеся детали не включены в покупку.":"Подобран черновой состав. Проверьте неизвестные характеристики перед покупкой.",result.status()==BuildRecommendationService.Status.READY);
+                });
+            }catch(Exception ex){update(id,()->showStatus("Не удалось дополнить сборку. "+Objects.toString(ex.getMessage(),"Попробуйте снова."),false));}
+            finally{update(id,()->{completing=false;recalculate();});}
+        });
+    }
+    private void refreshKnowledge() {
+        var combined=new LinkedHashMap<Integer,Product>();catalog.forEach(p->combined.put(p.getId(),p));
+        selection.allProducts().forEach(p->combined.putIfAbsent(p.getId(),p));
+        knowledge=new LocalKnowledgeRepository().load(combined.values());
+    }
+    private BigDecimal total() { return selection.purchaseTotal(); }
     private boolean unavailable(Product p) { return p.getStock() <= 0 || catalogLoaded && !currentProducts.containsKey(p.getId()); }
 
     private void recalculate() {
@@ -149,11 +211,13 @@ public final class ConfiguratorController {
                 : knowledge.components().stream().filter(c -> ids.contains(c.productId())).toList();
         assessment = new CompatibilityService().assess(specs);
         updateCompatibility(); renderRows(); updateBudget(sum);
-        boolean unavailable = selected.values().stream().anyMatch(this::unavailable);
-        addBuildToCart.setDisable(adding || selected.isEmpty() || unavailable || assessment.hasConflict());
+        boolean unavailable = selection.purchases().stream().anyMatch(this::unavailable);
+        addBuildToCart.setDisable(busy() || selection.purchases().isEmpty() || unavailable || assessment.hasConflict());
         addBuildToCart.setText(adding ? "Добавляем товары…" : "Добавить товары в корзину");
-        addProgress.setVisible(adding); addProgress.setManaged(adding);
-        categoriesContainer.setDisable(adding); clearBuildButton.setDisable(adding || selected.isEmpty());
+        addProgress.setVisible(busy()); addProgress.setManaged(busy());
+        completeBuildButton.setDisable(busy() || selected.size()==8 || catalog.isEmpty());
+        completeBuildButton.setText(completing?"Подбираем…":"Подобрать остальные");buildUsage.setDisable(busy());
+        categoriesContainer.setDisable(busy()); clearBuildButton.setDisable(busy() || selected.isEmpty());
     }
 
     private void updateBudget(BigDecimal sum) {
@@ -177,7 +241,7 @@ public final class ConfiguratorController {
         else if (assessment.status() == CompatibilityService.Status.COMPATIBLE) { state = "ok"; compatTitle.setText("Основные проверки пройдены"); compatStatusText.setText("Проверены доступные характеристики. Перед покупкой сверьте спецификации и установленную версию BIOS."); }
         else { state = "unknown"; compatTitle.setText("Нужна проверка характеристик"); compatStatusText.setText("Недостаточно данных для подтверждения совместимости. Проверьте BIOS, размеры и разъёмы питания."); }
         compatStatusBox.getStyleClass().add("config-status-" + state);
-        if (selected.values().stream().anyMatch(this::unavailable)) compatStatusText.setText(compatStatusText.getText() + " Некоторые товары отсутствуют в наличии.");
+        if (selection.purchases().stream().anyMatch(this::unavailable)) compatStatusText.setText(compatStatusText.getText() + " Некоторые товары отсутствуют в наличии.");
         if (knowledge != null && !knowledge.warnings().isEmpty()) compatStatusText.setText(compatStatusText.getText() + "\n" + String.join("\n", knowledge.warnings()));
         findingsBox.getChildren().clear();
         var findings = assessment.findings().stream().filter(f -> !f.code().startsWith("missing_") && !f.code().equals("empty"))
@@ -203,12 +267,17 @@ public final class ConfiguratorController {
             Label kind = new Label(singular(category)); kind.getStyleClass().add("config-component-kind");
             Label name = new Label(product == null ? "Компонент не выбран" : product.getName()); name.setWrapText(true); name.getStyleClass().add("config-component-name");
             VBox copy = new VBox(5, kind, name); copy.setMinWidth(0); HBox.setHgrow(copy, Priority.ALWAYS);
-            if (product != null && unavailable(product)) { Label issue = new Label("Нет в наличии"); issue.getStyleClass().add("config-row-conflict"); copy.getChildren().add(issue); }
+            if (product != null && !selection.isOwned(category) && unavailable(product)) { Label issue = new Label("Нет в наличии"); issue.getStyleClass().add("config-row-conflict"); copy.getChildren().add(issue); }
             else if (product != null) {
                 assessment.findings().stream().filter(f -> f.status() == CompatibilityService.Status.INCOMPATIBLE && relatesTo(f.code(), category))
                         .findFirst().ifPresent(f -> { Label issue = new Label(f.message()); issue.setWrapText(true); issue.getStyleClass().add("config-row-conflict"); copy.getChildren().add(issue); });
             }
-            Label price = new Label(product == null ? "" : Ui.money(product.getPrice())); price.getStyleClass().add("config-component-price"); price.setMinWidth(Region.USE_PREF_SIZE);
+            if(product!=null){
+                CheckBox owned=new CheckBox("У меня уже есть");owned.setId("owned-"+category.name());owned.setWrapText(true);owned.setMinWidth(0);owned.setMaxWidth(Double.MAX_VALUE);owned.setSelected(selection.isOwned(category));
+                owned.setAccessibleText("У меня уже есть: "+product.getName());owned.getStyleClass().add("config-owned-toggle");
+                owned.setOnAction(event->{selection.setOwned(category,owned.isSelected());refreshKnowledge();recalculate();});copy.getChildren().add(owned);
+            }
+            Label price = new Label(product == null ? "" : selection.isOwned(category)?"Не покупаем":Ui.money(product.getPrice())); price.getStyleClass().add("config-component-price"); price.setMinWidth(Region.USE_PREF_SIZE);
             Button edit = new Button(product == null ? "Выбрать" : ""); edit.setGraphic(Ui.icon(product == null ? "plus" : "edit"));
             edit.setAccessibleText("Изменить: " + singular(category)); edit.setTooltip(new Tooltip("Выбрать: " + category.displayName()));
             edit.getStyleClass().addAll("btn", "config-component-edit"); edit.setOnAction(event -> openPicker(category)); edit.setMinWidth(Region.USE_PREF_SIZE);
@@ -219,27 +288,27 @@ public final class ConfiguratorController {
     }
 
     private void openPicker(ComponentCategory category) {
-        if (adding) return;
+        if (busy()) return;
         editingCategory = category; overlayTitle.setText(category.displayName()); pickerSearch.clear(); onlyAvailable.setSelected(true);
         renderPicker(); overlayPane.setVisible(true); overlayPane.setManaged(true); mainContent.setDisable(true); hideStatus(); pickerSearch.requestFocus();
     }
     @FXML private void closePicker() { overlayPane.setVisible(false); overlayPane.setManaged(false); mainContent.setDisable(false); editingCategory = null; }
-    @FXML private void clearSelection() { if (editingCategory != null) selected.remove(editingCategory); closePicker(); recalculate(); }
+    @FXML private void clearSelection() { if (editingCategory != null) selection.remove(editingCategory); closePicker(); recalculate(); }
     private void renderPicker() {
         if (editingCategory == null) return;
         String query = pickerSearch.getText().trim().toLowerCase(Locale.ROOT);
         var matching = catalog.stream().filter(p -> ComponentCategory.fromDisplayName(p.getCategory()).orElse(null) == editingCategory)
                 .filter(p -> !onlyAvailable.isSelected() || p.getStock() > 0)
                 .filter(p -> (p.getName() + " " + p.getManufacturer()).toLowerCase(Locale.ROOT).contains(query))
-                .sorted(Comparator.comparingDouble(Product::getPrice).thenComparingInt(Product::getId)).toList();
+                .sorted(Comparator.comparing(Product::getPrice).thenComparingInt(Product::getId)).toList();
         overlayProductsGrid.getChildren().clear(); pickerCount.setText("Найдено: " + matching.size());
         clearSelectionBtn.setDisable(!selected.containsKey(editingCategory));
         for (Product product : matching) {
             Label name = new Label(product.getName()); name.setWrapText(true); name.getStyleClass().add("config-picker-name");
             Label price = new Label(Ui.money(product.getPrice())); price.getStyleClass().add("config-picker-price");
             Label stock = new Label(product.getStock() > 0 ? "В наличии: " + product.getStock() : "Нет в наличии"); stock.getStyleClass().add("config-picker-stock");
-            Button choose = new Button("Выбрать компонент"); choose.getStyleClass().addAll("btn", "btn-primary"); choose.setMaxWidth(Double.MAX_VALUE); choose.setDisable(product.getStock() <= 0);
-            choose.setOnAction(event -> { selected.put(editingCategory, product); closePicker(); recalculate(); });
+            Button choose = new Button("Выбрать компонент"); choose.getStyleClass().addAll("btn", "btn-primary"); choose.setMaxWidth(Double.MAX_VALUE);
+            choose.setOnAction(event -> { selection.select(editingCategory, product); refreshKnowledge();closePicker(); recalculate(); });
             VBox card = new VBox(10, new StackPane(Ui.productImage(product, 170, 105)), name, stock, price, choose);
             card.getStyleClass().add("config-picker-card"); card.setPrefWidth(235); card.setMaxWidth(235); overlayProductsGrid.getChildren().add(card);
         }
@@ -247,12 +316,12 @@ public final class ConfiguratorController {
     }
 
     @FXML private void addBuildToCart() {
-        if (adding || selected.isEmpty() || assessment.hasConflict()) return;
+        if (busy() || selection.purchases().isEmpty() || assessment.hasConflict()) return;
         String account = SessionManager.getUserId();
         if (account == null || SessionManager.getAccessToken() == null) { showStatus("Войдите в аккаунт, чтобы добавить выбранные товары в корзину.", false); return; }
         var lease = SessionManager.requireSession();
-        List<Product> requested = List.copyOf(selected.values()); long id = ++operation; adding = true; recalculate(); hideStatus();
-        addTask = worker.submit(() -> {
+        List<Product> requested = selection.purchases();List<Product> owned=selection.ownedProducts(); long id = ++operation; adding = true; recalculate(); hideStatus();
+        pendingTask = worker.submit(() -> {
             int added = 0;
             try (var scope = com.example.authapp.network.SupabaseHttp.forSession(lease)) {
                 List<Product> freshCatalog = ProductRepository.loadProductsFromSupabase();
@@ -260,13 +329,14 @@ public final class ConfiguratorController {
                 List<Product> checked = new ArrayList<>(); boolean changedPrice = false;
                 for (Product previous : requested) {
                     Product current = fresh.get(previous.getId());
-                    if (current == null || current.getStock() <= 0) throw new IllegalStateException("Товар больше не доступен: " + previous.getName());
-                    changedPrice |= BigDecimal.valueOf(current.getPrice()).compareTo(BigDecimal.valueOf(previous.getPrice())) != 0; checked.add(current);
+                    if (current == null || !BuildSelection.sameIdentity(previous,current) || current.getStock() <= 0) throw new IllegalStateException("Товар больше не доступен: " + previous.getName());
+                    changedPrice |= current.getPrice().compareTo(previous.getPrice()) != 0; checked.add(current);
                 }
-                var snapshot = new LocalKnowledgeRepository().load(checked);
+                var complete=new ArrayList<>(owned);complete.addAll(checked);
+                var snapshot = new LocalKnowledgeRepository().load(complete);
                 if (new CompatibilityService().assess(snapshot.components()).hasConflict()) throw new IllegalStateException("Обновлённые данные содержат конфликт. Проверьте сборку.");
                 if (changedPrice) {
-                    update(id, () -> { setProducts(freshCatalog); selected.clear(); checked.forEach(p -> ComponentCategory.fromDisplayName(p.getCategory()).ifPresent(c -> selected.put(c, p))); recalculate(); showStatus("Цены изменились. Проверьте новую сумму и нажмите добавление ещё раз.", false); });
+                    update(id, () -> { setProducts(freshCatalog); recalculate(); showStatus("Цены изменились. Проверьте новую сумму и нажмите добавление ещё раз.", false); });
                     return;
                 }
                 CartService service = new CartService();

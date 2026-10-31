@@ -3,10 +3,13 @@ package com.example.authapp.dto;
 /**
  * Data Transfer Object для PromoCode
  */
+import java.math.BigDecimal;
+import com.example.authapp.network.Money;
+
 public class PromoCodeDTO {
     public int id;
     public String code;
-    public double discountPercent;
+    public BigDecimal discountPercent = BigDecimal.ZERO;
     public int maxUses;
     public int usedCount;
     public String expiryDate;
@@ -14,11 +17,11 @@ public class PromoCodeDTO {
 
     public PromoCodeDTO() {}
 
-    public PromoCodeDTO(int id, String code, double discountPercent, int maxUses,
+    public PromoCodeDTO(int id, String code, BigDecimal discountPercent, int maxUses,
                         int usedCount, String expiryDate, boolean isActive) {
         this.id = id;
         this.code = code;
-        this.discountPercent = discountPercent;
+        this.discountPercent = Money.percent(discountPercent);
         this.maxUses = maxUses;
         this.usedCount = usedCount;
         this.expiryDate = expiryDate;

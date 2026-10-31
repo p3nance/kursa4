@@ -2,6 +2,7 @@ package controllers;
 
 import com.example.authapp.models.Cart;
 import com.example.authapp.models.Product;
+import com.example.authapp.domain.BuildSelection;
 import com.example.authapp.network.SupabaseHttp;
 import com.example.authapp.repositories.ProductRepository;
 import com.example.authapp.services.CartService;
@@ -176,7 +177,8 @@ public class MainController {
     public void openChat(){refreshSessionUi();try{View view=loadView("chat");if(chatController==null){chatController=(ChatController)view.controller();chatController.configure(this,allProducts);}switchView(view.node(),"Помощник","chat");}catch(Exception e){notifyUser("Не удалось открыть помощника. Попробуйте снова.");}}
     public void openConfigurator(){refreshSessionUi();try{View view=loadView("configurator");configuratorController=(ConfiguratorController)view.controller();configuratorController.setMainController(this);configuratorController.setProducts(allProducts);view.node().setUserData(configuratorController);switchView(view.node(),"Конфигуратор","configurator");}catch(Exception e){notifyUser("Не удалось открыть конфигуратор.");}}
     public void openSuggestedBuild(List<Product> products){openSuggestedBuild(products,null);}
-    public void openSuggestedBuild(List<Product> products,BigDecimal budget){openConfigurator();if(configuratorController!=null){configuratorController.selectSuggestedBuild(products);if(budget!=null)configuratorController.setBudget(budget);}}
+    public void openSuggestedBuild(List<Product> products,BigDecimal budget){openSuggestedBuild(products,budget,Set.of());}
+    public void openSuggestedBuild(List<Product> products,BigDecimal budget,Set<Integer> ownedIds){openConfigurator();if(configuratorController!=null && configuratorController.selectSuggestedBuild(products,ownedIds)){if(budget!=null)configuratorController.setBudget(budget);}}
     public void openCart(){refreshSessionUi();if(!authorized()){openAuth();notifyUser("Войдите в аккаунт, чтобы открыть корзину.");return;}try{View view=loadView("cart");((CartController)view.controller()).setMainController(this);switchView(view.node(),"Корзина","cart");}catch(Exception e){notifyUser("Не удалось открыть корзину.");}}
     private void openAuth(){refreshSessionUi();try{AuthController.setMainController(this);View view=loadView("auth");switchView(view.node(),"Вход в аккаунт","auth");}catch(Exception e){notifyUser("Не удалось открыть форму входа.");}}
     public void openCabinetInMain(){refreshSessionUi();if(!authorized()){openAuth();return;}try{CabinetController.setHostMainController(this);View view=loadView("cabinet");switchView(view.node(),"Личный кабинет","cabinet");}catch(Exception e){notifyUser("Не удалось открыть личный кабинет.");}}
@@ -216,6 +218,7 @@ public class MainController {
     }
     private void clearPrivateViews(){
         for(String name:List.of("chat","cart","cabinet","admin","manager","auth")){View view=cache.remove(name);if(view!=null)disposeView(view.controller());}
+        if(sessionOwner!=null){View configured=cache.remove("configurator");if(configured!=null)disposeView(configured.controller());configuratorController=null;}
         chatController=null;
     }
     public void onLogout(){SessionManager.clearSession();clearPrivateViews();Cart.getInstance().clear();sessionOwner=null;showMainContent();notifyUser("Вы вышли из аккаунта.");}
@@ -225,8 +228,9 @@ public class MainController {
         var lease=SessionManager.requireSession();notifyUser("Проверяем цену и наличие…");
         io.submit(()->{try(var scope=SupabaseHttp.forSession(lease)){Product fresh=ProductRepository.loadProductsFromSupabase().stream().filter(p->p.getId()==product.getId()).findFirst().orElseThrow(()->new IllegalStateException("Товар больше не доступен"));
             SessionManager.assertCurrent(lease);
+            if(!BuildSelection.sameIdentity(product,fresh))throw new IllegalStateException("Данные товара изменились. Обновите каталог и повторно выберите нужную модель.");
             if(fresh.getStock()<quantity)throw new IllegalStateException("Недостаточно товара в наличии");
-            if(BigDecimal.valueOf(fresh.getPrice()).compareTo(BigDecimal.valueOf(product.getPrice()))!=0){Platform.runLater(()->{if(disposed||!lease.equals(SessionManager.captureSession()))return;openProduct(fresh);notifyUser("Цена изменилась. Проверьте её и добавьте товар снова.");});return;}
+            if(fresh.getPrice().compareTo(product.getPrice())!=0){Platform.runLater(()->{if(disposed||!lease.equals(SessionManager.captureSession()))return;openProduct(fresh);notifyUser("Цена изменилась. Проверьте её и добавьте товар снова.");});return;}
             new CartService().addProductToCart(fresh,quantity);Platform.runLater(()->{if(!disposed&&lease.equals(SessionManager.captureSession()))notifyUser(fresh.getName()+" добавлен в корзину.");});
         }catch(Exception e){Platform.runLater(()->{if(!disposed&&lease.equals(SessionManager.captureSession()))notifyUser(Objects.requireNonNullElse(e.getMessage(),"Не удалось добавить товар."));});}});
     }

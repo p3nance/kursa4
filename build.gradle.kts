@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("org.slf4j:slf4j-simple:2.0.7")
     implementation("org.json:json:20230618")
@@ -102,3 +101,26 @@ launch4j {
 }
 
 // Windows packaging is explicit: ./gradlew createExe. Normal builds also run on Linux.
+
+// Verify embedded client knowledge from a directory without local sidecars or credentials.
+val packagedKnowledgeTest by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Checks the built client JAR's component facts and benchmarks without external knowledge."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.domain.PackagedKnowledgeProbe")
+    workingDir(layout.buildDirectory.dir("packaged-knowledge-test"))
+    doFirst { workingDir.mkdirs() }
+}
+tasks.check { dependsOn(packagedKnowledgeTest) }
+
+val profileRecommendations by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Writes optional offline recommendation timings for the public catalog snapshot."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.domain.RecommendationProfile")
+    workingDir(layout.buildDirectory.dir("recommendation-profile"))
+    args(layout.buildDirectory.file("reports/recommendation-profile.json").get().asFile.absolutePath)
+    doFirst { workingDir.mkdirs() }
+}

@@ -18,7 +18,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 
-import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
@@ -29,7 +28,7 @@ public final class ChatController {
     @FXML private VBox messages;
     @FXML private ScrollPane conversation;
     @FXML private TextArea input;
-    @FXML private Label status, budgetValue, taskValue, catalogValue;
+    @FXML private Label status, budgetValue, taskValue, catalogValue, constraintsValue, ownedValue;
     @FXML private Button sendButton, cancelButton, retryButton, newMessagesButton;
     @FXML private VBox contextPane;
     @FXML private HBox contentRow;
@@ -84,7 +83,7 @@ public final class ChatController {
         worker.submit(() -> {
             current.updateCatalog(latest);
             Platform.runLater(() -> {
-                if (!disposed && current == bot) catalogValue.setText(latest.isEmpty() ? "Каталог пока пуст" : "Товаров в каталоге: " + latest.size());
+                if (!disposed && current == bot) {catalogValue.setText(latest.isEmpty() ? "Каталог пока пуст" : "Товаров в каталоге: " + latest.size());updateSummary(current.summary());}
             });
         });
     }
@@ -149,31 +148,9 @@ public final class ChatController {
     }
     @FXML private void changeRequest() {
         if (disposed || pending != null && !pending.isDone()) return;
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Ваш запрос"); dialog.setHeaderText("Бюджет и основные задачи");
-        if (chatRoot.getScene() != null) dialog.initOwner(chatRoot.getScene().getWindow());
-        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/views/styles/theme.css").toExternalForm());
-        dialog.getDialogPane().getStyleClass().add("chat-request-dialog");
-        TextField budget = new TextField(summary.budget() == null ? "" : summary.budget().toPlainString());
-        budget.setPromptText("Например, 100000"); budget.getStyleClass().add("field");
-        ComboBox<String> usage = new ComboBox<>(); usage.getItems().addAll("Игры", "Учёба и офис", "Монтаж и рабочие задачи");
-        usage.setValue(usageLabel(summary.usage())); if (summary.usage() == null) usage.getSelectionModel().selectFirst();
-        usage.setMaxWidth(Double.MAX_VALUE);
-        Label error = label("", "chat-error"); error.setVisible(false); error.setManaged(false);
-        VBox form = new VBox(10, label("Бюджет системного блока, ₽", "chat-field-label"), budget, label("Основные задачи", "chat-field-label"), usage, error);
-        form.setPrefWidth(360); dialog.getDialogPane().setContent(form);
-        ButtonType apply = new ButtonType("Подобрать", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, apply);
-        Node applyButton = dialog.getDialogPane().lookupButton(apply);
-        applyButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
-            try {
-                BigDecimal amount = new BigDecimal(budget.getText().replaceAll("[\\s\\u00a0\\u202f]", "").replace(',', '.'));
-                if (amount.signum() <= 0 || amount.compareTo(new BigDecimal("100000000")) > 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                error.setText("Введите бюджет от 1 до 100 000 000 рублей."); error.setVisible(true); error.setManaged(true); event.consume();
-            }
-        });
-        dialog.showAndWait().filter(apply::equals).ifPresent(result -> ask("Собери ПК до " + budget.getText() + " рублей для " + usage.getValue().toLowerCase(Locale.ROOT)));
+        com.example.authapp.ui.BuildRequestDialog.show(
+                chatRoot.getScene() == null ? null : chatRoot.getScene().getWindow(), summary)
+                .ifPresent(this::ask);
     }
 
     public void dispose() { disposed = true; if(viewport!=null)viewport.dispose(); generation++; if (pending != null) pending.cancel(true); worker.shutdownNow(); }
@@ -198,10 +175,15 @@ public final class ChatController {
         VBox body = new VBox(12); body.setMinWidth(0); body.setPrefWidth(0); HBox.setHgrow(body, Priority.ALWAYS);
         body.getChildren().add(label("Помощник TechStore", "chat-author"));
         body.getChildren().add(label(reply.lead(), "chat-copy"));
+        int buildIndex=0;
+        boolean multipleBuilds=reply.content().stream().filter(ChatBotService.BuildContent.class::isInstance).count()>1;
         for (ChatBotService.Content content : reply.content()) {
             if (content instanceof ChatBotService.TermContent term) body.getChildren().add(termCard(term));
             else if (content instanceof ChatBotService.ProductsContent products) body.getChildren().add(productsCard(products));
-            else if (content instanceof ChatBotService.BuildContent build) body.getChildren().add(buildCard(build));
+            else if (content instanceof ChatBotService.BuildContent build) {
+                if(multipleBuilds)body.getChildren().add(label("Вариант "+(++buildIndex),"chat-card-title"));
+                body.getChildren().add(buildCard(build));
+            }
             else if (content instanceof ChatBotService.BenchmarksContent comparisons) comparisons.comparisons().forEach(c -> body.getChildren().add(comparisonCard(c,comparisons.modelNames())));
             else if (content instanceof ChatBotService.SpecificationsContent specs) body.getChildren().add(specificationsCard(specs));
         }
@@ -242,7 +224,7 @@ public final class ChatController {
         for (int i=0;i<build.parts().size();i++) {
             var product=build.parts().get(i);
             VBox name = new VBox(3,label(product.category(), "chat-caption"),label(product.name(), "chat-product-name")); name.setMinWidth(0); HBox.setHgrow(name,Priority.ALWAYS);
-            HBox row = new HBox(12,Ui.icon(categoryIcon(product.category())),name,label(Ui.money(product.price()), "chat-row-price")); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("chat-build-row");
+            HBox row = new HBox(12,Ui.icon(categoryIcon(product.category())),name,label(build.ownedProductIds().contains(product.id())?"Уже есть":Ui.money(product.price()), build.ownedProductIds().contains(product.id())?"chat-owned-label":"chat-row-price")); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("chat-build-row");
             if(i>=4) {row.setVisible(false);row.setManaged(false);} parts.getChildren().add(row);
         }
         card.getChildren().add(parts);
@@ -250,9 +232,9 @@ public final class ChatController {
             Button expand=button("Ещё " +(build.parts().size()-4)+" компонента", "chat-expand"); expand.setMaxWidth(Double.MAX_VALUE);
             expand.setOnAction(e->{boolean show=!parts.getChildren().get(4).isVisible();for(int i=4;i<parts.getChildren().size();i++){parts.getChildren().get(i).setVisible(show);parts.getChildren().get(i).setManaged(show);}expand.setText(show?"Свернуть":"Ещё "+(build.parts().size()-4)+" компонента");});card.getChildren().add(expand);
         }
-        HBox total = new HBox(12,label("Стоимость комплектующих", "chat-caption"),spring(),label(Ui.money(build.total()), "chat-build-total")); total.setAlignment(Pos.CENTER_LEFT); total.getStyleClass().add("chat-build-total-row");
+        HBox total = new HBox(12,label(build.ownedProductIds().isEmpty()?"Стоимость комплектующих":"Стоимость покупки", "chat-caption"),spring(),label(Ui.money(build.total()), "chat-build-total")); total.setAlignment(Pos.CENTER_LEFT); total.getStyleClass().add("chat-build-total-row");
         Button open=button("Открыть в конфигураторе", "btn", "btn-primary"); open.setGraphic(Ui.icon("arrow-right"));open.setContentDisplay(ContentDisplay.RIGHT);open.setMaxWidth(Double.MAX_VALUE);open.setDisable(host==null);
-        open.setOnAction(e->{if(host!=null)host.openSuggestedBuild(build.parts().stream().map(ChatBotService.ProductInfo::toProduct).toList(),build.budget());});
+        open.setOnAction(e->{if(host!=null)host.openSuggestedBuild(build.parts().stream().map(ChatBotService.ProductInfo::toProduct).toList(),build.budget(),build.ownedProductIds());});
         Label check=label(build.verified()?"Основные проверки пройдены. Проверьте спецификации перед покупкой.":"Нужна проверка характеристик. Совместимость не подтверждена.",build.verified()?"chat-verified":"chat-unverified");check.setGraphic(Ui.icon(build.verified()?"check":"info"));check.setGraphicTextGap(7);
         card.getChildren().addAll(total,open,check);
         List<String> notes = new ArrayList<>(build.findings()); notes.addAll(build.limitations());
@@ -266,14 +248,14 @@ public final class ChatController {
         var left=comparison.left();var right=comparison.right();var context=left.context();VBox card=card();
         card.getStyleClass().add("chat-benchmark-card");
         String leftName=BenchmarkPresentation.modelName(left.modelId(),modelNames),rightName=BenchmarkPresentation.modelName(right.modelId(),modelNames);
-        card.getChildren().addAll(label(context.suite()+" "+context.version(),"chat-card-title"),label(BenchmarkPresentation.workload(context),"chat-caption"));
+        card.getChildren().addAll(label(BenchmarkPresentation.title(context),"chat-card-title"),label(BenchmarkPresentation.workload(context),"chat-caption"));
         GridPane table=new GridPane();table.setMinWidth(0);table.getStyleClass().add("chat-table");table.setHgap(16);table.setVgap(10);ColumnConstraints names=new ColumnConstraints();names.setPercentWidth(65);ColumnConstraints values=new ColumnConstraints();values.setPercentWidth(35);table.getColumnConstraints().addAll(names,values);
         table.add(label("Модель","chat-caption"),0,0);table.add(label("Результат","chat-caption"),1,0);
         table.add(label(leftName,"chat-product-name"),0,1);table.add(label(left.value()+" "+BenchmarkPresentation.unit(context.unit()),"chat-row-price"),1,1);
         table.add(label(rightName,"chat-product-name"),0,2);table.add(label(right.value()+" "+BenchmarkPresentation.unit(context.unit()),"chat-row-price"),1,2);alignCells(table);card.getChildren().add(table);
         card.getChildren().addAll(label(comparison.betterModelId().isEmpty()?"Значения равны.":"Лучший результат в этом тесте: "+BenchmarkPresentation.modelName(comparison.betterModelId(),modelNames),"chat-copy"),
                 label(BenchmarkPresentation.difference(comparison),"chat-copy"),
-                label("Результат относится только к этому тесту и стенду. Он не определяет игровой FPS или скорость всей сборки.","chat-caption"));
+                label("Результат относится только к этому тесту и стенду. Он не определяет производительность в других задачах или скорость всей сборки.","chat-caption"));
         LinkedHashSet<String> dates=new LinkedHashSet<>();dates.add(left.dateDescription());dates.add(right.dateDescription());
         card.getChildren().add(label(String.join(" · ",dates),"chat-caption"));
         VBox explanation=new VBox(7);explanation.setMinWidth(0);
@@ -322,7 +304,18 @@ public final class ChatController {
     private void showNewMessages(boolean show){newMessagesButton.setVisible(show);newMessagesButton.setManaged(show);}
     private void setBusy(boolean busy){sendButton.setDisable(busy);input.setDisable(busy);cancelButton.setVisible(busy);cancelButton.setManaged(busy);status.setText(busy?"Подбираю ответ…":"Помощник готов");}
     private void setRetry(boolean show){retryButton.setVisible(show);retryButton.setManaged(show);}
-    private void updateSummary(ChatBotService.RequestSummary request){if(request==null)return;summary=request;budgetValue.setText(request.budget()==null?"Не указан":Ui.money(request.budget()));taskValue.setText(usageLabel(request.usage()));}
+    private void updateSummary(ChatBotService.RequestSummary request){if(request==null)return;summary=request;budgetValue.setText(request.budget()==null?"Не указан":Ui.money(request.budget()));taskValue.setText(usageLabel(request.usage()));
+        var details=new ArrayList<String>();
+        if(request.minRamGb()!=null)details.add("ОЗУ: не меньше "+request.minRamGb()+" ГБ");
+        if(request.minStorageGb()!=null)details.add("SSD: не меньше "+request.minStorageGb()+" ГБ");
+        if(request.requireVerified())details.add("Только проверенная совместимость");
+        constraintsValue.setText(String.join("\n",details));constraintsValue.setVisible(!details.isEmpty());constraintsValue.setManaged(!details.isEmpty());
+        var owned=request.ownedParts();
+        String names=owned.stream().limit(2).map(ChatBotService.ProductInfo::name).collect(java.util.stream.Collectors.joining("\n"));
+        ownedValue.setText(owned.isEmpty()?"":"Уже есть ("+owned.size()+"):\n"+names+(owned.size()>2?"\nИ ещё "+(owned.size()-2)+"":"")+"\nНе входят в стоимость покупки.");
+        ownedValue.setVisible(!owned.isEmpty());ownedValue.setManaged(!owned.isEmpty());
+        ownedValue.setTooltip(owned.isEmpty()?null:new Tooltip(owned.stream().map(ChatBotService.ProductInfo::name).collect(java.util.stream.Collectors.joining("\n"))));
+    }
     private static String usageLabel(BuildRecommendationService.Usage usage){if(usage==null)return "Не выбраны";return switch(usage){case GAMING->"Игры";case OFFICE->"Учёба и офис";case WORKSTATION->"Монтаж и рабочие задачи";};}
     private static String categoryIcon(String category){String c=Objects.toString(category,"").toLowerCase(Locale.ROOT);if(c.contains("процессор"))return "cpu";if(c.contains("видеокарт"))return "gpu";if(c.contains("материн"))return "board";if(c.contains("памят"))return "memory";if(c.contains("питан"))return "power";if(c.contains("корпус"))return "case";if(c.contains("охлажд"))return "cooler";return "drive";}
     private static VBox card(){VBox card=new VBox(12);card.getStyleClass().add("chat-card");return card;}

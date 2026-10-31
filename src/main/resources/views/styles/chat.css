@@ -70,3 +70,6 @@
 .chat-root:compact .chat-compose-box { -fx-padding: 10 12; }
 .chat-reset { -fx-min-width: 100; }
 .chat-table { -fx-min-width: 0; }
+
+.chat-owned-label { -fx-text-fill: #287b62; -fx-font-size: 12px; -fx-font-weight: bold; }
+.chat-owned-summary { -fx-text-fill: #287b62; -fx-font-size: 11px; -fx-line-spacing: 2; }

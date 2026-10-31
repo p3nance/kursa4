@@ -17,14 +17,14 @@ public record CatalogQuery(String text, String category, Set<String> manufacture
     }
     public List<Product> apply(Collection<Product> catalog) {
         Comparator<Product> comparator=switch(sort){case DEFAULT->Comparator.comparingInt(Product::getId);case NAME->Comparator.comparing(p->Objects.toString(p.getName(),""),String.CASE_INSENSITIVE_ORDER);
-            case PRICE_ASC->Comparator.comparingDouble(Product::getPrice);case PRICE_DESC->Comparator.comparingDouble(Product::getPrice).reversed();};
-        return catalog.stream().filter(p->Double.isFinite(p.getPrice())&&p.getPrice()>=0)
+            case PRICE_ASC->Comparator.comparing(Product::getPrice);case PRICE_DESC->Comparator.comparing(Product::getPrice).reversed();};
+        return catalog.stream().filter(p->p.getPrice().signum() >= 0)
                 .filter(p->category.equals("Все")||category.equalsIgnoreCase(Objects.toString(p.getCategory(),"")))
                 .filter(p->manufacturers.isEmpty()||manufacturers.contains(Objects.toString(p.getManufacturer(),"")))
                 .filter(p->!inStockOnly||p.getStock()>0)
                 .filter(p->(Objects.toString(p.getName(),"")+" "+Objects.toString(p.getCategory(),"")+" "+Objects.toString(p.getManufacturer(),"")).toLowerCase(Locale.ROOT).contains(text))
-                .filter(p->minPrice==null||BigDecimal.valueOf(p.getPrice()).compareTo(minPrice)>=0)
-                .filter(p->maxPrice==null||BigDecimal.valueOf(p.getPrice()).compareTo(maxPrice)<=0)
+                .filter(p->minPrice==null||p.getPrice().compareTo(minPrice)>=0)
+                .filter(p->maxPrice==null||p.getPrice().compareTo(maxPrice)<=0)
                 .sorted(comparator.thenComparingInt(Product::getId)).toList();
     }
 }

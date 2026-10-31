@@ -42,7 +42,7 @@ class VerifiedCatalogSpecsTest {
         for (var item : readJson(Path.of("src/test/resources/knowledge/catalog-reference.json")).getAsJsonArray("products")) {
             JsonObject row = item.getAsJsonObject();
             catalog.add(new Product(row.get("id").getAsInt(), row.get("name").getAsString(),
-                    string(row, "description"), row.get("price").getAsDouble(), row.get("stock").getAsInt(),
+                    string(row, "description"), row.get("price").getAsBigDecimal(), row.get("stock").getAsInt(),
                     "", row.get("category").getAsString(), string(row, "manufacturer")));
         }
         products = catalog.stream().collect(Collectors.toUnmodifiableMap(Product::getId, Function.identity()));

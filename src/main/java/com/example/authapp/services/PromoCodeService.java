@@ -1,5 +1,7 @@
 package com.example.authapp.services;
 
+import com.example.authapp.network.Money;
+import java.math.BigDecimal;
 import com.example.authapp.models.PromoCode;
 import com.example.authapp.repositories.PromoCodeRepository;
 
@@ -24,15 +26,15 @@ public class PromoCodeService {
     /**
      * ✅ Расчет скидки
      */
-    public double calculateDiscount(double totalPrice, PromoCode promo) {
-        return com.example.authapp.network.Money.discount(totalPrice, promo.getDiscountPercent()).doubleValue();
+    public BigDecimal calculateDiscount(BigDecimal totalPrice, PromoCode promo) {
+        return Money.discount(totalPrice, promo.getDiscountPercent());
     }
 
     /**
      * ✅ Расчет финальной цены
      */
-    public double calculateFinalPrice(double totalPrice, PromoCode promo) {
-        return com.example.authapp.network.Money.amount(totalPrice).subtract(com.example.authapp.network.Money.discount(totalPrice, promo.getDiscountPercent())).doubleValue();
+    public BigDecimal calculateFinalPrice(BigDecimal totalPrice, PromoCode promo) {
+        return Money.amount(totalPrice).subtract(Money.discount(totalPrice, promo.getDiscountPercent()));
     }
 
     /**
@@ -45,7 +47,7 @@ public class PromoCodeService {
     /**
      * ✅ Создание промокода
      */
-    public void createPromoCode(String code, double discountPercent, int maxUses, String expiryDate) throws Exception {
+    public void createPromoCode(String code, BigDecimal discountPercent, int maxUses, String expiryDate) throws Exception {
         PromoCode promo = new PromoCode(0, code, discountPercent, maxUses, 0, expiryDate, true);
         promoCodeRepository.createPromoCode(promo);
     }

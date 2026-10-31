@@ -33,6 +33,8 @@ class UiSmokeTest {
     private static final List<Throwable> failures=new CopyOnWriteArrayList<>();
     private static final AtomicBoolean failCatalog=new AtomicBoolean();
     private static final List<JSONObject> cartRows=new CopyOnWriteArrayList<>();
+    private static final List<JSONObject> orderRows=new CopyOnWriteArrayList<>(),promoRows=new CopyOnWriteArrayList<>();
+    private static volatile List<Product> catalogOverride;
     private static final List<MainController> hosts=new ArrayList<>();
     private static final List<Object> standalone=new ArrayList<>();
     private static final List<Product> CATALOG=List.of(
@@ -57,7 +59,7 @@ class UiSmokeTest {
             else if(path.startsWith("/rest/v1/profiles"))response="[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"email\":\"test@example.invalid\",\"name\":\"Тест\",\"is_admin\":true,\"is_manager\":true,\"is_blocked\":false,\"blocked\":false}]";
             else if(path.startsWith("/rest/v1/products")){
                 if(failCatalog.get()){status=503;response="{\"message\":\"local test failure\"}";}
-                else {JSONArray array=new JSONArray();for(Product p:CATALOG)array.put(new JSONObject().put("id",p.getId()).put("name",p.getName()).put("description",p.getDescription()).put("price",p.getPrice()).put("stock",p.getStock()).put("image_url",p.getImageUrl()).put("category",p.getCategory()).put("manufacturer",p.getManufacturer()));response=array.toString();}
+                else {JSONArray array=new JSONArray();for(Product p:catalogOverride==null?CATALOG:catalogOverride)array.put(new JSONObject().put("id",p.getId()).put("name",p.getName()).put("description",p.getDescription()).put("price",p.getPrice()).put("stock",p.getStock()).put("image_url",p.getImageUrl()).put("category",p.getCategory()).put("manufacturer",p.getManufacturer()));response=array.toString();}
             } else if(path.startsWith("/rest/v1/cart_items")){
                 String verb=exchange.getRequestMethod(),query=Objects.toString(exchange.getRequestURI().getRawQuery(),"");
                 if(verb.equals("POST")){
@@ -69,7 +71,9 @@ class UiSmokeTest {
                 }else if(verb.equals("DELETE")){
                     cartRows.removeIf(row->query.equals("id=eq."+row.getInt("id")));status=204;response="";
                 }else response=new JSONArray(cartRows).toString();
-            } else response="[]";
+            } else if(path.startsWith("/rest/v1/orders"))response=new JSONArray(orderRows).toString();
+            else if(path.startsWith("/rest/v1/promo_codes"))response=new JSONArray(promoRows).toString();
+            else response="[]";
             byte[] body=response.getBytes(StandardCharsets.UTF_8);exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(status,body.length);exchange.getResponseBody().write(body);exchange.close();
         });api.start();
         System.setProperty("techstore.supabase.url","http://127.0.0.1:"+api.getAddress().getPort());
@@ -80,7 +84,7 @@ class UiSmokeTest {
         Platform.startup(()->{Platform.setImplicitExit(false);Thread.currentThread().setUncaughtExceptionHandler((thread,error)->failures.add(error));ready.countDown();});
         assertTrue(ready.await(15,TimeUnit.SECONDS));
     }
-    @BeforeEach void prepare(){failCatalog.set(false);cartRows.clear();failures.clear();assertTrue(SessionManager.login("test@example.invalid","test-password"));}
+    @BeforeEach void prepare(){catalogOverride=null;failCatalog.set(false);cartRows.clear();orderRows.clear();promoRows.clear();failures.clear();assertTrue(SessionManager.login("test@example.invalid","test-password"));}
     @AfterEach void cleanup() throws Exception {
         onFx(()->{hosts.forEach(MainController::dispose);hosts.clear();standalone.forEach(UiSmokeTest::dispose);standalone.clear();for(var window:List.copyOf(javafx.stage.Window.getWindows()))window.hide();return null;});
         assertTrue(failures.isEmpty(),failures.toString());
@@ -143,7 +147,7 @@ class UiSmokeTest {
             String displayed=text(lookup(chat,"#messages"));
             assertTrue(displayed.contains("(левое − правое) / правое"));
             assertTrue(displayed.contains("Лучший результат в этом тесте: Тест CPU A"));
-            assertTrue(displayed.contains("Он не определяет игровой FPS"));
+            assertTrue(displayed.contains("Он не определяет производительность в других задачах"));
             assertTrue(displayed.contains("измерено 2026-01-01; опубликовано 2026-01-03"));
             assertTrue(displayed.contains("опубликовано 2026-01-04; точная дата измерения не указана"));
             var panes=detailsPanes(chat,"Условия и источники");assertEquals(1,panes.size());
@@ -156,22 +160,66 @@ class UiSmokeTest {
             render(chat,"benchmark-comparison",1440,900);render(chat,"benchmark-comparison-900",900,600);return null;
         });
     }
+    @Test void inlineGameScenarioNeverShowsAnotherGamesFpsAsItsResult() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Cyberpunk 1440p");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && text(lookup(chat,"#messages")).contains("указанного сценария"));
+        onFx(()->{
+            String displayed=text(lookup(chat,"#messages"));assertTrue(chat.lookupAll(".chat-benchmark-card").isEmpty());
+            assertTrue(displayed.contains("NVIDIA GeForce RTX 4070 SUPER 12GB"));assertTrue(displayed.contains("NVIDIA GeForce RTX 4070 12GB"));
+            assertTrue(displayed.contains("Starfield"));assertFalse(displayed.contains("13.76 %"));assertFalse(displayed.contains("52.9"));
+            render(chat,"r22-inline-unsupported",1440,900);render(chat,"r22-inline-unsupported-900",900,600);
+            Button available=findButton(chat,"Для игр в Starfield 4K");assertNotNull(available,"Offer a supported scenario instead of making the user guess its syntax");available.fire();return null;
+        });
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{String displayed=text(lookup(chat,"#messages"));assertTrue(displayed.contains("13.76 %"));assertTrue(displayed.contains("52.9"));assertTrue(displayed.contains("46.5"));render(chat,"r22-inline-supported",1440,900);return null;});
+    }
+    @Test void realGamingComparisonShowsAverageFpsAndHonestUnknownsAtBothWindowSizes() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни Ryzen 7 7800X3D и Ryzen 5 7600X для игр");return null;});
+        waitUntil(()->chat.lookupAll(".chat-benchmark-card").size()==1 && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{
+            String displayed=text(lookup(chat,"#messages"));
+            for(String value:List.of("F1 24","438.3","311.5","40.71 %","кадр/с","средняя частота кадров","GamersNexus","[10/24]","Не опубликовано","Высокие"))
+                assertTrue(displayed.contains(value),"Gaming comparison is missing "+value);
+            assertFalse(displayed.contains("Он не определяет игровой FPS"));
+            assertFalse(displayed.contains("Тесты рендеринга не определяют выбор для игр"));
+            assertTrue(displayed.contains("не прогноз для других игр"));
+            var details=detailsPanes(chat,"Условия и источники");assertEquals(1,details.size());
+            ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
+            for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                details.getFirst().setExpanded(false);chat.resize(size[0],size[1]);chat.applyCss();chat.layout();conversation.setVvalue(0);conversation.layout();
+                double width=conversation.getViewportBounds().getWidth();assertTrue(width>0);
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=width+1);
+                render(chat,size[0]==1440?"r19-gaming-fps":"r19-gaming-fps-900",size[0],size[1]);
+                details.getFirst().setExpanded(true);chat.applyCss();chat.layout();
+                assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=width+1);
+                assertTrue(nodes(chat,Label.class).stream().filter(l->l.getStyleClass().contains("chat-condition"))
+                        .allMatch(l->l.getHeight()+1>=l.prefHeight(l.getWidth())),"Gaming condition must retain wrapped text");
+                conversation.setVvalue(1);conversation.layout();
+                render(chat,size[0]==1440?"r19-gaming-sources":"r19-gaming-sources-900",size[0],size[1]);
+            }
+            return null;
+        });
+    }
     @Test void realBenchmarkComparisonWrapsLongPublishedConditionsAtBothWindowSizes() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"4070 super против 4070");return null;});
         waitUntil(()->text(lookup(chat,"#messages")).contains("Разница значений: 19.46 %"));
         onFx(()->{
             String displayed=text(lookup(chat,"#messages"));
-            assertEquals(2,chat.lookupAll(".chat-benchmark-card").size());
-            assertEquals(4,nodes(chat,Hyperlink.class).stream().filter(n->n.getStyleClass().contains("chat-source")).count());
-            for(String value:List.of("19279","17271","3112","2605","11.63 %","19.46 %",
+            assertEquals(3,chat.lookupAll(".chat-benchmark-card").size());
+            assertEquals(6,nodes(chat,Hyperlink.class).stream().filter(n->n.getStyleClass().contains("chat-source")).count());
+            for(String value:List.of("19279","17271","3112","2605","52.9","46.5","11.63 %","19.46 %","13.76 %",
                     "опубликовано 2024-02-01; точная дата измерения не указана",
                     "NVIDIA GeForce RTX 4070 SUPER 12GB", "NVIDIA GeForce RTX 4070 12GB", "AMD Ryzen Threadripper 7970X"))
                 assertTrue(displayed.contains(value),"Real comparison is missing "+value);
             assertTrue(displayed.contains("Cinebench 2024"));assertTrue(displayed.contains("V-Ray Benchmark 5.02"));
+            assertTrue(displayed.contains("Starfield"));assertFalse(displayed.contains("Starfield Not reported"));
+            assertTrue(displayed.contains("(1/24)"));assertTrue(displayed.contains("Nitro+ — образец лаборатории"));
             assertFalse(displayed.contains("Blender"));
             assertFalse(displayed.contains("sourceReview:"));assertFalse(displayed.contains("review_cohort:"));
-            var panes=detailsPanes(chat,"Условия и источники");assertEquals(2,panes.size());
+            var panes=detailsPanes(chat,"Условия и источники");assertEquals(3,panes.size());
             assertTrue(panes.stream().noneMatch(TitledPane::isExpanded));
             assertFalse(visibleText(chat).contains("AMD Ryzen Threadripper 7970X"));
             ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
@@ -519,6 +567,203 @@ class UiSmokeTest {
         onFx(()->{assertEquals("36980₽",((Label)lookup(app.root(),"#totalLabel")).getText().replaceAll("[\\s\\u00a0\\u202f]",""));((Button)lookup(app.root(),"#cartItemsContainer").lookup(".cart-remove")).fire();return null;});
         waitUntil(()->text(lookup(app.root(),"#cartItemsContainer")).contains("Корзина пока пуста"));
         assertEquals(0,Cart.getInstance().getTotalQuantity());assertTrue(cartRows.isEmpty());
+    }
+    @Test void chatOwnedPartTransfersToConfiguratorAndNeverBecomesACartPurchase() throws Exception {
+        var products=new ArrayList<>(CATALOG);var gpu=new Product(2,"NVIDIA GeForce RTX 4070 12GB","",new BigDecimal("50000.00"),0,"","Видеокарты","NVIDIA");products.set(1,gpu);catalogOverride=products;
+        Shell app=shell();onFx(()->{app.host().openChat();submitChat(app.root(),"У меня уже есть RTX 4070, собери остальное до 80000 рублей для игр");return null;});
+        waitUntil(()->app.root().lookupAll(".chat-build-card").size()==1&&!((Button)lookup(app.root(),"#sendButton")).isDisabled());
+        onFx(()->{
+            Node card=app.root().lookup(".chat-build-card");assertTrue(text(card).contains("Уже есть"));assertTrue(text(lookup(app.root(),"#ownedValue")).contains("RTX 4070"));
+            assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("56030.00")),((Label)card.lookup(".chat-build-total")).getText());
+            render(app.root(),"r17-owned-chat",1440,900);render(app.root(),"r17-owned-chat-900",900,600);
+            findButton(card,"Открыть в конфигураторе").fire();
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();
+            assertEquals(Set.of(com.example.authapp.domain.ComponentCategory.GPU),config.getOwnedCategories());assertEquals(8,config.getSelectedProducts().size());
+            assertEquals(new BigDecimal("80000"),config.getBudget());assertTrue(((CheckBox)lookup(app.root(),"#owned-GPU")).isSelected());
+            render(app.root(),"r17-owned-transfer",1440,900);((Button)lookup(app.root(),"#addBuildToCart")).fire();return null;
+        });
+        waitUntil(()->cartRows.size()==7&&!((Button)lookup(app.root(),"#addBuildToCart")).isDisabled());assertTrue(cartRows.stream().noneMatch(row->row.getInt("product_id")==gpu.getId()));
+        onFx(()->{app.host().onLogout();app.host().openChat();assertFalse(lookup(app.root(),"#ownedValue").isVisible());return null;});
+    }
+    @Test void ambiguousOwnedChoiceKeepsBudgetAndCanBeClearedFromTheRequestDialog() throws Exception {
+        var products=new ArrayList<>(CATALOG);products.set(1,new Product(2,"ASUS GeForce RTX 4070 Dual 12GB","",new BigDecimal("50000.00"),0,"","Видеокарты","ASUS"));
+        products.add(new Product(9002,"Palit GeForce RTX 4070 Dual 12GB","",new BigDecimal("51000.00"),0,"","Видеокарты","Palit"));catalogOverride=products;
+        Shell app=shell();onFx(()->{app.host().openChat();submitChat(app.root(),"У меня есть RTX 4070, собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled()&&text(lookup(app.root(),"#messages")).contains("несколько моделей"));
+        onFx(()->{assertTrue(app.root().lookupAll(".chat-build-card").isEmpty());submitChat(app.root(),"2");return null;});
+        waitUntil(()->app.root().lookupAll(".chat-build-card").size()==1&&!((Button)lookup(app.root(),"#sendButton")).isDisabled());
+        onFx(()->{
+            assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(app.root(),"#budgetValue")).getText());assertTrue(text(lookup(app.root(),"#ownedValue")).contains("Palit"));
+            render(app.root(),"r17-owned-choice",1440,900);Platform.runLater(()->findButton(app.root(),"Изменить запрос").fire());return null;
+        });waitUntil(()->capacityDialog()!=null);
+        onFx(()->{DialogPane pane=capacityDialog();CheckBox clear=(CheckBox)lookup(pane,"#requestClearOwned");assertTrue(clear.isVisible());clear.setSelected(true);render(pane,"r17-owned-request-dialog",500,720);((Button)pane.lookupButton(pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow())).fire();return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled()&&!lookup(app.root(),"#ownedValue").isVisible());
+    }
+    @Test void staleOwnedCardCannotApplyItsFlagToAReusedCatalogId() throws Exception {
+        var products=new ArrayList<>(CATALOG);products.set(1,new Product(2,"NVIDIA GeForce RTX 4070 12GB","",50000,0,"","Видеокарты","NVIDIA"));catalogOverride=products;
+        Shell app=shell();onFx(()->{app.host().openChat();submitChat(app.root(),"У меня есть RTX 4070, собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->app.root().lookupAll(".chat-build-card").size()==1&&!((Button)lookup(app.root(),"#sendButton")).isDisabled());
+        var changed=new ArrayList<>(products);changed.set(1,new Product(2,"NVIDIA GeForce RTX 4090 24GB","",50000,5,"","Видеокарты","NVIDIA"));catalogOverride=changed;
+        onFx(()->{app.host().reloadProducts();return null;});
+        waitUntil(()->app.host().isCatalogLoaded()&&!lookup(app.root(),"#ownedValue").isVisible());
+        onFx(()->{submitChat(app.root(),"Собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled()&&text(lookup(app.root(),"#messages")).contains("Каталог изменился"));
+        onFx(()->{
+            assertEquals(1,app.root().lookupAll(".chat-build-card").size());findButton(app.root(),"Открыть в конфигураторе").fire();
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();assertTrue(config.getOwnedCategories().isEmpty());assertTrue(config.getSelectedProducts().isEmpty());
+            assertTrue(text(lookup(app.root(),"#cartStatusText")).contains("Карточка устарела"));app.root().applyCss();app.root().layout();assertTrue(lookup(app.root(),"#cartStatusText").localToScene(lookup(app.root(),"#cartStatusText").getBoundsInLocal()).getMaxY()<app.root().getLayoutBounds().getHeight(),"The rejected-card explanation must be visible without scrolling");render(app.root(),"r17-stale-owned-card",1200,800);return null;
+        });assertTrue(cartRows.isEmpty());
+    }
+    @Test void aReusedProductIdCannotSilentlyChangeTheCartModelAtTheSamePrice() throws Exception {
+        Shell app=shell();Product original=CATALOG.getFirst();
+        for(boolean changedCategory:List.of(false,true)) {
+            var fresh=new ArrayList<>(CATALOG);fresh.set(0,new Product(original.getId(),changedCategory?original.getName():"A different processor",original.getDescription(),original.getPrice(),original.getStock(),"",changedCategory?"Видеокарты":original.getCategory(),original.getManufacturer()));catalogOverride=fresh;
+            onFx(()->{app.host().addProductToCart(original,1);assertEquals("Проверяем цену и наличие…",((Label)lookup(app.root(),"#toastLabel")).getText());return null;});
+            // The skin Text may still show the previous operation until the next pulse.
+            // Read the Label property so every fixture change waits for its own response.
+            waitUntil(()->((Label)lookup(app.root(),"#toastLabel")).getText().contains("Данные товара изменились"));assertTrue(cartRows.isEmpty());
+        }
+        var normalized=new ArrayList<>(CATALOG);normalized.set(0,new Product(original.getId(),"  amd   ryzen 5 7600  ",original.getDescription(),original.getPrice(),original.getStock(),"",original.getCategory(),original.getManufacturer()));catalogOverride=normalized;
+        onFx(()->{app.host().addProductToCart(original,1);return null;});
+        try{waitUntil(()->cartRows.size()==1);}catch(AssertionError timeout){
+            fail("Expected one cart row, actual="+cartRows.size()+", last UI message="+onFx(()->((Label)lookup(app.root(),"#toastLabel")).getText()),timeout);
+        }
+        assertEquals(original.getId(),cartRows.getFirst().getInt("product_id"));
+    }
+    @Test void aPeripheralCategoryChangeCannotSilentlyChangeTheCartProduct() throws Exception {
+        Product original=new Product(99,"Test peripheral","",new BigDecimal("10.00"),2,"","Мониторы","");
+        catalogOverride=List.of(original);Shell app=shell();
+        catalogOverride=List.of(new Product(99,original.getName(),"",original.getPrice(),2,"","Клавиатуры",""));
+        onFx(()->{app.host().addProductToCart(original,1);return null;});
+        waitUntil(()->((Label)lookup(app.root(),"#toastLabel")).getText().contains("Данные товара изменились"));
+        assertTrue(cartRows.isEmpty());
+    }
+    @Test void sharedProductEditorRetainsInvalidInputAndCancelDoesNotMutateSource() throws Exception {
+        var source=new com.example.authapp.dto.ProductDTO(42,"Original","Description",new BigDecimal("12.34"),5,"https://example.invalid/image.png","Процессоры","Test");
+        var result=new java.util.concurrent.atomic.AtomicReference<Optional<com.example.authapp.dto.ProductDTO>>();
+        onFx(()->{Platform.runLater(()->result.set(com.example.authapp.ui.ProductEditDialog.show(null,source)));return null;});waitUntil(()->productDialog()!=null);
+        onFx(()->{
+            DialogPane pane=productDialog();((TextField)lookup(pane,"#productName")).setText("Edited");((TextField)lookup(pane,"#productPrice")).setText("1,005");findButton(pane,"Сохранить").fire();
+            assertNotNull(productDialog());assertTrue(lookup(pane,"#productError").isVisible());assertEquals("1,005",((TextField)lookup(pane,"#productPrice")).getText());
+            assertEquals(new BigDecimal("12.34"),source.price);assertEquals("Original",source.name);
+            ((TextField)lookup(pane,"#productPrice")).setText("100,50");((TextField)lookup(pane,"#productStock")).setText("-1");findButton(pane,"Сохранить").fire();assertTrue(text(lookup(pane,"#productError")).contains("неотрицательным"));
+            render(pane,"r15-product-validation",500,600);findButton(pane,"Отмена").fire();return null;
+        });waitUntil(()->result.get()!=null);assertTrue(result.get().isEmpty());assertEquals("Original",source.name);assertEquals(5,source.stock);
+        result.set(null);onFx(()->{Platform.runLater(()->result.set(com.example.authapp.ui.ProductEditDialog.show(null,source)));return null;});waitUntil(()->productDialog()!=null);
+        onFx(()->{DialogPane pane=productDialog();((TextField)lookup(pane,"#productName")).setText("Updated");((TextField)lookup(pane,"#productPrice")).setText("100,50");((TextField)lookup(pane,"#productStock")).setText("0");render(pane,"r15-product-editor",500,600);findButton(pane,"Сохранить").fire();return null;});
+        waitUntil(()->result.get()!=null);var updated=result.get().orElseThrow();assertNotSame(source,updated);assertEquals(42,updated.id);assertEquals(source.imageUrl,updated.imageUrl);assertEquals(new BigDecimal("100.50"),updated.price);assertEquals("Updated",updated.name);assertEquals(new BigDecimal("12.34"),source.price);
+    }
+    @Test void sharedProductEditorCreatesDetachedDataAndBothManagementScreensUseIt() throws Exception {
+        var result=new java.util.concurrent.atomic.AtomicReference<Optional<com.example.authapp.dto.ProductDTO>>();
+        onFx(()->{Platform.runLater(()->result.set(com.example.authapp.ui.ProductEditDialog.show(null,null)));return null;});waitUntil(()->productDialog()!=null);
+        onFx(()->{DialogPane pane=productDialog();findButton(pane,"Сохранить").fire();assertTrue(lookup(pane,"#productError").isVisible());((TextField)lookup(pane,"#productName")).setText("New CPU");((TextField)lookup(pane,"#productCategory")).setText("Процессоры");((TextField)lookup(pane,"#productPrice")).setText("25.05");findButton(pane,"Сохранить").fire();return null;});
+        waitUntil(()->result.get()!=null);assertEquals(0,result.get().orElseThrow().id);assertEquals(new BigDecimal("25.05"),result.get().orElseThrow().price);
+        Shell app=shell();
+        for(boolean admin:List.of(true,false)) {
+            onFx(()->{if(admin)app.host().openAdminPanel();else app.host().openManagerPanel();return null;});
+            waitUntil(()->lookup(app.root(),"#productsTable")!=null);
+            onFx(()->{Platform.runLater(()->((Button)lookup(app.root(),"#addProductBtn")).fire());return null;});waitUntil(()->productDialog()!=null);
+            onFx(()->{assertNotNull(lookup(productDialog(),"#productPrice"));findButton(productDialog(),"Отмена").fire();return null;});
+        }
+    }
+    private static DialogPane productDialog() {
+        for(var window:javafx.stage.Window.getWindows())if(window.isShowing()&&window.getScene().getRoot() instanceof DialogPane pane&&pane.lookup("#productPrice")!=null)return pane;
+        return null;
+    }
+    @Test void ownedOutOfStockPartIsPreservedWhileOnlyMissingPurchasesEnterCart() throws Exception {
+        var products=new ArrayList<>(CATALOG);Product gpu=CATALOG.get(1);
+        products.set(1,new Product(gpu.getId(),gpu.getName(),gpu.getDescription(),gpu.getPrice(),0,"",gpu.getCategory(),gpu.getManufacturer()));catalogOverride=products;
+        Shell app=shell();onFx(()->{Cart.getInstance().clear();app.host().openSuggestedBuild(List.of(gpu),new BigDecimal("100000"));((CheckBox)lookup(app.root(),"#owned-GPU")).fire();((Button)lookup(app.root(),"#completeBuildButton")).fire();return null;});
+        waitUntil(()->((Button)lookup(app.root(),"#completeBuildButton")).getText().equals("Подобрать остальные") && text(lookup(app.root(),"#selectedCount")).startsWith("8 из"));
+        onFx(()->{
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();
+            assertEquals(java.util.Set.of(com.example.authapp.domain.ComponentCategory.GPU),config.getOwnedCategories());
+            var total=products.stream().filter(p->p.getId()!=gpu.getId()).map(Product::getPrice).reduce(BigDecimal.ZERO,BigDecimal::add);
+            assertEquals(com.example.authapp.ui.Ui.money(total),((Label)lookup(app.root(),"#totalPrice")).getText());assertFalse(((Button)lookup(app.root(),"#addBuildToCart")).isDisabled());
+            render(app.root(),"r14-owned-completed",1440,900);app.host().openChat();app.host().openConfigurator();assertTrue(((CheckBox)lookup(app.root(),"#owned-GPU")).isSelected());
+            assertFalse(text(lookup(app.root(),"#compatStatusText")).contains("отсутствуют"));
+            Product cpu=products.getFirst();var changed=new ArrayList<>(products);changed.set(0,new Product(cpu.getId(),cpu.getName(),cpu.getDescription(),cpu.getPrice().add(new BigDecimal("0.01")),cpu.getStock(),"",cpu.getCategory(),cpu.getManufacturer()));catalogOverride=changed;
+            ((Button)lookup(app.root(),"#addBuildToCart")).fire();return null;
+        });
+        waitUntil(()->text(lookup(app.root(),"#cartStatusText")).contains("Цены изменились")&&!((Button)lookup(app.root(),"#addBuildToCart")).isDisabled());
+        assertTrue(cartRows.isEmpty());
+        onFx(()->{assertTrue(((CheckBox)lookup(app.root(),"#owned-GPU")).isSelected());((Button)lookup(app.root(),"#addBuildToCart")).fire();return null;});
+        waitUntil(()->cartRows.size()==7&&!((Button)lookup(app.root(),"#addBuildToCart")).isDisabled());
+        assertEquals(0,cartRows.stream().filter(row->row.getInt("product_id")==products.getFirst().getId()).findFirst().orElseThrow().getBigDecimal("price").compareTo(products.getFirst().getPrice().add(new BigDecimal("0.01"))));
+        assertTrue(cartRows.stream().noneMatch(row->row.getInt("product_id")==gpu.getId()));
+        onFx(()->{
+            for(var category:com.example.authapp.domain.ComponentCategory.values()) {
+                CheckBox box=(CheckBox)lookup(app.root(),"#owned-"+category.name());if(!box.isSelected())box.fire();
+            }
+            assertEquals("0 ₽",((Label)lookup(app.root(),"#totalPrice")).getText());assertTrue(((Button)lookup(app.root(),"#addBuildToCart")).isDisabled());
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();config.selectSuggestedBuild(CATALOG);assertTrue(config.getOwnedCategories().isEmpty());
+            ((CheckBox)lookup(app.root(),"#owned-CPU")).fire();app.host().onLogout();app.host().openConfigurator();
+            ConfiguratorController clean=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();
+            assertTrue(clean.getSelectedProducts().isEmpty());assertTrue(clean.getOwnedCategories().isEmpty());return null;
+        });
+    }
+    @Test void cancellingCompletionWithANewBudgetCannotRestoreItsOldSelection() throws Exception {
+        Shell app=shell();onFx(()->{
+            app.host().openSuggestedBuild(List.of(CATALOG.get(1)),new BigDecimal("100000"));
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();
+            ((CheckBox)lookup(app.root(),"#owned-GPU")).fire();((Button)lookup(app.root(),"#completeBuildButton")).fire();config.setBudget(new BigDecimal("1000"));
+            assertEquals(1,config.getSelectedProducts().size());assertEquals(new BigDecimal("1000"),config.getBudget());return null;
+        });
+        onFx(()->{ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();assertEquals(1,config.getSelectedProducts().size());assertTrue(config.getOwnedCategories().contains(com.example.authapp.domain.ComponentCategory.GPU));return null;});
+    }
+    @Test void alternativeBuildCardsOpenTheirOwnComposition() throws Exception {
+        var products=new ArrayList<>(CATALOG);
+        products.add(new Product(10001,"Alternative CPU A","socket: AM5",new BigDecimal("18990.01"),2,"","Процессоры","AMD"));
+        products.add(new Product(10002,"Alternative RAM B","memory: DDR5",new BigDecimal("5590.02"),2,"","Оперативная память","Kingston"));
+        catalogOverride=products;Shell app=shell();
+        onFx(()->{app.host().openChat();submitChat(app.root(),"Собери ПК до 100000 рублей для игр, покажи 3 варианта сборки");return null;});
+        waitUntil(()->app.root().lookupAll(".chat-build-card").size()==3 && !((Button)lookup(app.root(),"#sendButton")).isDisabled());
+        onFx(()->{
+            assertTrue(text(lookup(app.root(),"#messages")).contains("Вариант 3"));
+            var cards=app.root().lookupAll(".chat-build-card").stream().sorted(Comparator.comparingDouble(n->n.localToScene(n.getBoundsInLocal()).getMinY())).toList();
+            Node chosen=cards.get(2);var expected=products.stream().filter(p->nodes(chosen,Label.class).stream().anyMatch(label->label.getText().equals(p.getName()))).map(Product::getId).collect(java.util.stream.Collectors.toSet());
+            assertEquals(8,expected.size());render(app.root(),"r13-alternative-cards",1440,900);
+            Button open=findButton(chosen,"Открыть в конфигураторе");assertNotNull(open);open.fire();
+            ConfiguratorController config=(ConfiguratorController)((BorderPane)lookup(app.root(),"#mainPane")).getCenter().getUserData();
+            assertEquals(expected,config.getSelectedProducts().stream().map(Product::getId).collect(java.util.stream.Collectors.toSet()));
+            render(app.root(),"r13-chosen-alternative",1440,900);return null;
+        });
+    }
+    @Test void buildCapacitySummaryAndDialogApplyValidateAndClear() throws Exception {
+        Shell app=shell();onFx(()->{app.host().openChat();submitChat(app.root(),"Собери ПК до 100000 рублей для игр, ОЗУ 32 ГБ и SSD 2 ТБ");return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled() && text(lookup(app.root(),"#constraintsValue")).contains("2000"));
+        onFx(()->{assertTrue(text(lookup(app.root(),"#constraintsValue")).contains("32 ГБ"));render(app.root(),"r12-build-summary",1440,900);Platform.runLater(()->((Button)app.root().lookupAll(".chat-link").stream().filter(n->n instanceof Button b&&b.getText().equals("Изменить запрос")).findFirst().orElseThrow()).fire());return null;});
+        waitUntil(()->capacityDialog()!=null);
+        onFx(()->{DialogPane pane=capacityDialog();assertEquals("32",((TextField)lookup(pane,"#requestRam")).getText());((TextField)lookup(pane,"#requestRam")).setText("0");((Button)pane.lookupButton(pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow())).fire();assertNotNull(capacityDialog());assertTrue(pane.lookup(".chat-error").isVisible());pane.applyCss();pane.layout();
+            Label error=(Label)pane.lookup(".chat-error");assertTrue(error.getHeight()+1>=error.prefHeight(error.getWidth()),"The complete validation message must be visible");
+            render(pane,"r19-request-validation",500,650);return null;});
+        onFx(()->{DialogPane pane=capacityDialog();((TextField)lookup(pane,"#requestRam")).setText("64");((TextField)lookup(pane,"#requestStorage")).setText("1000");((CheckBox)lookup(pane,"#requestVerified")).setSelected(true);render(pane,"r12-build-dialog",500,650);((Button)pane.lookupButton(pane.getButtonTypes().stream().filter(b->b.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow())).fire();return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled() && text(lookup(app.root(),"#constraintsValue")).contains("64 ГБ"));
+        onFx(()->{assertTrue(text(lookup(app.root(),"#constraintsValue")).contains("1000 ГБ"));assertTrue(text(lookup(app.root(),"#constraintsValue")).contains("Только проверенная"));submitChat(app.root(),"Сбрось ограничения");return null;});
+        waitUntil(()->!((Button)lookup(app.root(),"#sendButton")).isDisabled() && !lookup(app.root(),"#constraintsValue").isVisible());
+    }
+    private static DialogPane capacityDialog() {
+        for(var window:javafx.stage.Window.getWindows())if(window.isShowing()&&window.getScene().getRoot() instanceof DialogPane pane&&pane.lookup("#requestRam")!=null)return pane;
+        return null;
+    }
+    @Test void decimalCartDiscountAndOrderHistoryKeepCents() throws Exception {
+        var product=new Product(8001,"Товар с копейками","",new BigDecimal("10.05"),10,"","Процессоры","");
+        cartRows.add(cartRow(product,3));
+        promoRows.add(new JSONObject().put("id",91).put("code","TEN").put("discount_percent",new BigDecimal("10.00"))
+                .put("max_uses",100).put("used_count",0).put("expiry_date","2099-12-31").put("is_active",true));
+        var item=new JSONObject().put("id",1).put("order_id",91).put("product_id",8001).put("product_name",product.getName())
+                .put("quantity",3).put("price",new BigDecimal("10.05")).put("subtotal",new BigDecimal("30.15"));
+        orderRows.add(new JSONObject().put("id",91).put("user_id",SessionManager.getUserId()).put("status","pending")
+                .put("created_at","2026-10-30T12:00:00Z").put("total_amount",new BigDecimal("30.15"))
+                .put("discount_amount",new BigDecimal("3.02")).put("final_amount",new BigDecimal("27.13"))
+                .put("order_items",new JSONArray().put(item)));
+        Shell app=shell();onFx(()->{app.host().openCart();return null;});
+        waitUntil(()->text(lookup(app.root(),"#totalLabel")).contains("30,15"));
+        onFx(()->{((TextField)lookup(app.root(),"#promoCodeField")).setText("TEN");((Button)lookup(app.root(),"#applyPromoButton")).fire();return null;});
+        waitUntil(()->text(lookup(app.root(),"#totalLabel")).contains("27,13"));
+        onFx(()->{assertTrue(text(lookup(app.root(),"#discountLabel")).contains("3,02"));render(app.root(),"r11-decimal-cart",1200,800);app.host().openCabinetInMain();return null;});
+        waitUntil(()->!app.root().lookupAll(".order-card").isEmpty());
+        onFx(()->{Node card=app.root().lookup(".order-card");assertTrue(text(card).contains("Товар с копейками"));assertTrue(text(card).contains("30,15"));assertTrue(text(card).contains("27,13"));((ScrollPane)lookup(app.root(),"#scrollPane")).setVvalue(1);render(app.root(),"r11-decimal-order",1200,800);return null;});
     }
     private static JSONObject cartRow(Product product,int quantity){return new JSONObject().put("id",product.getId()).put("product_id",product.getId()).put("product_name",product.getName()).put("price",product.getPrice()).put("quantity",quantity).put("product_image","");}
     @Test void configuratorPickerSearchRemoveAndKeyboardCloseWork() throws Exception {

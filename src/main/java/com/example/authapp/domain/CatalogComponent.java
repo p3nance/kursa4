@@ -18,7 +18,7 @@ public record CatalogComponent(int productId, String name, ComponentCategory cat
         return new CatalogComponent(product.getId(), product.getName(),
                 ComponentCategory.fromDisplayName(product.getCategory()).orElseThrow(
                         () -> new IllegalArgumentException("Категория не участвует в подборе")),
-                BigDecimal.valueOf(product.getPrice()), product.getStock(),
+                product.getPrice(), product.getStock(),
                 DescriptionSpecImporter.parse(product.getDescription()));
     }
 }
