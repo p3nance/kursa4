@@ -1,13 +1,13 @@
 {
-  "version": 1,
+  "version": 3,
   "checkedAt": "2026-11-01",
   "scope": "Local manufacturer-verified facts bound to the current catalog identity. Not a full compatibility certificate.",
   "sourcePolicy": "Official primary sources read on checkedAt. Revision, kit, BIOS and physical configuration uncertainties remain unverified; TDP is not maximum electrical power.",
   "catalogReference": "knowledge/catalog-reference.json",
   "summary": {
     "productsReviewed": 67,
-    "productsWithVerifiedFacts": 66,
-    "verifiedFacts": 207,
+    "productsWithVerifiedFacts": 67,
+    "verifiedFacts": 232,
     "importedFacts": 5
   },
   "products": [
@@ -1584,20 +1584,57 @@
     {
       "productId": 43,
       "catalogName": "Crucial MX500 1TB SATA",
-      "facts": {},
-      "identityScope": "Catalog name/description suggests MX500 1TB 2.5-inch SATA. Official source could not be opened successfully in this session, so no VERIFIED fact is added.",
+      "facts": {
+        "model_id": {
+          "value": "Crucial MX500 CT1000MX500SSD1",
+          "source": "https://uk.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-letter-en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "PDF p4, 1TB row in the 2.5-inch section identifies CT1000MX500SSD1; the separate M.2 row uses CT1000MX500SSD4."
+        },
+        "storage_interface": {
+          "value": "SATA",
+          "source": "https://uk.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-letter-en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "PDF p4, the identified 1TB 2.5-inch row specifies SATA 6Gb/s; normalized to the SATA interface family."
+        },
+        "capacity_gb": {
+          "value": 1000,
+          "source": "https://uk.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-letter-en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "PDF p4 identifies 1TB; the note uses decimal GB. Capacity is normalized to 1000 GB, not a claim about formatted usable space."
+        },
+        "form_factor": {
+          "value": "2.5-inch",
+          "source": "https://uk.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-letter-en.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "PDF p4 explicitly places CT1000MX500SSD1 in the 2.5-inch section. The catalog description must remain bound to that execution."
+        }
+      },
+      "identityScope": "CT1000MX500SSD1, 1TB 2.5-inch SATA, bound to the exact catalog name/category/description (case and whitespace normalized). The M.2 CT1000MX500SSD4 execution is excluded. Controller/NAND/firmware revision and current box contents are not established.",
       "unknownFields": {
-        "model_id": "Candidate CT1000MX500SSD1 is indexed in the official product flyer, but the document could not be opened.",
-        "storage_interface": "Official search index suggests SATA 6Gb/s; not promoted from an inaccessible source.",
-        "capacity_gb": "Official search index suggests 1TB decimal / 1000GB; source not opened.",
-        "form_factor": "Catalog description and official search index suggest 2.5-inch 7mm; source not opened."
+        "max_power_watts": "No electrical maximum established from this flyer.",
+        "controller_nand_revision": "No controller, NAND generation or firmware revision is identified for the stocked item.",
+        "current_box_contents": "The 2019 flyer does not establish the contents of a current shipment.",
+        "actual_performance": "Published internal-test performance is not imported as a comparable application benchmark."
       },
       "research": {
-        "candidateSource": "https://content.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-en.pdf",
-        "alternateCandidateSource": "https://assets.micron.com/adobe/assets/urn%3Aaaid%3Aaem%3A3c743a1f-9319-4b34-9b20-15cdad1ee2ce/renditions/original/as/crucial-mx500-ssd-productflyer-en.pdf.html",
-        "checkedAt": "2026-10-25",
-        "result": "Public official Crucial/Micron URLs were attempted. Browser fetches returned timeout/rejection; direct read returned unavailable server. Only search-index text was available; omitted rather than treating it as full document verification."
+        "source": "https://uk.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-letter-en.pdf",
+        "documentRevision": "2019-03-15",
+        "checkedAt": "2026-11-01",
+        "readMethod": "Web open returned application/pdf, 4 complete pages; all relevant p4 rows and footnotes were read. This is fuller evidence than a search snippet.",
+        "visualLimitation": "Screenshot fetch returned rejection; direct fetch returned non-PDF. No local raw PDF, SHA or visually inspected PNG is claimed.",
+        "previousAttempt": {
+          "candidateSource": "https://content.crucial.com/content/dam/crucial/ssd-products/mx500/flyer/crucial-mx500-ssd-productflyer-en.pdf",
+          "alternateCandidateSource": "https://assets.micron.com/adobe/assets/urn%3Aaaid%3Aaem%3A3c743a1f-9319-4b34-9b20-15cdad1ee2ce/renditions/original/as/crucial-mx500-ssd-productflyer-en.pdf.html",
+          "checkedAt": "2026-10-25",
+          "result": "Public official Crucial/Micron URLs were attempted. Browser fetches returned timeout/rejection; direct read returned unavailable server. Only search-index text was available; omitted rather than treating it as full document verification."
+        }
       },
+      "catalogDescription": "Классический 2.5\\\" SATA SSD на 1 ТБ, надёжная память и стабильная скорость.\r\n Подойдёт для апгрейда старых систем.",
       "catalogCategory": "SSD-накопители"
     },
     {
@@ -1896,11 +1933,135 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Product sheet p6: CPU cooler max height185mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  240
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  140
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": 143,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы.",
+                  "Высота RAM не более36мм по обеим схемам; требуется фактическая проверка."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  280,
+                  420
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": 143,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы.",
+                  "Только Open Layout; Storage Layout этих верхних классов не показывает. Для420 подтвердить исходный Meshify2 без RGB.",
+                  "Высота RAM не более36мм по схеме; это не предел толщины радиатора."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы.",
+                  "В Storage Layout для верхнего360 требуется RAM не выше36мм; фактическая компоновка и высота памяти неизвестны."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "BOTTOM",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить HDD-корзины, БП, нижние разъёмы платы и положение GPU при нижнем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://www.fractal-design.com/app/uploads/2023/08/Meshify-2-Manual-V.4-2023-08-21.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Full manual v4 PDF pages49/50 (printed48/49), visually read: Open and Storage radiator diagrams. The143mm width bound applies only to the highlighted top140mm-series radiators;36mm is a RAM-height condition, not radiator assembly thickness.",
+          "note": "Матрица охватывает объединение штатных позиций Open/Storage исходного Meshify2; условия компоновки сохранены, полная установка не подтверждена. Верхние143мм относятся к ширине радиатора140/280/420, не к360. Верхний420 исключён дляRGB-версии; без подтверждения исполнения положительный допуск не даётся."
         }
       },
       "notes": [
         "Meshify 2 имеет разные компоновки: в product sheet GPU 315 мм для Storage и 491 мм для Open, либо 467 мм с передним вентилятором. Обновлённая страница указывает 470 мм. Без выбранной компоновки единый предел GPU не задан.",
-        "Проверены обычные форматы ATX, Micro-ATX и Mini-ITX. E-ATX до 285 мм требует отдельной проверки ширины и разводки; это ограничение текущая схема не представляет."
+        "Проверены обычные форматы ATX, Micro-ATX и Mini-ITX. E-ATX до 285 мм требует отдельной проверки ширины и разводки; это ограничение текущая схема не представляет.",
+        "Матрица охватывает объединение штатных позиций Open/Storage исходного Meshify2; условия компоновки сохранены, полная установка не подтверждена. Верхние143мм относятся к ширине радиатора140/280/420, не к360. Верхний420 исключён дляRGB-версии; без подтверждения исполнения положительный допуск не даётся."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -1937,10 +2098,64 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Compatibility: CPU cooler max height170mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  240
+                ],
+                "maxWidthMm": 121,
+                "unresolvedConditions": [
+                  "Проверить RAM, VRM, кожух I/O и положение кронштейнов; официальные пределы высоты компонентов 46/47 мм расходятся"
+                ]
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  240
+                ],
+                "unresolvedConditions": [
+                  "Проверить оставшуюся длину GPU, корзины, положение вентиляторов и шлангов"
+                ]
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  140,
+                  280
+                ],
+                "maxWidthMm": 145,
+                "unresolvedConditions": [
+                  "Проверить оставшуюся длину GPU, корзины, положение вентиляторов и шлангов"
+                ]
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120
+                ],
+                "unresolvedConditions": [
+                  "Проверить плату, VRM, шланги и крепёж"
+                ]
+              }
+            ]
+          },
+          "source": "https://assets.fractal-design.com/files/uxzbxy2o/production/85e656d49b0fff7a27b6d827a5f39774bbaa5ba8.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Pop manual PDF pages 4 and 26 (printed 3 and 25), visually reviewed: original Pop Air top 120/240, front 120/140/240/280, rear 120. Top radiator width at most 121 mm; front 140/280 radiator width at most 145 mm.",
+          "note": "Complete stock-position list only. Missing length/combined-thickness limits remain unknown. The 47 mm diagram labels motherboard-component height, not radiator thickness; FAQ gives 46 mm. Pop Mini/XL/Pop2 dimensions are not substituted. No mounting-fit certificate is implied."
         }
       },
       "notes": [
-        "Предел GPU 405 мм относится к штатному переднему вентилятору. Передний радиатор уменьшает допустимую длину; его положение в сборке неизвестно."
+        "Предел GPU 405 мм относится к штатному переднему вентилятору. Передний радиатор уменьшает допустимую длину; его положение в сборке неизвестно.",
+        "01.11.2026 записана полная матрица штатных позиций радиаторов, но их полная геометрия и зависимые зазоры неизвестны. Класс 360 не поддерживается ни одной позицией. Верхние 47/46 мм — противоречивый предел высоты компонентов платы, не толщина радиатора."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2041,11 +2256,69 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Tech Specs: Maximum CPU Cooler Height170mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "PARTIAL",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  280
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы.",
+                  "Подтвердить высоту и положение памяти для выбранного верхнего AIO."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  240,
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://www.corsair.com/us/en/p/pc-cases/cc-9011200-ww/4000d-airflow-tempered-glass-mid-tower-atx-case-black-cc-9011200-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Exact original CC-9011200-WW product page: roof280 in body, front240/280/360 and rear120 in Tech Specs. The linked QSG GET failed with TLS EOF; no visual QSG copy is claimed.",
+          "note": "Исходный4000D Airflow, без FRAME. Указаны только явно прочитанные классы по позициям; глобальный список120/140/240/280/360 не распределяется по креплениям по догадке. Перечень частичный, полная геометрия неизвестна."
         }
       },
       "notes": [
         "GPU до 360 мм заявлен при верхнем расположении AIO; передний AIO уменьшает доступное место. Без позиции радиатора безусловный предел GPU не задан.",
-        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX ограничен размером 305×277 мм и требует отдельной проверки ширины/разводки."
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX ограничен размером 305×277 мм и требует отдельной проверки ширины/разводки.",
+        "Исходный4000D Airflow, без FRAME. Указаны только явно прочитанные классы по позициям; глобальный список120/140/240/280/360 не распределяется по креплениям по догадке. Перечень частичный, полная геометрия неизвестна."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2083,11 +2356,84 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Tech Specs: Maximum CPU Cooler Height170mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "PARTIAL",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  240,
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе.",
+                  "Одновременный front/side360 требует уточнения: QSG запрещает это сочетание, текущая страница допускает два радиатора из трёх позиций."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "SIDE",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Снять/переставить кабельную крышку по QSG; проверить GPU, кабели и сочетание с передним радиатором."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://www.corsair.com/us/en/p/pc-cases/cc-9011210-ww/5000d-airflow-tempered-glass-mid-tower-atx-pc-case-black-cc-9011210-ww",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Exact original CC-9011210-WW page plus linked AA QSG PDFp3, visually read. Top280/360, front280/360 and rear120 agree. Current front240 is retained; side360 is explicit in both documents. Unconfirmed smaller classes and side280 from the current page are not inferred for every retail revision.",
+          "note": "Исходный5000D Airflow, без FRAME. Перечень частичный; старыйQSG и текущая страница расходятся по GPU/БП и совместному front/side360. Ограничения полной геометрии и ревизия остаются неизвестными."
         }
       },
       "notes": [
         "Ранняя официальная инструкция 5000D указывает GPU 370 мм, текущая страница 420 мм. Без уточнения компоновки предел GPU не задан.",
-        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×277 мм требует отдельной проверки ширины и разводки."
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×277 мм требует отдельной проверки ширины и разводки.",
+        "Исходный5000D Airflow, без FRAME. Перечень частичный; старыйQSG и текущая страница расходятся по GPU/БП и совместному front/side360. Ограничения полной геометрии и ревизия остаются неизвестными."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2124,10 +2470,85 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Cooling: max construction height of CPU cooler190mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  240
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе.",
+                  "Для фронтального360 переставить HDD-корзину по инструкции производителя; её фактическое положение неизвестно."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120,
+                  140
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://www.bequiet.com/en/case/1854",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Pure Base500DX official full Optional radiator installation table: top120/240; front120/140/240/280/360; rear120/140; side/bottom none. Cage-reposition condition stated in body.",
+          "note": "Полный список штатных позиций500DX не подтверждает реальные длину/ширину/стек вентилятора. Крепления вентиляторов и номинал радиатора не смешиваются."
         }
       },
       "notes": [
-        "Номинальный предел GPU 369 мм может уменьшиться при установке переднего радиатора. Без его положения предел для конкретной сборки неизвестен."
+        "Номинальный предел GPU 369 мм может уменьшиться при установке переднего радиатора. Без его положения предел для конкретной сборки неизвестен.",
+        "Полный список штатных позиций500DX не подтверждает реальные длину/ширину/стек вентилятора. Крепления вентиляторов и номинал радиатора не смешиваются."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2165,11 +2586,89 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Cooling: max CPU cooler height185mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  240,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы.",
+                  "Проверить выбранную ориентацию поддона платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  360,
+                  420
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе.",
+                  "Снять малую крышку кожуха БП для360/420 по странице производителя; проверить HDD-корзины и ориентацию платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120,
+                  140
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://www.bequiet.com/en/case/2050",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Silent Base802 official full Optional radiator installation table: top120/240/360; front120/140/240/280/360/420; rear120/140; side/bottom none. Small PSU-cover removal for front360/420 explicit.",
+          "note": "Полный перечень штатных позиций SilentBase802; полные зазоры, ориентация платы, GPU и корзины остаются для проверки."
         }
       },
       "notes": [
         "Предел GPU: 432 мм без корзины HDD и 287 мм с корзиной; её положение неизвестно.",
-        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×275 мм требует отдельной проверки ширины и разводки."
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX до 305×275 мм требует отдельной проверки ширины и разводки.",
+        "Полный перечень штатных позиций SilentBase802; полные зазоры, ориентация платы, GPU и корзины остаются для проверки."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2198,6 +2697,80 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Specifications: CPU Clearance166mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  140
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить пересечения радиатора и патрубков с RAM/VRM и кабелями платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  240,
+                  280
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить пересечения радиатора и патрубков с RAM/VRM и кабелями платы.",
+                  "Включение вентиляторов в опубликованный предел 55 мм не уточнено; суммарная толщина не подтверждена."
+                ],
+                "radiatorThicknessUpperBoundMm": 55
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить длину GPU при внутреннем фронтальном радиаторе; безусловный зазор для этой конфигурации не установлен.",
+                  "При фронтальном радиаторе нельзя использовать показанные на p7 отверстия крепления HDD/корзины; сверить фактическое положение."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить длину GPU при внутреннем фронтальном радиаторе; безусловный зазор для этой конфигурации не установлен.",
+                  "При фронтальном радиаторе нельзя использовать показанные на p7 отверстия крепления HDD/корзины; сверить фактическое положение.",
+                  "Включение вентиляторов в опубликованный предел 70 мм не уточнено; суммарная толщина не подтверждена."
+                ],
+                "radiatorThicknessUpperBoundMm": 70
+              }
+            ]
+          },
+          "source": "https://lian-li.com/product/lancool-215/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Manufacturer page plus linked G50.LAN20.215 manual: PDF p12 lists all factory radiator classes at top/front; p15 documents 55/70 mm clearances, with p7 HDD mounting restriction. 55/70 are used only as one-sided upper bounds on the bare radiator for the classes stated on the page, never as complete radiator-plus-fan clearances.",
+          "additionalSource": "https://drive.google.com/file/d/1517Eosq2aILx9bt-zYtAuk2tkHOPiWf3/view?usp=sharing",
+          "note": "The stock front 200 mm fans are outside the frame according to the product page. No conditional GPU clearance, radiator length/width bound, or full fan-stack limit is established."
         }
       },
       "notes": [
@@ -2208,6 +2781,18 @@
         "max_gpu_length_mm",
         "supported_psu_form_factors"
       ],
+      "radiatorResearch": {
+        "manual": "https://drive.google.com/file/d/1517Eosq2aILx9bt-zYtAuk2tkHOPiWf3/view?usp=sharing",
+        "manualSha256": "b0e2da2568f82bb0f22b5d25e21d77017c143ed3ce7a56b2418885b49fb84bf1",
+        "inspectedPdfPages": [
+          7,
+          12,
+          15
+        ],
+        "pages": 16,
+        "checkedAt": "2026-11-01",
+        "interpretation": "Whether the 55/70 mm statements cover the bare radiator or the whole assembly is not explicit. Under either interpretation the bare radiator cannot exceed the stated bound; being below the bound does not prove fit. Small classes without an explicit bound remain unbounded."
+      },
       "catalogCategory": "Корпуса"
     },
     {
@@ -2240,11 +2825,67 @@
           "checkedAt": "2026-10-25",
           "evidence": "Specifications: VGA length≤420mm.",
           "note": "The separate GPU height≤159mm and cable bend clearance must still be checked."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "PARTIAL",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "SIDE",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить размещение вентилятора и радиатора по сторонам перегородки, кабели и GPU."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "BOTTOM",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить HDD-корзины, БП, нижние разъёмы платы и положение GPU при нижнем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://lian-li.com/product/pc-o11-dynamic/",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Original O11D official Radiator row: top360/280, side360, bottom360. Linked9-page manual PDFp8 hardware clearance visually inspected; no smaller radiator classes are established by its fan rows.",
+          "note": "Исходный O11Dynamic, без EVO/XL/Mini. Малые номиналы не выводятся из120мм вентиляторных мест. Фото зазоров50/90/85мм не используется как полный предел радиатора с вентиляторами. GPU158мм вQSG и159мм на странице расходятся; высота не повышена до VERIFIED."
         }
       },
       "notes": [
         "Проверен исходный O11 DYNAMIC, без суффиксов EVO, XL или Mini. Кроме длины GPU ≤420 мм требуется высота GPU ≤159 мм и место для изгиба кабеля; текущий код эти условия не проверяет.",
-        "Безопасный поднабор охватывает ATX, Micro-ATX и Mini-ITX. E-ATX требует отдельной проверки ширины и разводки."
+        "Безопасный поднабор охватывает ATX, Micro-ATX и Mini-ITX. E-ATX требует отдельной проверки ширины и разводки.",
+        "Исходный O11Dynamic, без EVO/XL/Mini. Малые номиналы не выводятся из120мм вентиляторных мест. Фото зазоров50/90/85мм не используется как полный предел радиатора с вентиляторами. GPU158мм вQSG и159мм на странице расходятся; высота не повышена до VERIFIED."
       ],
       "unknownFields": [
         "supported_psu_form_factors"
@@ -2282,11 +2923,75 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Technical Spec: CPU cooler height limit175mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "COMPLETE",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  120,
+                  140,
+                  240,
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "REAR",
+                "nominalSizesMm": [
+                  120,
+                  140
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить I/O-зону, VRM, патрубки и компоненты платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://jp.deepcool.com/products/Cases/CH510-MESH-DIGITAL-Mid-Tower-ATX-Case/2022/16218.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Exact CH510 MESH DIGITAL full official radiator table lists front/top120/140/240/280/360 and rear120/140. Linked2-page manual obtained and first full page visually checked; PSU-shroud fans are not radiator positions.",
+          "note": "Точный CH510 MESH DIGITAL, без подмены CH510. Полный список заводских позиций, полная физическая геометрия неизвестна."
         }
       },
       "notes": [
         "Проверен CH510 MESH DIGITAL, без подмены обычным CH510. Предел GPU 380 мм номинальный; передний радиатор в модели совместимости не представлен.",
-        "Проверены ATX, Micro-ATX и Mini-ITX; E-ATX требует отдельного уточнения ширины/разводки. Для ATX PS2 указан предел длины БП 170 мм, который текущая схема не хранит."
+        "Проверены ATX, Micro-ATX и Mini-ITX; E-ATX требует отдельного уточнения ширины/разводки. Для ATX PS2 указан предел длины БП 170 мм, который текущая схема не хранит.",
+        "Точный CH510 MESH DIGITAL, без подмены CH510. Полный список заводских позиций, полная физическая геометрия неизвестна."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2303,11 +3008,53 @@
           "verification": "VERIFIED",
           "checkedAt": "2026-10-25",
           "evidence": "Installation guide p1: CPU cooler height162mm."
+        },
+        "radiator_mounts": {
+          "value": {
+            "coverage": "PARTIAL",
+            "rules": [
+              {
+                "position": "TOP",
+                "nominalSizesMm": [
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить пересечения с RAM/VRM и компонентами платы."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              },
+              {
+                "position": "FRONT",
+                "nominalSizesMm": [
+                  280,
+                  360
+                ],
+                "maxLengthMm": null,
+                "maxWidthMm": null,
+                "maxAssemblyThicknessMm": null,
+                "unresolvedConditions": [
+                  "Проверить фактические длину, ширину, радиатор с одним слоем вентиляторов, патрубки и крепёж; полная геометрия позиции не установлена.",
+                  "Проверить GPU, положение HDD-корзин, съёмных вставок и трассу трубок при переднем радиаторе."
+                ],
+                "radiatorThicknessUpperBoundMm": null
+              }
+            ]
+          },
+          "source": "https://phanteks.com.tw/assets/manuals/PH-EC360ATG2.pdf",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Full primary indexed manual text, p1: named cooling examples280 FRONT AIO,360 FRONT AIO and360 TOP AIO. Direct PDF download returned non-PDF and screenshot content was unavailable through the tool wrapper. Only these unambiguous example labels are used; no spatial dimension-table assignment is promoted.",
+          "note": "G360A: частичный перечень явно подписанных AIO-примеров. Полная таблица креплений и размеры122×398×65/142×330/122×398 не повышаются до VERIFIED без визуальной сверки.42мм RAM не подменяет толщину радиатора."
         }
       },
       "notes": [
         "Официальная инструкция G360A версии 1.1 доступна на региональном сайте производителя. GPU 400 мм номинально; передний радиатор может занять часть внутреннего объёма.",
-        "В найденной инструкции нет полного явного списка форматов плат и типа ATX PSU. Эти поля не верифицировались по магазинам."
+        "В найденной инструкции нет полного явного списка форматов плат и типа ATX PSU. Эти поля не верифицировались по магазинам.",
+        "G360A: частичный перечень явно подписанных AIO-примеров. Полная таблица креплений и размеры122×398×65/142×330/122×398 не повышаются до VERIFIED без визуальной сверки.42мм RAM не подменяет толщину радиатора."
       ],
       "unknownFields": [
         "supported_form_factors",
@@ -2341,7 +3088,8 @@
       },
       "notes": [
         "Проверен Enthoo Pro II, без Server Edition. Номинальные GPU 503 мм требуют отдельной проверки при радиаторах и компоновке с несколькими системами.",
-        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX, SSI-EEB и XL-ATX требуют проверки ширины, высоты и разводки."
+        "Проверены ATX, Micro-ATX и Mini-ITX. E-ATX, SSI-EEB и XL-ATX требуют проверки ширины, высоты и разводки.",
+        "R39: на текущей странице EnthooProII текстовые блоки Top/Front360/480 расходятся. Прямые PDF/схема не дали валидного содержимого; геометрия и матрица радиаторов не повышены до VERIFIED. Не подставлять ServerEdition или другой корпус."
       ],
       "unknownFields": [
         "max_gpu_length_mm",
@@ -2384,7 +3132,8 @@
       },
       "notes": [
         "Каталог не уточняет ODD. У официальных NR600 with ODD и without ODD одинаковы форматы ATX/Micro-ATX/Mini-ITX, PSU ATX и предел кулера 166 мм.",
-        "Номинальные GPU 410 мм не перенесены: расположение переднего радиатора в сборке неизвестно. Поддержка радиаторов различается между ODD-версиями."
+        "Номинальные GPU 410 мм не перенесены: расположение переднего радиатора в сборке неизвестно. Поддержка радиаторов различается между ODD-версиями.",
+        "R39: актуальная страница MCB-NR600-KGNN-S00 явно withoutODD: front120/140/240/280/360,top120/240 с пределом высоты компонентов платы35мм,rear120. Каталог не указывает ODD; эти позиции не переносятся на любую NR600.35мм не является толщиной радиатора."
       ],
       "unknownFields": [
         "max_gpu_length_mm"
@@ -2446,6 +3195,14 @@
       "productId": 69,
       "catalogName": "be quiet! Dark Rock Pro 4",
       "facts": {
+        "cooler_kind": {
+          "value": "AIR",
+          "source": "https://www.bequiet.com/en/cpucooler/1378",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "The official Dark Rock Pro 4 page identifies an air cooler and describes a two-tower heatsink, seven heatpipes and two fans.",
+          "note": "Type only for the base Dark Rock Pro 4, excluding Pro 5/6 and Elite. Retail mounting kit, fan position and RAM clearance remain separate conditions."
+        },
         "height_mm": {
           "value": 163,
           "source": "https://bequiet.com/en/cpucooler/1378",
@@ -2487,6 +3244,14 @@
       "productId": 70,
       "catalogName": "DeepCool AK620",
       "facts": {
+        "cooler_kind": {
+          "value": "AIR",
+          "source": "https://www.deepcool.com/products/Cooling/cpuaircoolers/AK620-High-Performance-CPU-Cooler-1851-1700-AM5/2024/13067.shtml",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "The current official base AK620 page describes a dual-tower fin array with six heatpipes and two fans, establishing an air cooler.",
+          "note": "Type only. The official product index links this updated base-model page; no G2, DIGITAL or ZERO DARK model is substituted. Current CTT2.0 or socket-kit details are not transferred to the unidentified catalog revision."
+        },
         "height_mm": {
           "value": 160,
           "source": "https://www.deepcool.com/products/Cooling/cpuaircoolers/AK620-High-Performance-CPU-Cooler-1700-AM5/2021/13067.shtml",
@@ -2529,6 +3294,14 @@
       "productId": 71,
       "catalogName": "NZXT Kraken 360 RGB",
       "facts": {
+        "cooler_kind": {
+          "value": "AIO",
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "NZXT identifies Kraken (2023) as an AIO liquid cooler and explicitly lists Kraken RGB 360 models RL-KR360-B1 and RL-KR360-W1 in the same specification sheet.",
+          "note": "Type only for Kraken RGB (2023), excluding Elite, Plus and Core. The pump cap is not an air-cooler height; radiator dimensions, fan thickness and case mounting remain separate."
+        },
         "supported_sockets": {
           "value": [
             "LGA1700",
@@ -2545,12 +3318,53 @@
           "checkedAt": "2026-10-25",
           "evidence": "Kraken(2023) CPU SocketCompatibility: LGA1700/1200/115X,AM5/AM4.",
           "note": "Verifiedstandardmountingsubset; radiatorfitmustbecheckedseparately."
+        },
+        "radiator_nominal_mm": {
+          "value": 360,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "The Kraken RGB 360 family is explicitly listed as RL-KR360-B1/W1 with three stock 120 mm fans. Nominal 360 class only; the same sheet separately gives actual radiator length 394 mm.",
+          "note": "Original Kraken RGB (2023) RL-KR360-B1/W1 only. No Plus/Elite/B2 geometry or replacement-fan assumptions. Tubes, screws, mounting position and dependent clearances still require verification."
+        },
+        "radiator_length_mm": {
+          "value": 394,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Radiator dimensions for the Kraken 360 size in the shared 2023 specification sheet: length 394 mm.",
+          "note": "Original Kraken RGB (2023) RL-KR360-B1/W1 only. No Plus/Elite/B2 geometry or replacement-fan assumptions. Tubes, screws, mounting position and dependent clearances still require verification."
+        },
+        "radiator_width_mm": {
+          "value": 121,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Radiator dimensions for the Kraken 360 size in the shared 2023 specification sheet: width 121 mm.",
+          "note": "Original Kraken RGB (2023) RL-KR360-B1/W1 only. No Plus/Elite/B2 geometry or replacement-fan assumptions. Tubes, screws, mounting position and dependent clearances still require verification."
+        },
+        "radiator_thickness_mm": {
+          "value": 30,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Radiator dimensions for the Kraken 360 size in the shared 2023 specification sheet: thickness 30 mm, excluding fans.",
+          "note": "Original Kraken RGB (2023) RL-KR360-B1/W1 only. No Plus/Elite/B2 geometry or replacement-fan assumptions. Tubes, screws, mounting position and dependent clearances still require verification."
+        },
+        "radiator_fan_thickness_mm": {
+          "value": 26,
+          "source": "https://support.nzxt.com/hc/en-us/articles/47207322896923-Kraken-2023-Specs",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Kraken RGB 360 includes three F120 RGB Core (2023) fans; the fan specification gives thickness 26 mm. One stock layer only, not push-pull.",
+          "note": "Original Kraken RGB (2023) RL-KR360-B1/W1 only. No Plus/Elite/B2 geometry or replacement-fan assumptions. Tubes, screws, mounting position and dependent clearances still require verification."
         }
       },
       "notes": [
         "Kraken 360 RGB соответствует Kraken RGB (2023), RL-KR360-B1/W1. Не подменять моделями Plus, Core или Elite.",
         "Радиатор 394×121×30 мм плюс вентиляторы 26 мм: текущая схема не проверяет расположение и полный занимаемый объём. Высота крышки помпы 55,97 мм не записана как height_mm.",
-        "Для TR4/sTRX4 нужен отдельный кронштейн; они не входят в список штатных креплений."
+        "Для TR4/sTRX4 нужен отдельный кронштейн; они не входят в список штатных креплений.",
+        "01.11.2026 отдельно подтверждены номинальный класс 360, радиатор 394×121×30 мм и толщина штатного слоя вентиляторов 26 мм. Сумма толщин 56 мм не включает запас под крепёж/шланги и не гарантирует монтаж."
       ],
       "unknownFields": [
         "height_mm",
@@ -2599,16 +3413,42 @@
           "checkedAt": "2026-11-01",
           "evidence": "Official original H150i ELITE CAPELLIX Tech Specs list Radiator Size360mm; the H150i size description also identifies the360mm class.",
           "note": "Nominal radiator class only, not actual length, height, thickness or a case-fit certificate. No XT/LCD specifications or included socket kit are inferred for the catalog box."
+        },
+        "radiator_length_mm": {
+          "value": 397,
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww%3Fsrsltid%3DAfmBOopGyP6vuLupBdWEPDiZP2sSikjf0_HeqHZN4AS4gFCjFq-9Ml3v",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Full official original non-XT/non-LCD H150i ELITE CAPELLIX CW-9060048-WW page: dedicated Radiator Dimensions row 397mm x 120mm x 27mm.",
+          "note": "Published base-model radiator geometry only. Retail SKU/revision and supplied socket kit are not established. Fan thickness, total assembly thickness and case fit are not inferred."
+        },
+        "radiator_width_mm": {
+          "value": 120,
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww%3Fsrsltid%3DAfmBOopGyP6vuLupBdWEPDiZP2sSikjf0_HeqHZN4AS4gFCjFq-9Ml3v",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Full official original non-XT/non-LCD H150i ELITE CAPELLIX CW-9060048-WW page: dedicated Radiator Dimensions row 397mm x 120mm x 27mm.",
+          "note": "Published base-model radiator geometry only. Retail SKU/revision and supplied socket kit are not established. Fan thickness, total assembly thickness and case fit are not inferred."
+        },
+        "radiator_thickness_mm": {
+          "value": 27,
+          "source": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9060048-ww/icue-h150i-elite-capellix-liquid-cpu-cooler-cw-9060048-ww%3Fsrsltid%3DAfmBOopGyP6vuLupBdWEPDiZP2sSikjf0_HeqHZN4AS4gFCjFq-9Ml3v",
+          "verification": "VERIFIED",
+          "checkedAt": "2026-11-01",
+          "evidence": "Full official original non-XT/non-LCD H150i ELITE CAPELLIX CW-9060048-WW page: dedicated Radiator Dimensions row 397mm x 120mm x 27mm.",
+          "note": "Published base-model radiator geometry only. Retail SKU/revision and supplied socket kit are not established. Fan thickness, total assembly thickness and case fit are not inferred."
         }
       },
       "notes": [
-        "Подтверждены только тип AIO и номинальный класс радиатора 360 мм для исходного H150i ELITE CAPELLIX, без XT/LCD. Точный артикул, ревизия и комплект коробки каталога не установлены.",
+        "Подтверждены тип AIO, номинальный класс360 и отдельные размеры радиатора397×120×27мм для исходного H150i ELITE CAPELLIX, без XT/LCD. Точный артикул, ревизия и комплект коробки каталога не установлены.",
         "Страница CW-9060048-WW требует для LGA1700 отдельные CW-8960091/CW-8960093, но текущая связанная инструкция 49-002401 AA показывает стойки LGA1700 в комплекте. Поэтому список сокетов остаётся IMPORTED: нельзя утверждать ни наличие крепления во всех коробках, ни обязательную допокупку для каждой. Инструкция: https://assets.corsair.com/image/upload/v1783106163/cwsmgmt/documents/49_002401_AA_WW_iCUE_H100i_H115i_H150i_H170i_Elite_Capellix_QSG_Web.pdf",
-        "Номинальный класс радиатора 360 мм не равен его фактической длине или высоте и не гарантирует установку в корпусе. Поле Product Height119,6мм не используется как height_mm воздушного кулера; место установки, полный объём радиатора с вентиляторами и зазоры требуют проверки."
+        "Номинальный класс радиатора 360 мм не равен его фактической длине или высоте и не гарантирует установку в корпусе. Поле Product Height119,6мм не используется как height_mm воздушного кулера; место установки, полный объём радиатора с вентиляторами и зазоры требуют проверки.",
+        "Толщина штатного вентилятора25мм встречается в поисковых выдержках, но не в открытых полных первичных документах этого исследования; radiator_fan_thickness_mm остаётся неизвестным. Три вентилятора находятся рядом, их толщины нельзя складывать как три слоя."
       ],
       "unknownFields": [
         "height_mm",
-        "cooling_watts"
+        "cooling_watts",
+        "radiator_fan_thickness_mm"
       ],
       "catalogCategory": "Охлаждение"
     }

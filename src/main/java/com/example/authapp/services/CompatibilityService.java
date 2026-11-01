@@ -8,6 +8,7 @@ import static com.example.authapp.domain.ComponentSpecs.*;
 
 /** Checks explicit facts. COMPATIBLE means all implemented checks passed with verified facts. */
 public final class CompatibilityService {
+    private final RadiatorFitService radiatorFit=new RadiatorFitService();
     public enum Status { COMPATIBLE, INCOMPATIBLE, INSUFFICIENT_DATA }
     public record Finding(String code, Status status, String message) {}
     public record Result(Status status, List<Finding> findings, List<String> limitations) {
@@ -56,10 +57,7 @@ public final class CompatibilityService {
                 if (chassis != null)
                     compare(findings,"cooler_height",cooler,HEIGHT_MM,chassis,MAX_COOLER_HEIGHT_MM,(a,b)->a<=b,"Воздушный кулер не помещается в корпус по высоте");
             } else if (kind.get().value().equals("AIO")) {
-                String nominal=cooler.specs().fact(RADIATOR_NOMINAL_MM).filter(Fact::verified)
-                        .map(f->" Номинальный класс радиатора: "+f.value()+" мм; это не фактический размер радиатора.").orElse("");
-                unknown(findings,"radiator_fit","Размещение радиатора СЖО не подтверждено."+nominal
-                        +" Нужны проверенные позиции крепления и фактические размеры радиатора с вентиляторами, а также ограничения корпуса; лимит высоты воздушного кулера этого не проверяет.");
+                findings.add(radiatorFit.assess(chassis,cooler));
             }
         }
         if (cpu != null && cooler != null) {
@@ -100,20 +98,40 @@ public final class CompatibilityService {
     }
     private static <A,B> void compare(List<Finding> findings, String code, CatalogComponent a, Attribute<A> ak,
                                       CatalogComponent b, Attribute<B> bk, BiPredicate<A,B> condition, String conflict) {
-        compare(findings,code,a,ak,b,bk,condition,conflict,"Проверка пройдена: "+code);
+        compare(findings,code,a,ak,b,bk,condition,conflict,"Проверка пройдена: "+checkLabel(code));
     }
     private static <A,B> void compare(List<Finding> findings, String code, CatalogComponent a, Attribute<A> ak,
                                       CatalogComponent b, Attribute<B> bk, BiPredicate<A,B> condition, String conflict, String passedMessage) {
         var af=a.specs().fact(ak); var bf=b.specs().fact(bk);
-        if (af.isEmpty() || bf.isEmpty()) { unknown(findings,code,"Нет данных для проверки: " + code); return; }
+        if (af.isEmpty() || bf.isEmpty()) { unknown(findings,code,"Нет данных для проверки: " + checkLabel(code)); return; }
         if (!af.get().verified() || !bf.get().verified()) {
-            unknown(findings,code,"Непроверенные данные для проверки: " + code); return;
+            unknown(findings,code,"Непроверенные данные для проверки: " + checkLabel(code)); return;
         }
         boolean passed = condition.test(af.get().value(),bf.get().value());
         findings.add(new Finding(code,passed?Status.COMPATIBLE:Status.INCOMPATIBLE,passed?passedMessage:conflict));
     }
     private static boolean contains(Set<String> values,String value) {
         return values.stream().anyMatch(v->v.equalsIgnoreCase(value));
+    }
+    private static String checkLabel(String code) {
+        return switch(code) {
+            case "socket" -> "сокет процессора и платы";
+            case "cpu_support" -> "поддержка точной модели процессора платой";
+            case "memory_type" -> "поколение оперативной памяти";
+            case "memory_capacity" -> "объём памяти и лимит платы";
+            case "memory_slots" -> "число модулей памяти и слотов платы";
+            case "board_case" -> "формат платы и крепления корпуса";
+            case "storage_interface" -> "интерфейс накопителя и разъёмы платы";
+            case "gpu_length" -> "длина видеокарты и место в корпусе";
+            case "cooler_height" -> "высота кулера и место в корпусе";
+            case "cooler_socket" -> "крепление кулера для сокета процессора";
+            case "cooler_power" -> "тепловая нагрузка процессора и возможности охлаждения";
+            case "psu_case" -> "формат блока питания и корпуса";
+            case "gpu_min_psu" -> "мощность блока питания по рекомендации производителя видеокарты";
+            case "gpu_connectors" -> "разъёмы питания видеокарты";
+            case "board_connectors" -> "разъёмы питания материнской платы";
+            default -> "совместимость выбранных комплектующих";
+        };
     }
     private static boolean containsAll(Set<String> required,Set<String> available) {
         return required.stream().allMatch(v->contains(available,v));

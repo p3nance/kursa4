@@ -33,6 +33,7 @@ public final class ChatCardView {
         return switch (content) {
             case ChatBotService.TermContent term -> List.of(termCard(term));
             case ChatBotService.ProductsContent products -> List.of(productsCard(products));
+            case ChatBotService.PriceComparisonContent prices -> List.of(priceComparisonCard(prices));
             case ChatBotService.BuildContent build -> List.of(buildCard(build));
             case ChatBotService.BenchmarksContent benchmarks -> benchmarks.comparisons().stream()
                     .map(c -> comparisonCard(c, benchmarks.modelNames())).toList();
@@ -62,6 +63,18 @@ public final class ChatCardView {
         if (content.total() > content.items().size()) card.getChildren().add(label("Показано " + content.items().size() + " из " + content.total() + ". Уточните запрос, чтобы сузить выбор.", "chat-caption"));
         return card;
     }
+    private Node priceComparisonCard(ChatBotService.PriceComparisonContent content) {
+        VBox card=card();card.setSpacing(8);card.getStyleClass().add("chat-price-comparison");
+        card.getChildren().add(label("Сравнение цен", "chat-card-title"));
+        for(var product:List.of(content.left(),content.right())) {
+            Label name=label(product.name(),"chat-product-name");HBox.setHgrow(name,Priority.ALWAYS);
+            Label price=label(Ui.money(product.price()),"chat-row-price");price.setMinWidth(Region.USE_PREF_SIZE);
+            HBox row=new HBox(12,name,price);row.setAlignment(Pos.CENTER_LEFT);card.getChildren().add(row);
+        }
+        Label difference=label("Разница цен: "+Ui.money(content.difference()),"chat-build-total");difference.getStyleClass().add("chat-price-difference");
+        card.getChildren().addAll(difference,label("Цены из каталога могут измениться. Цена не показывает производительность.","chat-caption"));
+        return card;
+    }
     private Node buildCard(ChatBotService.BuildContent build) {
         VBox card = card(); card.getStyleClass().add("chat-build-card");
         Label count = label(build.parts().size() + " деталей", "chat-count");
@@ -84,6 +97,8 @@ public final class ChatCardView {
         open.setOnAction(e->actions.openBuild(build));
         Label check=label(build.verified()?"Основные проверки пройдены. Проверьте спецификации перед покупкой.":"Нужна проверка характеристик. Совместимость не подтверждена.",build.verified()?"chat-verified":"chat-unverified");check.setGraphic(Ui.icon(build.verified()?"check":"info"));check.setGraphicTextGap(7);
         card.getChildren().addAll(total,open,check);
+        if(build.budget()!=null && build.total().compareTo(build.budget())>0)
+            card.getChildren().add(label("Бюджет превышен на "+Ui.money(build.total().subtract(build.budget()))+". Заданный бюджет: "+Ui.money(build.budget())+".","chat-unverified"));
         List<String> notes = new ArrayList<>(build.findings()); notes.addAll(build.limitations());
         if(!notes.isEmpty()){
             VBox explanation=new VBox(6);notes.stream().distinct().forEach(note->explanation.getChildren().add(label("• "+note,"chat-caption")));
@@ -97,18 +112,16 @@ public final class ChatCardView {
         String leftName=BenchmarkPresentation.modelName(left.modelId(),modelNames),rightName=BenchmarkPresentation.modelName(right.modelId(),modelNames);
         card.getChildren().addAll(label(BenchmarkPresentation.title(context),"chat-card-title"),label(BenchmarkPresentation.workload(context),"chat-caption"));
         String scope = BenchmarkPresentation.scopeNote(context);
-        if (!scope.isBlank()) {
-            Label note = label(scope, "chat-copy");
-            note.getStyleClass().add("chat-benchmark-scope");
-            card.getChildren().add(note);
-        }
         GridPane table=new GridPane();table.setMinWidth(0);table.getStyleClass().add("chat-table");table.setHgap(16);table.setVgap(10);ColumnConstraints names=new ColumnConstraints();names.setPercentWidth(65);ColumnConstraints values=new ColumnConstraints();values.setPercentWidth(35);table.getColumnConstraints().addAll(names,values);
         table.add(label("Модель","chat-caption"),0,0);table.add(label("Результат","chat-caption"),1,0);
         table.add(label(leftName,"chat-product-name"),0,1);table.add(label(left.value()+" "+BenchmarkPresentation.unit(context.unit()),"chat-row-price"),1,1);
         table.add(label(rightName,"chat-product-name"),0,2);table.add(label(right.value()+" "+BenchmarkPresentation.unit(context.unit()),"chat-row-price"),1,2);alignCells(table);card.getChildren().add(table);
+        if(!scope.isBlank()) {
+            Label note=label(scope,"chat-copy");note.getStyleClass().add("chat-benchmark-scope");card.getChildren().add(note);
+        }
         card.getChildren().addAll(label(comparison.betterModelId().isEmpty()?"Значения равны.":"Лучший результат в этом тесте: "+BenchmarkPresentation.modelName(comparison.betterModelId(),modelNames),"chat-copy"),
-                label(BenchmarkPresentation.difference(comparison),"chat-copy"),
-                label("Результат относится только к этому тесту и стенду. Он не определяет производительность в других задачах или скорость всей сборки.","chat-caption"));
+                label(BenchmarkPresentation.difference(comparison),"chat-copy"));
+        if(scope.isBlank())card.getChildren().add(label("Результат относится только к этому тесту и стенду. Он не определяет производительность в других задачах или скорость всей сборки.","chat-caption"));
         LinkedHashSet<String> dates=new LinkedHashSet<>();dates.add(left.dateDescription());dates.add(right.dateDescription());
         card.getChildren().add(label(String.join(" · ",dates),"chat-caption"));
         VBox explanation=new VBox(7);explanation.setMinWidth(0);

@@ -21,7 +21,7 @@ public class Main extends Application {
             controller = loader.getController();
             com.example.authapp.ui.Ui.setUrlOpener(getHostServices()::showDocument);
 
-            primaryStage.setTitle("TechStore");
+            primaryStage.setTitle(System.getProperty("techstore.window.title","TechStore"));
             primaryStage.setScene(new Scene(root, 1440, 900));
             primaryStage.setMinWidth(900);
             primaryStage.setMinHeight(600);

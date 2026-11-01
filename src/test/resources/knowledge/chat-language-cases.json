@@ -1,0 +1,245 @@
+{
+  "description": "18 authored regressions for bilingual catalog names and brand/model build edits; includes R44 user reports, not held-out quality",
+  "cases": [
+    {
+      "id": "01",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "поменяй процессор на амд",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "Выберите конкретную модель AMD"
+      }
+    },
+    {
+      "id": "02",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "поменяй процессор на AMD",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "Выберите конкретную модель AMD"
+      }
+    },
+    {
+      "id": "03",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр",
+        "поменяй процессор на амд"
+      ],
+      "message": "АМД Райзен 9 7950Икс",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 10
+      }
+    },
+    {
+      "id": "04",
+      "group": "bilingual-catalog-identity",
+      "setup": [],
+      "message": "Найди Интел Кор ай5 14600К",
+      "expect": {
+        "unchanged": true,
+        "content": "ProductsContent",
+        "productIds": [
+          2
+        ]
+      }
+    },
+    {
+      "id": "05",
+      "group": "bilingual-catalog-identity",
+      "setup": [],
+      "message": "Найди РТХ4060 ти16ГБ",
+      "expect": {
+        "unchanged": true,
+        "content": "ProductsContent",
+        "productIds": [
+          20
+        ]
+      }
+    },
+    {
+      "id": "06",
+      "group": "bilingual-catalog-identity",
+      "setup": [],
+      "message": "Найди Лоджитек Джи Про Икс TKL",
+      "expect": {
+        "unchanged": true,
+        "content": "ProductsContent",
+        "productIds": [
+          83
+        ]
+      }
+    },
+    {
+      "id": "07",
+      "group": "bilingual-catalog-identity",
+      "setup": [],
+      "message": "Сравни Интел Кор ай7 14700К и Интел Кор ай5 14600К",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Intel Core i7-14700K",
+          "Intel Core i5-14600K"
+        ]
+      }
+    },
+    {
+      "id": "08",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "Поменяй SSD на Самсунг990про2тб",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 41,
+        "preserveSetupExceptCategory": "SSD-накопители"
+      }
+    },
+    {
+      "id": "09",
+      "group": "bilingual-catalog-identity",
+      "setup": [],
+      "message": "Найди РТХ4060 ти24ГБ",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "ничего не найдено"
+      }
+    },
+    {
+      "id": "10",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр",
+        "Поменяй процессор на AMD"
+      ],
+      "message": "пятый",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 10
+      }
+    },
+    {
+      "id": "11",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр",
+        "Поменяй процессор на AMD"
+      ],
+      "message": "Да",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "Выберите конкретную модель AMD"
+      }
+    },
+    {
+      "id": "12",
+      "group": "bilingual-catalog-identity",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "Поменяй видеокарту на Ryzen",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "другой категории"
+      }
+    },
+    {
+      "id": "13",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа"
+      ],
+      "message": "поменяй проц на амд",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "Выберите конкретную модель AMD"
+      }
+    },
+    {
+      "id": "14",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа"
+      ],
+      "message": "поменяй проц на амд 7800",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "AMD Ryzen 7 7800X3D"
+      }
+    },
+    {
+      "id": "15",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа",
+        "поменяй проц на амд",
+        "поменяй проц на амд 7800"
+      ],
+      "message": "Да",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 8
+      }
+    },
+    {
+      "id": "16",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа"
+      ],
+      "message": "поменяй CPU на AMD7800",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "AMD Ryzen 7 7800X3D"
+      }
+    },
+    {
+      "id": "17",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа"
+      ],
+      "message": "поменяй проц на AMD7800X3D",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 8,
+        "preserveSetupExceptCategory": "Процессоры"
+      }
+    },
+    {
+      "id": "18",
+      "group": "reported-short-cpu-edit",
+      "setup": [
+        "Собери ПК до 150000 рублей для монтажа"
+      ],
+      "message": "поменяй проц на амд 7800X",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "не найдена"
+      }
+    }
+  ]
+}

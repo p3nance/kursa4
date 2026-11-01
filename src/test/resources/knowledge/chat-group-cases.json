@@ -1,0 +1,313 @@
+{
+  "description": "22 authored R32D catalog-group scenarios; preserve first result before tuning",
+  "cases": [
+    {
+      "id": "01",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "02",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Покажи самый дорогой из этих",
+      "expect": {
+        "productIds": [
+          10
+        ]
+      }
+    },
+    {
+      "id": "03",
+      "group": "catalog-group",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen"
+      ],
+      "message": "Какой из них самый дешёвый?",
+      "expect": {
+        "productIds": [
+          6
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "04",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Что из показанного есть в наличии?",
+      "expect": {
+        "productIds": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "id": "05",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen",
+        "А второй?"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "06",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Насколько второй дороже первого?",
+      "expect": {
+        "productIds": [
+          7,
+          6
+        ],
+        "containsAll": [
+          "Разница цен:",
+          "3 000 ₽"
+        ]
+      }
+    },
+    {
+      "id": "07",
+      "group": "catalog-group",
+      "setup": [
+        "Сравни RTX 4070 SUPER и RTX 4070"
+      ],
+      "message": "Какова разница в цене этих двух?",
+      "expect": {
+        "productIds": [
+          14,
+          13
+        ],
+        "containsAll": [
+          "Разница цен:",
+          "6 000 ₽"
+        ]
+      }
+    },
+    {
+      "id": "08",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Samsung 990 PRO"
+      ],
+      "message": "Какой из них дешевле?",
+      "expect": {
+        "productIds": [
+          40
+        ]
+      }
+    },
+    {
+      "id": "09",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Samsung 990 PRO"
+      ],
+      "message": "Какой из этих самый дорогой?",
+      "expect": {
+        "productIds": [
+          41
+        ]
+      }
+    },
+    {
+      "id": "10",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "content": "none",
+        "contains": "один"
+      }
+    },
+    {
+      "id": "11",
+      "group": "catalog-group",
+      "setup": [],
+      "message": "Какой из них дешевле?",
+      "expect": {
+        "content": "none",
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "12",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen",
+        "Начать заново"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "content": "none",
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "13",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen",
+        "Найди RTX 9999"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "content": "none",
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "14",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Не самый дешёвый, покажи самый дорогой из них",
+      "expect": {
+        "content": "none",
+        "contains": "уточните",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "15",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Сколько сэкономлю между первым и вторым?",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "containsAll": [
+          "Разница цен:",
+          "3 000 ₽"
+        ]
+      }
+    },
+    {
+      "id": "16",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Выбери самый дешёвый из них, он быстрее?",
+      "expect": {
+        "productIds": [
+          6
+        ],
+        "contains": "производительност"
+      }
+    },
+    {
+      "id": "17",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Кто из них не в наличии?",
+      "expect": {
+        "content": "none",
+        "contains": "Все показанные товары в наличии"
+      }
+    },
+    {
+      "id": "18",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Эта RTX 9999 из них дешевле?",
+      "expect": {
+        "content": "none",
+        "contains": "не найден"
+      }
+    },
+    {
+      "id": "19",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Насколько пятый дороже третьего?",
+      "expect": {
+        "productIds": [
+          10,
+          8
+        ],
+        "containsAll": [
+          "Разница цен:",
+          "23 000 ₽"
+        ]
+      }
+    },
+    {
+      "id": "20",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Какова разница в цене из показанного?",
+      "expect": {
+        "content": "none",
+        "contains": "два",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "21",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Насколько шестой дороже первого?",
+      "expect": {
+        "content": "none",
+        "contains": "номера"
+      }
+    },
+    {
+      "id": "22",
+      "group": "catalog-group",
+      "setup": [
+        "Найди Ryzen",
+        "Какой из них самый дорогой?"
+      ],
+      "message": "Кто из них дешевле?",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    }
+  ]
+}

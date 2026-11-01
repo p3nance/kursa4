@@ -6,12 +6,15 @@ import java.util.regex.Pattern;
 
 /** Small explicit intent grammar; model identity is resolved separately against the current catalog. */
 public final class ChatIntentParser {
-    public enum Intent { RESET, GREETING, THANKS, COMPARE, COMPARE_HELP, SEARCH, DEFINE, BUILD, OTHER }
+    public enum Intent { RESET, GREETING, THANKS, COMPARE, COMPARE_HELP, COMPARE_ORDER, COMPARE_VIEW, SEARCH, DEFINE, BUILD, OTHER }
+    enum Order { NONE, SWAP, KEEP }
     public record Parsed(Intent intent,String body,List<String> pair) {
         public Parsed {Objects.requireNonNull(intent);body=Objects.requireNonNullElse(body,"");pair=List.copyOf(pair);}
     }
     private static final int FLAGS=Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE;
     private static final String COURTESY="(?:(?:привет|здравствуйте)[,!:]?\\s+)?(?:(?:пожалуйста|можешь|можете|можно|мог бы|не мог бы|подскажи|подскажите)\\s+)*";
+    private static final Pattern SWAP_ORDER=p("^"+COURTESY+"(?:(?:поменяй(?:те)?|переставь(?:те)?|поменять|переставить)\\s+(?:(?:их|модели|пару|первую\\s+и\\s+вторую)\\s+)?местами|(?:поменяй|смени|измени)\\s+порядок(?:\\s+(?:моделей|пары|сравнения))?|сравни(?:те)?(?:\\s+их)?\\s+(?:наоборот|в\\s+обратном\\s+порядке)|наоборот)(?:\\s+пожалуйста)?$");
+    private static final Pattern KEEP_ORDER=p("^(?:пожалуйста\\s+)?(?:не\\s+(?:меняй(?:те)?|переставляй(?:те)?)\\s+(?:(?:их|модели|пару)\\s+)?местами|порядок(?:\\s+моделей)?\\s+не\\s+меняй(?:те)?)(?:\\s+пожалуйста)?$");
     private static final Pattern COMPARE_PREFIX=p("^"+COURTESY+"(?:сравни(?:ть|те)?|сравнение(?:\\s+между)?|сопоставь(?:те)?|покажи(?:те)?\\s+характеристики|показать\\s+характеристики|чем\\s+отлича(?:ется|ются)|в\\s+ч[её]м\\s+разница(?:\\s+между)?|что\\s+(?:лучше|выбрать)|(?:како[йе]|какая)\\s+(?:лучше|выбрать))\\s*[,+:—-]?\\s*(?:пожалуйста[, ]+)?");
     private static final Pattern SEARCH_PREFIX=p("^"+COURTESY+"(?:найди(?:те)?|найти|покажи(?:те)?|показать|ищу|поиск|есть\\s+ли(?:\\s+у\\s+вас)?|есть\\s+у\\s+вас)\\s+");
     private static final Pattern DEFINE_PREFIX=p("^"+COURTESY+"(?:что\\s+(?:такое|значит|означает)|объясни(?:те|ть)?|расскажи(?:те)?\\s+(?:про|о)|дай\\s+определение)\\s+");
@@ -23,11 +26,13 @@ public final class ChatIntentParser {
         if(lower.matches("(?:сброс|сбросить|заново|начать заново|начнем заново|очистить|очисти(?: чат)?|новый диалог)[.!?]*")) return parsed(Intent.RESET,text);
         if(lower.matches("(?:привет|здравствуйте|добрый день|добрый вечер|доброе утро|помощь|что ты умеешь|help)[.!?]*")) return parsed(Intent.GREETING,text);
         if(lower.matches("(?:спасибо|благодарю|спс)[.!?]*")) return parsed(Intent.THANKS,text);
+        if(orderCommand(text)!=Order.NONE)return parsed(Intent.COMPARE_ORDER,text);
         if(lower.matches(".*(?:как\\s+(?:можно\\s+)?сравни(?:ть|вать)|что\\s+такое\\s+бенчмарк).*")) {
             if(!text.matches(".*\\d.*")) return parsed(Intent.COMPARE_HELP,text);
         }
-        if(lower.matches("(?:покажи|показать|выбрать|выбери) модели с общим тестом[.!?]*"))return parsed(Intent.OTHER,text);
-        if(lower.matches("(?:сравни(?:ть)?|покажи|показать)(?: по)? бенчмарк(?:и|ам)?[.!?]*"))return parsed(Intent.OTHER,text);
+        if(lower.matches("(?:покажи|показать|выбрать|выбери) модели с общим тестом[.!?]*"))return parsed(Intent.COMPARE_VIEW,text);
+        if(lower.matches("(?:сравни(?:ть)?|покажи|показать)(?: по)? бенчмарк(?:и|ам)?[.!?]*"))return parsed(Intent.COMPARE_VIEW,text);
+        if(lower.matches("(?:сравни(?:ть)?|покажи|показать) характеристики[.!?]*"))return parsed(Intent.COMPARE_VIEW,text);
         var compare=COMPARE_PREFIX.matcher(text);
         if(compare.find()) return comparison(text.substring(compare.end()));
         if(variantRequest(text))return parsed(Intent.BUILD,text);
@@ -49,6 +54,11 @@ public final class ChatIntentParser {
     }
     private static boolean variantRequest(String text) {
         return p("^"+COURTESY+"(?:(?:покажи|показать|дай|предложи|подбери|найди)\\s+)?(?:еще\\s+)?(?:(?:[0-9]+|два|три)\\s+)?(?:вариант(?:ы|а|ов)|альтернативы)(?:\\s+(?:сборк\\p{L}*|пк|компьютер\\p{L}*))?(?:\\s+(?:до|для|на|в пределах|с бюджетом)\\s+.+)?[.!?]*$").matcher(text).matches();
+    }
+    static Order orderCommand(String raw) {
+        String text=ModelResolver.normalize(raw);
+        if(KEEP_ORDER.matcher(text).matches())return Order.KEEP;
+        return SWAP_ORDER.matcher(text).matches()?Order.SWAP:Order.NONE;
     }
     private static Parsed comparison(String text) {
         String body=trim(text),models=body;

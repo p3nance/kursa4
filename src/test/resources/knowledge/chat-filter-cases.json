@@ -1,0 +1,279 @@
+{
+  "description": "22 authored R32E filters; first result before tuning must be archived",
+  "cases": [
+    {
+      "id": "01",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen до 30 тысяч",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "budget": null
+      }
+    },
+    {
+      "id": "02",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen до 30 тысяч",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "03",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Можно посмотреть Ryzen дешевле 30 тысяч?",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "id": "04",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen до 22990 рублей",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "05",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen дешевле 22990 рублей",
+      "expect": {
+        "content": "none",
+        "contains": "не найден"
+      }
+    },
+    {
+      "id": "06",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen не дороже 22990 рублей",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "07",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen дороже 52990 рублей",
+      "expect": {
+        "productIds": [
+          10
+        ]
+      }
+    },
+    {
+      "id": "08",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen от 44990 рублей",
+      "expect": {
+        "productIds": [
+          8,
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "id": "09",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen от 25 тысяч до 55 тысяч",
+      "expect": {
+        "productIds": [
+          7,
+          8,
+          9
+        ]
+      }
+    },
+    {
+      "id": "10",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen до 22989,99 рублей",
+      "expect": {
+        "content": "none",
+        "contains": "не найден"
+      }
+    },
+    {
+      "id": "11",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen до -1 рубля",
+      "expect": {
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "12",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen от 60 тысяч до 30 тысяч",
+      "expect": {
+        "content": "none",
+        "contains": "границ",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "13",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen до 300 долларов",
+      "expect": {
+        "content": "none",
+        "contains": "рубл",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "14",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen либо до 25 тысяч либо дороже 50 тысяч",
+      "expect": {
+        "content": "none",
+        "contains": "уточните",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "15",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen"
+      ],
+      "message": "Оставь из них дешевле 30 тысяч",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "16",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen до 30 тысяч в наличии",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ]
+      }
+    },
+    {
+      "id": "17",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Покажи самый дорогой из них до 30 тысяч",
+      "expect": {
+        "productIds": [
+          7
+        ]
+      }
+    },
+    {
+      "id": "18",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Найди Ryzen 5 7600X до 22990 рублей",
+      "expect": {
+        "content": "none",
+        "contains": "не найден"
+      }
+    },
+    {
+      "id": "19",
+      "group": "catalog-price-filter",
+      "setup": [],
+      "message": "Можно RTX 4070 SUPER не дороже 70 тысяч?",
+      "expect": {
+        "productIds": [
+          14
+        ]
+      }
+    },
+    {
+      "id": "20",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Найди Ryzen",
+        "Начать заново"
+      ],
+      "message": "Оставь из них дешевле 30 тысяч",
+      "expect": {
+        "content": "none",
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "21",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen до 30 тысяч"
+      ],
+      "message": "Добавь 10 тысяч",
+      "expect": {
+        "budget": 110000
+      }
+    },
+    {
+      "id": "22",
+      "group": "catalog-price-filter",
+      "setup": [
+        "Найди Ryzen до 30 тысяч"
+      ],
+      "message": "Найди Ryzen",
+      "expect": {
+        "productIds": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      }
+    }
+  ]
+}

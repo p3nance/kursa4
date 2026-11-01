@@ -224,6 +224,46 @@ class UiSmokeTest {
         });
     }
 
+    @Test void radiatorGeometryAndMountingMatrixRemainReadableAtBothWindowSizes() throws Exception {
+        for(String request:List.of("Сравни be quiet! Dark Rock Pro 4 и NZXT Kraken 360 RGB",
+                "Сравни Fractal Design Pop Air RGB и Lian Li O11 Dynamic")) {
+            Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+            Node reply=chatReplyAfter(chat,()->submitChat(chat,request));
+            onFx(()->{
+                assertEquals(1,reply.lookupAll(".chat-specifications-card").size());
+                String displayed=text(reply);
+                if(request.contains("Kraken")) {
+                    for(String value:List.of("Фактическая длина радиатора","394 мм","121 мм","30 мм","26 мм","360 мм","Не применяется к СЖО"))
+                        assertTrue(displayed.contains(value),value);
+                } else {
+                    assertTrue(displayed.contains("Крепления радиаторов"));
+                    assertTrue(displayed.contains("Спереди: 120/140/240/280 мм"));
+                    assertTrue(displayed.contains("зазоры проверяются отдельно"));
+                }
+                ScrollPane conversation=(ScrollPane)lookup(chat,"#conversation");
+                for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                    chat.resize(size[0],size[1]);chat.applyCss();chat.layout();conversation.setVvalue(0);conversation.layout();
+                    assertTrue(conversation.getContent().getLayoutBounds().getWidth()<=conversation.getViewportBounds().getWidth()+1);
+                    render(chat,"r29-"+(request.contains("Kraken")?"radiator":"mounts")+"-"+size[0],size[0],size[1]);
+                    String targetTitle=request.contains("Kraken")?"Фактическая длина радиатора":"Крепления радиаторов";
+                    Label target=nodes(reply,Label.class).stream().filter(l->targetTitle.equals(l.getText())).findFirst().orElseThrow();
+                    var content=conversation.getContent();
+                    var targetBounds=content.sceneToLocal(target.localToScene(target.getBoundsInLocal()));
+                    double scrollable=content.getLayoutBounds().getHeight()-conversation.getViewportBounds().getHeight();
+                    conversation.setVvalue(scrollable<=0?0:Math.max(0,Math.min(1,(targetBounds.getMinY()-16)/scrollable)));
+                    conversation.layout();
+                    Node viewportNode=conversation.lookup(".viewport");
+                    var viewport=viewportNode.localToScene(viewportNode.getLayoutBounds());
+                    var visible=target.localToScene(target.getBoundsInLocal());
+                    render(chat,"r29-"+(request.contains("Kraken")?"radiator":"mounts")+"-details-"+size[0],size[0],size[1]);
+                    assertTrue(visible.getMaxY()>=viewport.getMinY()&&visible.getMinY()<=viewport.getMaxY(),
+                            "New row must be reachable by scrolling: "+visible+" viewport="+viewport+" v="+conversation.getVvalue()+" range="+scrollable);
+                }
+                return null;
+            });
+        }
+    }
+
     @Test void inlineGameScenarioNeverShowsAnotherGamesFpsAsItsResult() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Сравни 4070 super и 4070 для игр в Cyberpunk 1440p");return null;});
@@ -382,6 +422,27 @@ class UiSmokeTest {
             render(chat,"r9-specifications-fallback",1440,900);render(chat,"r9-specifications-fallback-900",900,600);return null;
         });
     }
+    @Test void blackMythKeepsSourceConflictBesideScoresOutsideCollapsedMethodology() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled() && chat.lookupAll(".chat-benchmark-card").size()==1);
+        onFx(()->{
+            Node card=chat.lookup(".chat-benchmark-card");Label scope=(Label)card.lookup(".chat-benchmark-scope");assertNotNull(scope);
+            assertTrue(scope.getText().contains("не совпадает"));
+            for(Node parent=scope.getParent();parent!=null && parent!=card;parent=parent.getParent())
+                assertFalse(parent instanceof TitledPane,"Source conflict must remain outside collapsed details");
+            for(int[] size:List.of(new int[]{1440,900},new int[]{900,600})) {
+                chat.resize(size[0],size[1]);chat.applyCss();chat.layout();
+                for(String value:List.of("36.9","31.6","16.77 %","не совпадает","фактическая конфигурация не установлена"))
+                    assertTrue(visibleText(card).toLowerCase(Locale.ROOT).contains(value),value);
+                assertTrue(scope.getHeight()+1>=scope.prefHeight(scope.getWidth()));
+                assertTrue(detailsPanes(chat,"Условия и источники").stream().noneMatch(TitledPane::isExpanded));
+                assertFalse(visibleText(card).contains("SOURCE_PLATFORM_CONFLICT"));
+                render(chat,size[0]==1440?"r36-black-myth":"r36-black-myth-900",size[0],size[1]);
+            }
+            return null;
+        });
+    }
     @Test void originalCpuQuestionShowsPublishedPlatformsAndKeepsScopeVisibleAboveCollapsedDetails() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"сравни i9-14900k и ryzen 7 7800x3d");return null;});
@@ -469,6 +530,139 @@ class UiSmokeTest {
         }
     }
     private static void submitChat(Parent chat,String message){((TextArea)lookup(chat,"#input")).setText(message);((Button)lookup(chat,"#sendButton")).fire();}
+    @Test void localModelBuildUsesExistingCardsAndCancelledDraftCannotReturnAfterNewDialogue() throws Exception {
+        var modelApi=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        modelApi.createContext("/api/chat",exchange->{
+            exchange.getRequestBody().readAllBytes();
+            String plan=new JSONObject().put("action","BUILD").put("queries",new JSONArray()).put("budget",100000)
+                    .put("budgetText","100 тысяч").put("usage","GAMING").toString();
+            byte[] response=new JSONObject().put("model","qwen3:14b").put("done",true).put("done_reason","stop")
+                    .put("message",new JSONObject().put("role","assistant").put("content",plan)).toString().getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(200,0);
+            try(var out=exchange.getResponseBody()) {
+                if(calls.incrementAndGet()==2) {out.flush();entered.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException ex){Thread.currentThread().interrupt();}}
+                out.write(response);
+            }catch(java.io.IOException ignored){/* cancelled request */}
+        });modelApi.start();
+        String oldEngine=System.getProperty("techstore.chat.engine"),oldUrl=System.getProperty("techstore.chat.url");
+        try {
+            System.setProperty("techstore.chat.engine","hybrid");
+            System.setProperty("techstore.chat.url","http://127.0.0.1:"+modelApi.getAddress().getPort());
+            Parent chat=localChat(CATALOG,Path.of("src/main/resources/knowledge").toAbsolutePath());
+            onFx(()->{submitChat(chat,"Потолок трат 100 тысяч, хочется машинку для игр");return null;});
+            waitUntil(()->chat.lookupAll(".chat-build-card").size()==1&&!((Button)lookup(chat,"#sendButton")).isDisabled());
+            onFx(()->{
+                assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());
+                assertTrue(text(lookup(chat,"#status")).contains("Локальная модель"));
+                render(chat,"r31-local-model-build",1440,900);findButton(chat,"Новый диалог").fire();
+                submitChat(chat,"Потолок трат 100 тысяч, хочется машинку для игр");return null;
+            });
+            assertTrue(entered.await(3,TimeUnit.SECONDS));
+            onFx(()->{((Button)lookup(chat,"#cancelButton")).fire();findButton(chat,"Новый диалог").fire();return null;});release.countDown();
+            onFx(()->{submitChat(chat,"Найди Ryzen");return null;});
+            waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled()&&text(lookup(chat,"#messages")).contains("AMD Ryzen 5 7600"));
+            onFx(()->{assertTrue(chat.lookupAll(".chat-build-card").isEmpty());assertFalse(text(lookup(chat,"#budgetValue")).contains("100"));return null;});
+            assertEquals(2,calls.get());
+        } finally {
+            release.countDown();modelApi.stop(0);
+            if(oldEngine==null)System.clearProperty("techstore.chat.engine");else System.setProperty("techstore.chat.engine",oldEngine);
+            if(oldUrl==null)System.clearProperty("techstore.chat.url");else System.setProperty("techstore.chat.url",oldUrl);
+        }
+    }
+    @Test void cancelledBudgetDeltaCanBeRetriedOnceAndCannotCrossNewDialogue() throws Exception {
+        var modelApi=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        modelApi.createContext("/api/chat",exchange->{
+            exchange.getRequestBody().readAllBytes();
+            var plan=new JSONObject().put("action","BUILD").put("queries",new JSONArray()).put("budget",10000)
+                    .put("budgetText","10 тысяч").put("budgetOperation","ADD").put("usage","KEEP");
+            byte[] response=new JSONObject().put("model","qwen3:14b").put("done",true).put("done_reason","stop")
+                    .put("message",new JSONObject().put("role","assistant").put("content",plan.toString())).toString().getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(200,0);
+            try(var out=exchange.getResponseBody()) {
+                if(calls.incrementAndGet()==1){out.flush();entered.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException ex){Thread.currentThread().interrupt();}}
+                out.write(response);
+            }catch(java.io.IOException ignored){/* cancelled transport */}
+        });modelApi.start();
+        String oldEngine=System.getProperty("techstore.chat.engine"),oldUrl=System.getProperty("techstore.chat.url");
+        try {
+            System.setProperty("techstore.chat.engine","hybrid");System.setProperty("techstore.chat.url","http://127.0.0.1:"+modelApi.getAddress().getPort());
+            Parent chat=localChat(CATALOG,Path.of("src/main/resources/knowledge").toAbsolutePath());
+            onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});
+            waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+            onFx(()->{submitChat(chat,"Добавь 10 тысяч");return null;});assertTrue(entered.await(3,TimeUnit.SECONDS));
+            onFx(()->{((Button)lookup(chat,"#cancelButton")).fire();assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());return null;});
+            release.countDown();onFx(()->{((Button)lookup(chat,"#retryButton")).fire();return null;});
+            waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled()&&((Label)lookup(chat,"#budgetValue")).getText().equals(com.example.authapp.ui.Ui.money(new BigDecimal("110000"))));
+            onFx(()->{findButton(chat,"Новый диалог").fire();submitChat(chat,"Добавь 10 тысяч");return null;});
+            waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+            onFx(()->{assertEquals("Не указан",((Label)lookup(chat,"#budgetValue")).getText());assertTrue(chat.lookupAll(".chat-build-card").isEmpty());return null;});
+            assertEquals(3,calls.get());
+        } finally {
+            release.countDown();modelApi.stop(0);
+            if(oldEngine==null)System.clearProperty("techstore.chat.engine");else System.setProperty("techstore.chat.engine",oldEngine);
+            if(oldUrl==null)System.clearProperty("techstore.chat.url");else System.setProperty("techstore.chat.url",oldUrl);
+        }
+    }
+    @Test void earmarkedPartMoneyDoesNotChangeTheVisibleWholeBuildBudget() throws Exception {
+        Parent chat=localChat(CATALOG,Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        for(String message:List.of("У меня 20 тысяч на процессор","На SSD могу потратить 15 тысяч")) {
+            onFx(()->{submitChat(chat,message);return null;});waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+            onFx(()->{
+                var last=((javafx.scene.layout.VBox)lookup(chat,"#messages")).getChildren().getLast();
+                assertTrue(text(last).contains("предел цены"));assertTrue(last.lookupAll(".chat-build-card").isEmpty());
+                assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());return null;
+            });
+        }
+        onFx(()->{render(chat,"r32f-part-money-clarification",1440,900);return null;});
+    }
+    @Test void itemPriceFilterShowsOnlyMatchingCardsAndKeepsBuildBudget() throws Exception {
+        var products=new ArrayList<>(CATALOG);products.add(new Product(9,"AMD Ryzen 5 7600X","",22000,2,"","Процессоры","AMD"));
+        Parent chat=localChat(products,Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{submitChat(chat,"Найди Ryzen до 20000 рублей");return null;});waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{
+            var last=((javafx.scene.layout.VBox)lookup(chat,"#messages")).getChildren().getLast();
+            assertTrue(text(last).contains("AMD Ryzen 5 7600"));assertFalse(text(last).contains("7600X"));
+            assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());
+            render(chat,"r32e-price-filter",1440,900);return null;
+        });
+    }
+    @Test void catalogGroupPriceDifferenceIsShownAndDoesNotChangeBuildBudget() throws Exception {
+        var products=new ArrayList<>(CATALOG);products.add(new Product(9,"AMD Ryzen 5 7600X","",22000,2,"","Процессоры","AMD"));
+        Parent chat=localChat(products,Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{submitChat(chat,"Найди Ryzen");return null;});waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{submitChat(chat,"Насколько второй дороже первого?");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{
+            assertTrue(text(lookup(chat,"#messages")).contains("Разница цен:"));
+            assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());
+            render(chat,"r32d-price-difference",1440,900);return null;
+        });
+    }
+    @Test void contextualProductSelectionKeepsBudgetAndResetDropsTheReference() throws Exception {
+        var products=new ArrayList<>(CATALOG);products.add(new Product(9,"AMD Ryzen 5 7600X","",22000,2,"","Процессоры","AMD"));
+        Parent chat=localChat(products,Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        chatReplyAfter(chat,()->submitChat(chat,"Найди Ryzen"));
+        Node chosen=chatReplyAfter(chat,()->submitChat(chat,"2"));
+        onFx(()->{
+            assertTrue(text(chosen).contains("AMD Ryzen 5 7600X"));
+            assertEquals(com.example.authapp.ui.Ui.money(new BigDecimal("100000")),((Label)lookup(chat,"#budgetValue")).getText());
+            render(chat,"r32c-context-product",1440,900);return null;
+        });
+        Node original=chatReplyAfter(chat,()->submitChat(chat,"А первый?"));
+        onFx(()->{assertTrue(text(original).contains("AMD Ryzen 5 7600"));findButton(chat,"Новый диалог").fire();return null;});
+        onFx(()->{submitChat(chat,"Сколько он стоит?");return null;});
+        waitUntil(()->!((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{assertTrue(text(lookup(chat,"#messages")).contains("Нет актуальной карточки"));assertEquals("Не указан",((Label)lookup(chat,"#budgetValue")).getText());return null;});
+    }
     @Test void chatColumnsAndWrappedControlsStayAlignedWhenTheWindowActuallyResizes() throws Exception {
         Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
         onFx(()->{submitChat(chat,"Как сравнить комплектующие по бенчмаркам?");return null;});
@@ -549,6 +743,94 @@ class UiSmokeTest {
             render(chat,"r10-long-choices-720",720,534);return null;
         });
     }
+    @Test void offeredPurposeButtonsCompleteTheBuildWithAnUnavailableModel() throws Exception {
+        var modelApi=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        modelApi.createContext("/",exchange->{
+            calls.incrementAndGet();exchange.getRequestBody().readAllBytes();
+            exchange.sendResponseHeaders(503,-1);exchange.close();
+        });modelApi.start();
+        String oldEngine=System.getProperty("techstore.chat.engine"),oldUrl=System.getProperty("techstore.chat.url");
+        try {
+            System.setProperty("techstore.chat.engine","hybrid");
+            System.setProperty("techstore.chat.url","http://127.0.0.1:"+modelApi.getAddress().getPort());
+            Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+            for(String[] purpose:List.of(new String[]{"Для игр","Игры"},new String[]{"Для учёбы и офиса","Учёба и офис"},
+                    new String[]{"Для монтажа и рабочих задач","Монтаж и рабочие задачи"})) {
+                onFx(()->{findButton(chat,"Новый диалог").fire();findButton(chat,"Подобрать сборку").fire();return null;});
+                waitUntil(()->findButton(chat,"До 150 000 рублей")!=null && !((Button)lookup(chat,"#sendButton")).isDisabled());
+                onFx(()->{findButton(chat,"До 150 000 рублей").fire();return null;});
+                waitUntil(()->findButton(chat,purpose[0])!=null && !((Button)lookup(chat,"#sendButton")).isDisabled());
+                onFx(()->{findButton(chat,purpose[0]).fire();return null;});
+                waitUntil(()->((VBox)lookup(chat,"#messages")).getChildren().getLast().lookup(".chat-build-row")!=null
+                        && !((Button)lookup(chat,"#sendButton")).isDisabled());
+                onFx(()->{
+                    var last=((VBox)lookup(chat,"#messages")).getChildren().getLast();
+                    assertEquals(8,last.lookupAll(".chat-build-row").size());
+                    assertEquals(purpose[1],((Label)lookup(chat,"#taskValue")).getText());
+                    assertEquals("150000",((Label)lookup(chat,"#budgetValue")).getText().replaceAll("[^0-9]",""));
+                    assertFalse(text(last).contains("Уточните запрос"));return null;
+                });
+            }
+            assertEquals(0,calls.get(),"The app's own choices must not depend on model availability");
+            onFx(()->{render(chat,"r43-workstation-purpose-button",900,600);return null;});
+        } finally {
+            if(oldEngine==null)System.clearProperty("techstore.chat.engine");else System.setProperty("techstore.chat.engine",oldEngine);
+            if(oldUrl==null)System.clearProperty("techstore.chat.url");else System.setProperty("techstore.chat.url",oldUrl);
+            modelApi.stop(0);
+        }
+    }
+    @Test void reportedShortCpuRequestsOfferConfirmationAndReplaceOnlyTheCpu() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 150000 рублей для монтажа");return null;});
+        waitUntil(()->chat.lookup(".chat-build-row")!=null && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        var originalNames=onFx(()->nodes(((VBox)lookup(chat,"#messages")).getChildren().getLast(),Label.class).stream()
+                .filter(l->l.getStyleClass().contains("chat-product-name")).map(Label::getText).toList());
+        assertEquals(8,originalNames.size());
+        onFx(()->{submitChat(chat,"поменяй проц на амд");return null;});
+        waitUntil(()->text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("Выберите конкретную модель AMD")
+                && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{assertEquals(1,chat.lookupAll(".chat-build-card").size());submitChat(chat,"поменяй проц на амд 7800");return null;});
+        waitUntil(()->text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("Уточните точную модель для замены")
+                && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{
+            var last=((VBox)lookup(chat,"#messages")).getChildren().getLast();
+            assertEquals(List.of("AMD Ryzen 7 7800X3D"),nodes(last,Button.class).stream().filter(b->b.getStyleClass().contains("chat-chip")).map(Button::getText).toList());
+            assertEquals(1,chat.lookupAll(".chat-build-card").size());findButton(last,"AMD Ryzen 7 7800X3D").fire();return null;
+        });
+        waitUntil(()->text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("Заменил")
+                && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{
+            var last=((VBox)lookup(chat,"#messages")).getChildren().getLast();
+            var names=nodes(last,Label.class).stream().filter(l->l.getStyleClass().contains("chat-product-name")).map(Label::getText).toList();
+            assertEquals(8,names.size());assertEquals("AMD Ryzen 7 7800X3D",names.getFirst());
+            assertEquals(originalNames.subList(1,8),names.subList(1,8));
+            assertEquals("150000",((Label)lookup(chat,"#budgetValue")).getText().replaceAll("[^0-9]",""));
+            assertEquals("Монтаж и рабочие задачи",((Label)lookup(chat,"#taskValue")).getText());
+            assertTrue(text(last).contains("конфликты"));return null;
+        });
+    }
+    @Test void chatOffersAmdCpusForTheRussianBrandAndAcceptsARussianModelChoice() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 200000 рублей для игр");return null;});
+        waitUntil(()->chat.lookup(".chat-build-row")!=null && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{submitChat(chat,"поменяй процессор на амд");return null;});
+        waitUntil(()->text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("Выберите конкретную модель AMD"));
+        onFx(()->{var last=((VBox)lookup(chat,"#messages")).getChildren().getLast();var choices=nodes(last,Button.class).stream().filter(b->b.getStyleClass().contains("chat-chip")).toList();assertEquals(5,choices.size());assertTrue(choices.stream().allMatch(b->b.getText().startsWith("AMD Ryzen")));submitChat(chat,"АМД Райзен 9 7950Икс");return null;});
+        waitUntil(()->text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("Заменил"));
+        onFx(()->{assertTrue(text(((VBox)lookup(chat,"#messages")).getChildren().getLast()).contains("AMD Ryzen 9 7950X"));render(chat,"r42-russian-brand-and-model",1200,800);return null;});
+    }
+    @Test void chatActuallyReplacesTheProposedGpuAfterThe4080SuperConfirmation() throws Exception {
+        Parent chat=localChat(localCatalogSnapshot(),Path.of("src/main/resources/knowledge").toAbsolutePath());
+        onFx(()->{submitChat(chat,"Собери ПК до 100000 рублей для игр");return null;});
+        waitUntil(()->chat.lookup(".chat-build-row")!=null && !((Button)lookup(chat,"#sendButton")).isDisabled());
+        onFx(()->{submitChat(chat,"замени видеокарту на 4080");return null;});
+        waitUntil(()->text(lookup(chat,"#messages")).contains("Уточните точную модель для замены"));
+        onFx(()->{Button choice=findButton(chat,"NVIDIA GeForce RTX 4080 SUPER 16GB");assertNotNull(choice);choice.fire();return null;});
+        waitUntil(()->{var rows=((VBox)lookup(chat,"#messages")).getChildren();return text(rows.getLast()).contains("Заменил") && !((Button)lookup(chat,"#sendButton")).isDisabled();});
+        onFx(()->{var rows=((VBox)lookup(chat,"#messages")).getChildren();String answer=text(rows.getLast());assertTrue(answer.contains("NVIDIA GeForce RTX 4080 SUPER 16GB"));assertTrue(answer.contains("Бюджет превышен"));assertTrue(text(lookup(chat,"#budgetValue")).contains("100"));assertEquals(8,nodes(rows.getLast(),HBox.class).stream().filter(n->n.getStyleClass().contains("chat-build-row")).count());render(chat,"r41-build-replacement",1200,800);return null;});
+    }
+
     @Test void chatReadingAnchorSurvivesAppendingMessagesAndReflowAboveIt() throws Exception {
         javafx.scene.layout.VBox[] messages={null};ScrollPane[] scroll={null};com.example.authapp.ui.ChatViewport[] viewport={null};
         AtomicBoolean unread=new AtomicBoolean();
@@ -560,15 +842,18 @@ class UiSmokeTest {
             Stage stage=new Stage();stage.setScene(new Scene(pane,700,500));stage.show();return pane;
         });
         try {
+            awaitLayoutPulse(root);
             onFx(()->{root.applyCss();root.layout();scroll[0].setVvalue(0.4);return null;});
-            onFx(()->null);
+            awaitLayoutPulse(root);
             Node anchor=onFx(()->messages[0].getChildren().stream().filter(n->n.localToScene(n.getLayoutBounds()).getMinY()>2).findFirst().orElseThrow());
             double y=onFx(()->anchor.localToScene(anchor.getLayoutBounds()).getMinY());
             onFx(()->{Label extra=new Label("Новое длинное сообщение. ".repeat(100));extra.setWrapText(true);extra.setMaxWidth(Double.MAX_VALUE);viewport[0].addMessage(extra);return null;});
-            onFx(()->null);
+            awaitLayoutPulse(root);
+            waitUntil(()->Math.abs(y-anchor.localToScene(anchor.getLayoutBounds()).getMinY())<=2 && unread.get());
             onFx(()->{assertEquals(y,anchor.localToScene(anchor.getLayoutBounds()).getMinY(),2,"A new reply must not move the text currently being read");assertTrue(unread.get());return null;});
             onFx(()->{((Label)messages[0].getChildren().getFirst()).setText("Изменившаяся строка выше позиции чтения. ".repeat(100));root.applyCss();root.layout();return null;});
-            onFx(()->null);onFx(()->null);
+            awaitLayoutPulse(root);
+            waitUntil(()->Math.abs(y-anchor.localToScene(anchor.getLayoutBounds()).getMinY())<=2);
             onFx(()->{assertEquals(y,anchor.localToScene(anchor.getLayoutBounds()).getMinY(),2,"Reflow above the reading position must keep its anchor");viewport[0].scrollToBottom();return null;});
             waitUntil(()->scroll[0].getVvalue()>=0.99);
             assertFalse(unread.get());
@@ -979,6 +1264,10 @@ class UiSmokeTest {
         root.resize(width,height);root.applyCss();root.layout();
         try{WritableImage image=root.snapshot(null,null);BufferedImage png=new BufferedImage((int)image.getWidth(),(int)image.getHeight(),BufferedImage.TYPE_INT_ARGB);for(int y=0;y<png.getHeight();y++)for(int x=0;x<png.getWidth();x++)png.setRGB(x,y,image.getPixelReader().getArgb(x,y));Path output=Path.of("build/reports/ui",name+".png");Files.createDirectories(output.getParent());ImageIO.write(png,"png",output.toFile());}
         finally{if(oldWidth>0&&oldHeight>0){root.resize(oldWidth,oldHeight);root.layout();}}
+    }
+    private static void awaitLayoutPulse(Parent root)throws Exception {
+        var ready=new CountDownLatch(1);onFx(()->{Runnable[] listener={null};listener[0]=()->{root.getScene().removePostLayoutPulseListener(listener[0]);ready.countDown();};root.getScene().addPostLayoutPulseListener(listener[0]);Platform.requestNextPulse();return null;});
+        assertTrue(ready.await(8,TimeUnit.SECONDS),"Layout pulse did not arrive");
     }
     private static void waitUntil(Callable<Boolean> condition)throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);while(System.nanoTime()<end){if(onFx(condition))return;Thread.sleep(25);}fail("Condition did not become true");}
     private static <T>T onFx(Callable<T> action)throws Exception{FutureTask<T> task=new FutureTask<>(action);Platform.runLater(task);return task.get(40,TimeUnit.SECONDS);}

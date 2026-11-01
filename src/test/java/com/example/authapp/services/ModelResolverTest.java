@@ -34,6 +34,15 @@ class ModelResolverTest {
         exact("Ryzen7600",3);exact("Ryzen 7600X",4);
         assertEquals(ModelResolver.Status.NOT_FOUND,resolver.resolve("Ryzen 7800X").status());
     }
+    @Test void makerAndExactModelWorkInBothLanguagesWithoutDroppingVariantOrCapacity() {
+        for(String name:List.of("AMD7800X3D","амд 7800х3д"))exact(name,2);
+        for(String name:List.of("Intel14900K","интел14900К"))exact(name,1);
+        exact("АМД7600Икс",4);exact("NVIDIA4070SUPER12GB",11);exact("Нвидиа4060ти16ГБ",13);
+        var ambiguous=resolver.resolve("AMD7600");
+        assertEquals(ModelResolver.Status.AMBIGUOUS,ambiguous.status());assertEquals(List.of(3,14),ids(ambiguous.candidates()));
+        for(String name:List.of("AMD7800","AMD7800X","Intel7800X3D","AMD14900K","NVIDIA4060Ti24GB","NVIDIA4070Ti"))
+            assertEquals(ModelResolver.Status.NOT_FOUND,resolver.resolve(name).status(),name);
+    }
     @Test void plainGpuAliasDoesNotSelectTheSuperAndCapacityDisambiguatesTi() {
         for(String name:List.of("4070","RTX4070","rtx 4070 12 гб")) exact(name,10);
         for(String name:List.of("4070 super","RTX4070Super","RTX 4070 SUPER 12 GB")) exact(name,11);

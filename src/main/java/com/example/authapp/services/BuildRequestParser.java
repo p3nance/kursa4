@@ -12,6 +12,17 @@ import java.util.regex.Pattern;
 
 /** Explicit build constraints only; no hardware fact is inferred from a user request. */
 public final class BuildRequestParser {
+    private static final List<String> USAGE_CHOICES=List.of("Для игр","Для учёбы и офиса","Для монтажа и рабочих задач");
+    static List<String> usageChoices(){return USAGE_CHOICES;}
+    /** Application-generated task choices are commands, including their complete visible labels. */
+    static java.util.Optional<BuildRecommendationService.Usage> explicitUsageChoice(String raw) {
+        return java.util.Optional.ofNullable(switch(ModelResolver.normalize(raw)) {
+            case "для игр"->BuildRecommendationService.Usage.GAMING;
+            case "для учебы и офиса","для офиса"->BuildRecommendationService.Usage.OFFICE;
+            case "для монтажа и рабочих задач","для монтажа","для работы"->BuildRecommendationService.Usage.WORKSTATION;
+            default->null;
+        });
+    }
     public record Preferences(Integer minRamGb, Integer minStorageGb, boolean requireVerified) {
         /** An explicit capacity is satisfied only by a manufacturer-verified value. */
         public boolean accepts(CatalogComponent component) {
@@ -39,10 +50,10 @@ public final class BuildRequestParser {
         }
     }
     private static final int FLAGS=Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE|Pattern.UNICODE_CHARACTER_CLASS;
-    private static final String RAM="(?:озу|ram|оперативн(?:ая|ой|ую)\\s+памят(?:ь|и))";
+    private static final String RAM="(?:озу|ram|оперативк[ауие]|оперативн(?:ая|ой|ую)\\s+памят(?:ь|и))";
     private static final String STORAGE="(?:ssd|ссд|накопител[ьяею]|диск(?:а)?)";
     private static final String LIMIT="(?:(не\\s+(?:меньше|менее|больше|более)|минимум|максимум|от|до|ровно|точно)\\s+)?";
-    private static final String SIZE="((?:[0-9]{1,3}(?: [0-9]{3})+|[0-9]+)(?:[.,][0-9]+)?)\\s*(гб|gb|тб|tb)";
+    private static final String SIZE="((?:[0-9]{1,3}(?: [0-9]{3})+|[0-9]+)(?:[.,][0-9]+)?)\\s*(гб|gb|тб|tb|гигабайт(?:а|ов)?|гига|гигов|терабайт(?:а|ов)?)";
     private static List<Pattern> patterns(String label) {
         return List.of(Pattern.compile("(?<![-\\p{L}\\p{N}.,])"+LIMIT+SIZE+"\\s+"+label+"\\b",FLAGS),
                 Pattern.compile("\\b"+label+"\\s*[:=]?\\s*"+LIMIT+SIZE+"(?![\\p{L}\\p{N}])",FLAGS));
@@ -54,6 +65,8 @@ public final class BuildRequestParser {
                 .toLowerCase(Locale.ROOT).replace('ё','е').replaceAll("(?U)\\s+"," ").trim();
         var problems=new ArrayList<String>();
         Integer ram=capacity(text,RAM_PATTERNS,"ОЗУ",problems),storage=capacity(text,STORAGE_PATTERNS,"SSD",problems);
+        if(Pattern.compile("(?:добав\\p{L}*|прибав\\p{L}*|увелич\\p{L}*|уменьш\\p{L}*|сниз\\p{L}*|убав\\p{L}*)\\s+(?:(?:"+RAM+"|"+STORAGE+")\\s+)?(?:на\\s+)?"+SIZE,FLAGS).matcher(text).find())
+            problems.add("Укажите итоговый минимум объёма, например «ОЗУ не меньше 32 ГБ». Прибавление и вычитание объёма пока не поддерживаются.");
         if(ram==null && Pattern.compile("\\b"+RAM+"\\b",FLAGS).matcher(text).find() && text.matches(".*[0-9].*"))
             problems.add("Укажите минимум ОЗУ с единицей, например «ОЗУ 32 ГБ».");
         if(storage==null && Pattern.compile("\\b"+STORAGE+"\\b",FLAGS).matcher(text).find() && text.matches(".*[0-9].*"))
@@ -83,7 +96,7 @@ public final class BuildRequestParser {
                 try {
                     BigDecimal amount=new BigDecimal(match.group(2).replace(" ","").replace(',','.'));
                     String unit=match.group(3);
-                    if(unit.equals("тб")||unit.equals("tb")) amount=amount.multiply(BigDecimal.valueOf(1000));
+                    if(unit.equals("тб")||unit.equals("tb")||unit.startsWith("терабайт")) amount=amount.multiply(BigDecimal.valueOf(1000));
                     int next=amount.intValueExact();
                     if(next<1 || next>1_000_000) throw new ArithmeticException();
                     if(value!=null && value!=next) problems.add("Указано несколько разных минимумов "+name+". Оставьте одно значение.");

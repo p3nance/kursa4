@@ -7,6 +7,18 @@ import static com.example.authapp.services.ChatIntentParser.Intent.*;
 
 class ChatIntentParserTest {
     private final ChatIntentParser parser=new ChatIntentParser();
+    @Test void explicitPairActionsAndExistingViewButtonsDoNotBecomeModelQueries() {
+        for(String raw:List.of("Поменяй местами","Сравни наоборот","Наоборот, пожалуйста","Не меняй местами","Порядок не меняй")) {
+            var intent=parser.parse(raw);assertEquals(COMPARE_ORDER,intent.intent(),raw);assertTrue(intent.pair().isEmpty());
+        }
+        for(String raw:List.of("Сравнить по бенчмаркам","Сравнить характеристики","Показать модели с общим тестом"))
+            assertEquals(COMPARE_VIEW,parser.parse(raw).intent(),raw);
+    }
+    @Test void pairOrderGrammarDoesNotSwallowExtraActionsOrNamedHardwareRequests() {
+        for(String raw:List.of("Поменяй местами и увеличь бюджет на1000рублей","Поменяй процессор на Ryzen7600",
+                "Сравни наоборот RTX4060 и RX7600","Не меняй цену товара"))
+            assertNotEquals(COMPARE_ORDER,parser.parse(raw).intent(),raw);
+    }
     @Test void naturalComparisonPhrasesExtractTheSameTwoModelQueries() {
         for(String phrase:List.of("сравни 14900K и 7800X3D", "сравнить 14900K с 7800X3D",
                 "сравнение 14900K и 7800X3D", "чем отличается 14900K от 7800X3D",

@@ -144,6 +144,40 @@
       ],
       "source": "https://www.intel.com/content/www/us/en/gaming/resources/how-to-build-a-gaming-pc.html",
       "reviewedAt": "2026-10-25"
+    },
+    {
+      "term": "DDR5",
+      "aliases": [
+        "ддр5",
+        "DDR 5",
+        "память DDR5"
+      ],
+      "definition": "DDR5 — поколение оперативной памяти. Модули DDR4 и DDR5 не взаимозаменяемы: нужны подходящие процессор и материнская плата.",
+      "simpleExplanation": "Это тип оперативной памяти. При выборе проверьте поддержку DDR5 процессором и платой; в слот DDR4 такой модуль не подходит.",
+      "category": "Память",
+      "relatedTerms": [
+        "RAM",
+        "CPU"
+      ],
+      "source": "https://www.kingston.com/en/blog/pc-performance/ddr-memory-generation-differences",
+      "reviewedAt": "2026-11-01"
+    },
+    {
+      "term": "VRAM",
+      "aliases": [
+        "видеопамять",
+        "видео память",
+        "память видеокарты"
+      ],
+      "definition": "VRAM — видеопамять, которую графический процессор использует для данных графической обработки, в том числе текстур. Её объём сам по себе не определяет общую скорость видеокарты.",
+      "simpleExplanation": "Это рабочая память графического процессора. Подходящий объём зависит от задач, настроек и разрешения, а скорость нужно оценивать по сопоставимым тестам.",
+      "category": "Графика",
+      "relatedTerms": [
+        "GPU",
+        "RAM"
+      ],
+      "source": "https://www.nvidia.com/en-us/geforce/news/rtx-40-series-vram-video-memory-explained/",
+      "reviewedAt": "2026-11-01"
     }
   ]
 }

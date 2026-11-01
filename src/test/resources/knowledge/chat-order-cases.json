@@ -1,0 +1,283 @@
+{
+  "description": "16 authored R38 scenarios before implementation; not held-out or production data",
+  "cases": [
+    {
+      "id": "01",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "31.6",
+          "right": "36.9",
+          "difference": "-14.36"
+        }
+      }
+    },
+    {
+      "id": "02",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p",
+        "Поменяй местами"
+      ],
+      "message": "Сравни наоборот",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "03",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p"
+      ],
+      "message": "Наоборот",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "F1",
+          "left": "302.3",
+          "right": "217.0",
+          "difference": "39.31",
+          "version": "25"
+        }
+      }
+    },
+    {
+      "id": "04",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни i9-14900K и Ryzen7 7800X3D для игр в F1 24 1080p"
+      ],
+      "message": "Поменяй порядок моделей",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "F1",
+          "left": "438.3",
+          "right": "384.5",
+          "difference": "13.99",
+          "version": "24"
+        }
+      }
+    },
+    {
+      "id": "05",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 Ti 16GB и RTX4070"
+      ],
+      "message": "Переставь их местами",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "V-Ray Benchmark",
+          "version": "Not reported",
+          "left": "2481",
+          "right": "1831",
+          "difference": "35.50"
+        }
+      }
+    },
+    {
+      "id": "06",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни характеристики RTX4060 и RX7600"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "SpecificationsContent",
+        "specificationIds": [
+          17,
+          12
+        ],
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "07",
+      "group": "comparison-order",
+      "setup": [],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "две"
+      }
+    },
+    {
+      "id": "08",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "две"
+      }
+    },
+    {
+      "id": "09",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p",
+        "Новый диалог"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "две"
+      }
+    },
+    {
+      "id": "10",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p",
+        "Найди Ryzen"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "две"
+      }
+    },
+    {
+      "id": "11",
+      "group": "comparison-order",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "budget": 100000,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "F1",
+          "left": "302.3",
+          "right": "217.0",
+          "difference": "39.31",
+          "version": "25"
+        }
+      }
+    },
+    {
+      "id": "12",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p",
+        "Для игр в F1 25 1440p"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "13",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p",
+        "Не меняй местами"
+      ],
+      "message": "Сравнить по бенчмаркам",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "14",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p"
+      ],
+      "message": "Порядок не меняй",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "F1",
+          "left": "217.0",
+          "right": "302.3",
+          "difference": "-28.22",
+          "version": "25"
+        }
+      }
+    },
+    {
+      "id": "15",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p"
+      ],
+      "message": "Поменяй первую и вторую местами",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "31.6",
+          "right": "36.9",
+          "difference": "-14.36"
+        }
+      }
+    },
+    {
+      "id": "16",
+      "group": "comparison-order",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p"
+      ],
+      "message": "Наоборот, пожалуйста",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "F1",
+          "left": "302.3",
+          "right": "217.0",
+          "difference": "39.31",
+          "version": "25"
+        }
+      }
+    }
+  ]
+}

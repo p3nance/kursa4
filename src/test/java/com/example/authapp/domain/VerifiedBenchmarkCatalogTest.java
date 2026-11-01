@@ -55,14 +55,14 @@ class VerifiedBenchmarkCatalogTest {
 
     @Test void publishedMeasurementsHaveVerifiedCatalogIdentitiesSourcesAndHonestDates() {
         assertTrue(knowledge.warnings().isEmpty(),()->String.join("\n",knowledge.warnings()));
-        assertEquals(38,results.size());
-        assertEquals(10,results.stream().map(BenchmarkService.Result::context).distinct().count());
-        assertEquals(16,results.stream().map(BenchmarkService.Result::modelId).distinct().count());
+        assertEquals(51,results.size());
+        assertEquals(14,results.stream().map(BenchmarkService.Result::context).distinct().count());
+        assertEquals(19,results.stream().map(BenchmarkService.Result::modelId).distinct().count());
         Set<String> verifiedModels=Set.copyOf(modelByProduct.values());
         for(var result:results) {
             assertTrue(verifiedModels.contains(result.modelId()),result.modelId());
             assertEquals("https",result.source().getScheme());
-            assertTrue(Set.of("www.pugetsystems.com","pugetsystems.com","gamersnexus.net")
+            assertTrue(Set.of("www.pugetsystems.com","pugetsystems.com","gamersnexus.net","www.tomshardware.com")
                     .contains(result.source().getHost()));
             assertNull(result.measuredAt(),"Publication date must not become an invented measurement date");
             assertNotNull(result.publishedAt());
@@ -110,20 +110,20 @@ class VerifiedBenchmarkCatalogTest {
     @Test void conflictingBlenderVersionsAreExcludedFromTheImportedMeasurements() {
         assertTrue(results.stream().noneMatch(r->r.context().suite().toLowerCase(java.util.Locale.ROOT).contains("blender")),
                 "Blender scores are excluded because the article and chart disagree on versions 4.0 and 3.6.0");
-        var vray=results.stream().filter(r->r.context().suite().equals("V-Ray Benchmark")).toList();
+        var vray=results.stream().filter(r->r.context().suite().equals("V-Ray Benchmark") && r.source().getHost().contains("pugetsystems.com")).toList();
         assertEquals(4,vray.size());
         assertTrue(vray.stream().allMatch(r->r.context().version().equals("5.02") &&
                 r.context().workload().equals("GPU rendering (RTX Mode)")));
     }
 
-    @Test void missingModelsAndUncoveredRtx4060Ti16GbDoNotReceiveManufacturedMeasurements() {
-        assertTrue(knowledge.benchmarks().resultsFor(model(20)).isEmpty());
-        assertTrue(knowledge.benchmarks().compareModels(model(20),model(13)).isEmpty());
+    @Test void missingModelsAndUncovered12400fDoNotReceiveManufacturedMeasurements() {
+        assertTrue(knowledge.benchmarks().resultsFor(model(5)).isEmpty());
+        assertTrue(knowledge.benchmarks().compareModels(model(5),model(11)).isEmpty());
         assertTrue(knowledge.benchmarks().compareModels("UNKNOWN_MODEL_999",model(13)).isEmpty());
         var answer=withLocalKnowledge(()->new ChatBotService(products)).reply(
-                "Сравни "+productsById.get(20).getName()+" и "+productsById.get(13).getName());
+                "Сравни "+productsById.get(5).getName()+" и "+productsById.get(11).getName());
         assertInstanceOf(ChatBotService.SpecificationsContent.class,answer.content().getFirst());
-        assertTrue(answer.text().contains("нет проверенных измерений для NVIDIA GeForce RTX 4060 Ti 16GB"));
+        assertTrue(answer.text().contains("нет проверенных измерений для Intel Core i5-12400F"));
         assertFalse(answer.text().contains("%"));
     }
 
@@ -331,7 +331,7 @@ class VerifiedBenchmarkCatalogTest {
                     "AMD RX 7800 XT 16GB (AIB not specified)","not the identified store AIB/SKU"))assertTrue(samples.contains(sample),sample);
             assertTrue(conditions.get("power_policy").contains("does not establish reference clocks"));
         }
-        assertTrue(knowledge.benchmarks().resultsFor(model(20)).isEmpty(),"The chart4060Ti8GB is not the store4060Ti16GB");
+        assertTrue(knowledge.benchmarks().resultsFor(model(20)).stream().noneMatch(r->r.source().getHost().equals("gamersnexus.net")),"The GN chart4060Ti8GB is not the store4060Ti16GB");
     }
 
     @Test void starfieldResolutionsRemainSeparateAndNewCoverageDoesNotInventOtherScenarios() {
@@ -352,6 +352,112 @@ class VerifiedBenchmarkCatalogTest {
             assertTrue(unavailable.content().isEmpty());assertFalse(unavailable.text().contains("%"));
             assertTrue(unavailable.suggestions().contains("Для игр в Starfield 1440p"));
         }
+    }
+
+    @Test void blackMythRetainsOneChartAndExplicitPlatformConflictWithoutAssigningThe4060TiCapacity() {
+        var samples=starfieldCohort("gn-5060-2025-07-21-black-myth-1440p-high-12-24");
+        assertEquals(5,samples.size());
+        assertEquals(Set.of(model(12),model(13),model(17),model(18),model(19)),samples.stream()
+                .map(BenchmarkService.Result::modelId).collect(Collectors.toSet()));
+        var comparison=knowledge.benchmarks().compareModels(model(12),model(17)).stream()
+                .filter(c->c.left().context().suite().equals("Black Myth: Wukong")).findFirst().orElseThrow();
+        assertScores(comparison,"36.9","31.6","16.77");
+        assertScores(knowledge.benchmarks().compare(comparison.right(),comparison.left()).orElseThrow(),"31.6","36.9","-14.36");
+        for(var result:samples) {
+            assertEquals(samples.getFirst().context(),result.context());
+            assertEquals(java.time.LocalDate.of(2025,7,21),result.publishedAt());assertNull(result.measuredAt());
+            var conditions=result.context().conditions();
+            assertEquals("SOURCE_PLATFORM_CONFLICT",conditions.get("comparison_kind"));
+            assertTrue(conditions.get("test_system").contains("9800X3D"));assertTrue(conditions.get("test_system").contains("12700KF"));
+            assertTrue(conditions.get("upscaling").contains("Не опубликовано"));
+            assertTrue(conditions.get("chart_row_tag").contains("(12/24)"));
+            assertTrue(BenchmarkPresentation.scopeNote(result.context()).contains("не совпадает"));
+        }
+        assertTrue(knowledge.benchmarks().resultsFor(model(20)).stream().noneMatch(r->r.source().getHost().equals("gamersnexus.net")),"A prose mention16GB must not assign an unspecified-capacity GN FE chart row");
+        var starfield=starfieldCohort("gn-7600xt-2024-03-07-starfield-1440p-high-gpu").getFirst();
+        assertTrue(knowledge.benchmarks().compare(comparison.left(),starfield).isEmpty());
+    }
+
+    @Test void blackMythFreeDialogueKeepsGameResolutionAndUnknownSettingsSeparate() {
+        var bot=withLocalKnowledge(()->new ChatBotService(products));
+        bot.reply("Сравни RTX4060 и RX7600");
+        var result=bot.reply("Для игр в Блэк Миф: Вуконг1440p");
+        var card=assertInstanceOf(ChatBotService.BenchmarksContent.class,result.content().getFirst());
+        assertEquals(1,card.comparisons().size());assertScores(card.comparisons().getFirst(),"36.9","31.6","16.77");
+        assertTrue(result.lead().contains("не совпадает"));
+        assertFalse(result.lead().contains("двух тестовых платформ"),"A documentation conflict is not an intentional CPU platform comparison");
+        for(String unknown:List.of("А в Black Myth1440p DLSS?","Для игр в Black Myth1080p","Для игр в Starfield и Black Myth1440p")) {
+            var answer=bot.reply(unknown);assertTrue(answer.content().isEmpty(),unknown);assertFalse(answer.text().contains("%"),unknown);
+            assertTrue(answer.suggestions().contains("Для игр в Black Myth: Wukong 1440p"));
+        }
+        var resumed=bot.reply("Для игр в Black Myth1440p");
+        assertInstanceOf(ChatBotService.BenchmarksContent.class,resumed.content().getFirst());
+    }
+
+    @Test void f1TwentyFiveAddsTheExact7600WithoutBorrowingTheXVariantOrARecommendedBuild() {
+        var samples=starfieldCohort("gn-guide-2026-02-02-f1-25-1080p-high-amd");
+        assertEquals(3,samples.size());
+        var expected=Map.of(model(6),new BigDecimal("217.0"),model(8),new BigDecimal("302.3"),model(10),new BigDecimal("253.8"));
+        assertEquals(expected.keySet(),samples.stream().map(BenchmarkService.Result::modelId).collect(Collectors.toSet()));
+        for(var sample:samples) {
+            assertEquals(0,expected.get(sample.modelId()).compareTo(sample.value()));
+            assertEquals("25",sample.context().version());assertNull(sample.measuredAt());
+            assertEquals(java.time.LocalDate.of(2026,2,2),sample.publishedAt());
+            assertEquals(samples.getFirst().context(),sample.context());
+            assertTrue(sample.context().conditions().get("motherboard").contains("не является тестовым стендом"));
+            assertTrue(sample.context().conditions().get("chart_row_tag").contains("[1/26]"));
+        }
+        assertEquals(1,knowledge.benchmarks().resultsFor(model(6)).size());
+        assertTrue(knowledge.benchmarks().resultsFor(model(7)).stream().noneMatch(r->r.context().version().equals("25")));
+        for(int id:List.of(5,11,20))assertTrue(knowledge.benchmarks().resultsFor(model(id)).stream().noneMatch(r->r.context().suite().equals("F1") && r.context().version().equals("25")));
+        var compared=knowledge.benchmarks().compareModels(model(6),model(8));assertEquals(1,compared.size());
+        assertScores(compared.getFirst(),"217.0","302.3","-28.22");
+        assertScores(knowledge.benchmarks().compareModels(model(8),model(6)).getFirst(),"302.3","217.0","39.31");
+    }
+
+    @Test void f1VersionSwitchNeverCombinesVersionsOrSilentlyChoosesOneOfSeveralGames() {
+        var bot=withLocalKnowledge(()->new ChatBotService(products));
+        var newer=bot.reply("Сравни Ryzen9 7950X и Ryzen7 7800X3D для игр в F1 25 1080p");
+        var card=assertInstanceOf(ChatBotService.BenchmarksContent.class,newer.content().getFirst());
+        assertEquals(1,card.comparisons().size());assertScores(card.comparisons().getFirst(),"253.8","302.3","-16.04");
+        assertEquals("25",card.comparisons().getFirst().left().context().version());
+        var older=bot.reply("Для игр в F1 24 1080p");
+        var previous=assertInstanceOf(ChatBotService.BenchmarksContent.class,older.content().getFirst());
+        assertEquals(1,previous.comparisons().size());assertScores(previous.comparisons().getFirst(),"363.4","438.3","-17.09");
+        assertTrue(knowledge.benchmarks().compare(card.comparisons().getFirst().left(),previous.comparisons().getFirst().right()).isEmpty());
+        for(String scenario:List.of("F1 1080p","F1 24 F1 25 1080p","F1 25 1440p","Starfield F1 25 1080p","F1 25 1080p с RTX4070")) {
+            var answer=bot.reply("Для игр в "+scenario);assertTrue(answer.content().isEmpty(),scenario);assertFalse(answer.text().contains("%"),scenario);
+        }
+    }
+
+    @Test void exact14100fDdr4HasItsOwnPublishedPlatformComparisonAndDoesNotMergePuget() {
+        var compared=knowledge.benchmarks().compareModels(model(11),model(7));
+        assertEquals(1,compared.size());var c=compared.getFirst();
+        assertScores(c,"486","781","-37.77");
+        assertScores(knowledge.benchmarks().compareModels(model(7),model(11)).getFirst(),"781","486","60.70");
+        assertEquals("PUBLISHED_PLATFORM_COMPARISON",c.left().context().conditions().get("comparison_kind"));
+        assertTrue(c.left().context().conditions().get("ram").contains("не опубликована"));
+        assertTrue(BenchmarkPresentation.scopeNote(c.left().context()).contains("различия платформ"));
+        var puget=results.stream().filter(r->r.modelId().equals(model(7)) && r.source().getHost().contains("pugetsystems.com")).findFirst().orElseThrow();
+        assertTrue(knowledge.benchmarks().compare(c.left(),puget).isEmpty());
+    }
+
+    @Test void exact16GbVrayRtxSamplesRetainUnknownVersionDriverAndAibLimits() {
+        var compared=knowledge.benchmarks().compareModels(model(20),model(13));assertEquals(1,compared.size());var c=compared.getFirst();
+        assertScores(c,"1831","2481","-26.20");
+        assertScores(knowledge.benchmarks().compareModels(model(13),model(20)).getFirst(),"2481","1831","35.50");
+        assertScores(knowledge.benchmarks().compareModels(model(20),model(12)).getFirst(),"1831","1682","8.86");
+        assertEquals("Not reported",c.left().context().version());
+        assertEquals("GPU rendering (RTX Mode)",c.left().context().workload());
+        assertEquals("vrays",c.left().context().unit());
+        assertTrue(c.left().context().conditions().get("platform").contains("12900K"));
+        assertTrue(BenchmarkPresentation.scopeNote(c.left().context()).contains("одинаковые драйверы не подтверждены"));
+        var puget=results.stream().filter(r->r.modelId().equals(model(13)) && r.context().suite().equals("V-Ray Benchmark") && r.source().getHost().contains("pugetsystems.com")).findFirst().orElseThrow();
+        assertTrue(knowledge.benchmarks().compare(c.left(),puget).isEmpty());
+        var bot=withLocalKnowledge(()->new ChatBotService(products));
+        bot.reply("Сравни RTX4060 Ti16GB и RTX4070");
+        var gaming=bot.reply("Для игр в Starfield1440p");
+        assertTrue(gaming.content().isEmpty());assertFalse(gaming.text().contains("%"));
     }
 
     private static List<BenchmarkService.Result> starfieldCohort(String cohort) {

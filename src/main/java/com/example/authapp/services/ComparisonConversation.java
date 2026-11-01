@@ -47,9 +47,27 @@ final class ComparisonConversation {
                 && ModelResolver.normalize(c.name()).equals(ModelResolver.normalize(previous.name()))).findFirst().orElse(null);
     }
     void clear() {left=null;right=null;leftQuery="";rightQuery="";purpose="";replacement="";taskDetails="";awaiting=-1;options=List.of();invalidated=false;specsMode=false;awaitingTaskDetails=false;}
+    boolean awaitingChoice() {return awaiting>=0;}
+    List<String> selectedModels() {return complete()?List.of(left.name(),right.name()):List.of();}
+    String purpose() {return purpose;}
+    String details() {return taskDetails;}
+    ChatBotService.Reply applyLanguagePurpose(String usage,String raw) {
+        if(!complete())throw new IllegalArgumentException("No current comparison pair");
+        String next=switch(usage) {
+            case "GAMING" -> "Для игр"; case "OFFICE" -> "Для офиса и учёбы";
+            case "WORKSTATION" -> "Для работы"; default -> purpose;
+        };
+        setPurpose(next);
+        if(purpose.equals("Для игр") && startsGamingGoal(raw)) {
+            setPurposeFrom(raw);
+            return taskDetails.isBlank()?finish(false):acceptTaskDetails(taskDetails);
+        }
+        return acceptTaskDetails(purpose.equals("Для игр")?continuedGamingDetails(raw):raw);
+    }
 
     Optional<ChatBotService.Reply> respond(String raw,ChatIntentParser.Parsed parsed) {
         String text=ModelResolver.normalize(raw);
+        if(parsed.intent()==ChatIntentParser.Intent.COMPARE_ORDER)return Optional.of(changeOrder(ChatIntentParser.orderCommand(raw)));
         if(parsed.intent()==ChatIntentParser.Intent.COMPARE_HELP) return Optional.of(responses.help());
         // A goal-first follow-up describes the current pair; a divider inside its scenario is not a new pair.
         if((parsed.intent()==ChatIntentParser.Intent.OTHER || parsed.intent()==ChatIntentParser.Intent.COMPARE) && startsGamingGoal(raw)) {
@@ -159,6 +177,21 @@ final class ComparisonConversation {
             invalidated=false;return Optional.of(reply("Каталог изменился, прежний выбор моделей устарел. Назовите новую пару.",List.of()));
         }
         return Optional.empty();
+    }
+    private ChatBotService.Reply changeOrder(ChatIntentParser.Order command) {
+        if(awaiting>=0) {
+            var suggestions=awaiting==2?List.of("Заменить "+left.name(),"Заменить "+right.name())
+                    :options.stream().limit(3).map(CatalogComponent::name).toList();
+            return reply("Сначала завершите выбор: нужны две модели и подтверждённая замена. Текущий порядок сохранён.",suggestions);
+        }
+        if(!complete())return reply("Для смены порядка выберите две модели для сравнения.",List.of());
+        if(command==ChatIntentParser.Order.SWAP) {
+            var old=left;left=right;right=old;
+            String query=leftQuery;leftQuery=rightQuery;rightQuery=query;
+        }
+        var result=finish(specsMode);
+        String acknowledgement=command==ChatIntentParser.Order.SWAP?"Поменял порядок моделей. ":"Порядок моделей сохранён. ";
+        return new ChatBotService.Reply(acknowledgement+result.text(),acknowledgement+result.lead(),result.build(),result.content(),result.request(),result.suggestions());
     }
     private ChatBotService.Reply acceptTaskDetails(String raw) {
         awaitingTaskDetails=false;

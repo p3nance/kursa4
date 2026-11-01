@@ -1,0 +1,746 @@
+{
+  "version": 1,
+  "scope": "Curated language aliases for the current catalog. Identity binding is mandatory. Not specifications, a transliteration guarantee or cross-SKU equivalence.",
+  "products": [
+    {
+      "productId": 2,
+      "catalogName": "Intel Core i5-14600K",
+      "category": "Процессоры",
+      "aliases": [
+        "Интел Кор ай5 14600К",
+        "14600к"
+      ]
+    },
+    {
+      "productId": 3,
+      "catalogName": "Intel Core i7-14700K",
+      "category": "Процессоры",
+      "aliases": [
+        "Интел Кор ай7 14700К",
+        "14700к"
+      ]
+    },
+    {
+      "productId": 4,
+      "catalogName": "Intel Core i9-14900K",
+      "category": "Процессоры",
+      "aliases": [
+        "Интел Кор ай9 14900К",
+        "14900к"
+      ]
+    },
+    {
+      "productId": 5,
+      "catalogName": "Intel Core i5-12400F",
+      "category": "Процессоры",
+      "aliases": [
+        "Интел Кор ай5 12400Ф",
+        "12400ф"
+      ]
+    },
+    {
+      "productId": 6,
+      "catalogName": "AMD Ryzen 5 7600",
+      "category": "Процессоры",
+      "aliases": [
+        "АМД Райзен 5 7600"
+      ]
+    },
+    {
+      "productId": 7,
+      "catalogName": "AMD Ryzen 5 7600X",
+      "category": "Процессоры",
+      "aliases": [
+        "АМД Райзен 5 7600Икс",
+        "Райзен 7600х"
+      ]
+    },
+    {
+      "productId": 8,
+      "catalogName": "AMD Ryzen 7 7800X3D",
+      "category": "Процессоры",
+      "aliases": [
+        "АМД Райзен 7 7800Икс3Д",
+        "Райзен 7800х3д"
+      ]
+    },
+    {
+      "productId": 9,
+      "catalogName": "AMD Ryzen 9 7900X",
+      "category": "Процессоры",
+      "aliases": [
+        "АМД Райзен 9 7900Икс",
+        "Райзен 7900х"
+      ]
+    },
+    {
+      "productId": 10,
+      "catalogName": "AMD Ryzen 9 7950X",
+      "category": "Процессоры",
+      "aliases": [
+        "АМД Райзен 9 7950Икс",
+        "Райзен 7950х"
+      ]
+    },
+    {
+      "productId": 11,
+      "catalogName": "Intel Core i3-14100F",
+      "category": "Процессоры",
+      "aliases": [
+        "Интел Кор ай3 14100Ф",
+        "14100ф"
+      ]
+    },
+    {
+      "productId": 12,
+      "catalogName": "NVIDIA GeForce RTX 4060 8GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4060 8ГБ",
+        "РТХ4060 8ГБ"
+      ]
+    },
+    {
+      "productId": 13,
+      "catalogName": "NVIDIA GeForce RTX 4070 12GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4070 12ГБ",
+        "РТХ4070 12ГБ"
+      ]
+    },
+    {
+      "productId": 14,
+      "catalogName": "NVIDIA GeForce RTX 4070 SUPER 12GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4070 Супер 12ГБ",
+        "РТХ4070 Супер"
+      ]
+    },
+    {
+      "productId": 15,
+      "catalogName": "NVIDIA GeForce RTX 4080 SUPER 16GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4080 Супер 16ГБ",
+        "РТХ4080 Супер"
+      ]
+    },
+    {
+      "productId": 16,
+      "catalogName": "NVIDIA GeForce RTX 4090 24GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4090 24ГБ",
+        "РТХ4090 24ГБ"
+      ]
+    },
+    {
+      "productId": 17,
+      "catalogName": "AMD Radeon RX 7600 8GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "АМД Радеон РХ 7600 8ГБ",
+        "РХ7600 8ГБ"
+      ]
+    },
+    {
+      "productId": 18,
+      "catalogName": "AMD Radeon RX 7700 XT 12GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "АМД Радеон РХ 7700ХТ 12ГБ",
+        "Радеон7700ХТ"
+      ]
+    },
+    {
+      "productId": 19,
+      "catalogName": "AMD Radeon RX 7800 XT 16GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "АМД Радеон РХ 7800ХТ 16ГБ",
+        "Радеон7800ХТ"
+      ]
+    },
+    {
+      "productId": 20,
+      "catalogName": "NVIDIA GeForce RTX 4060 Ti 16GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "Нвидиа Джифорс РТХ 4060 Ти 16ГБ",
+        "РТХ4060 Ти16ГБ"
+      ]
+    },
+    {
+      "productId": 21,
+      "catalogName": "AMD Radeon RX 7900 XTX 24GB",
+      "category": "Видеокарты",
+      "aliases": [
+        "АМД Радеон РХ 7900ХТХ 24ГБ",
+        "Радеон7900ХТХ"
+      ]
+    },
+    {
+      "productId": 22,
+      "catalogName": "ASUS ROG Strix Z790-E Gaming WiFi",
+      "category": "Материнские платы",
+      "aliases": [
+        "Асус Рог Стрикс Z790-E Гейминг Вайфай"
+      ]
+    },
+    {
+      "productId": 23,
+      "catalogName": "MSI MAG Z790 TOMAHAWK WiFi",
+      "category": "Материнские платы",
+      "aliases": [
+        "МСИ МАГ Z790 Томагавк Вайфай"
+      ]
+    },
+    {
+      "productId": 24,
+      "catalogName": "GIGABYTE Z790 AORUS ELITE AX",
+      "category": "Материнские платы",
+      "aliases": [
+        "Гигабайт Z790 Аорус Элит AX"
+      ]
+    },
+    {
+      "productId": 25,
+      "catalogName": "ASUS TUF Gaming B760-PLUS WiFi",
+      "category": "Материнские платы",
+      "aliases": [
+        "Асус Таф Гейминг B760-PLUS Вайфай"
+      ]
+    },
+    {
+      "productId": 26,
+      "catalogName": "MSI PRO B760M-P DDR4",
+      "category": "Материнские платы",
+      "aliases": [
+        "МСИ Про B760M-P DDR4"
+      ]
+    },
+    {
+      "productId": 27,
+      "catalogName": "ASUS ROG Strix X670E-F Gaming WiFi",
+      "category": "Материнские платы",
+      "aliases": [
+        "Асус Рог Стрикс X670E-F Гейминг Вайфай"
+      ]
+    },
+    {
+      "productId": 28,
+      "catalogName": "MSI MPG X670E CARBON WiFi",
+      "category": "Материнские платы",
+      "aliases": [
+        "МСИ МПГ X670E Карбон Вайфай"
+      ]
+    },
+    {
+      "productId": 29,
+      "catalogName": "GIGABYTE B650 AORUS ELITE AX",
+      "category": "Материнские платы",
+      "aliases": [
+        "Гигабайт B650 Аорус Элит AX"
+      ]
+    },
+    {
+      "productId": 30,
+      "catalogName": "ASRock B650M Pro RS",
+      "category": "Материнские платы",
+      "aliases": [
+        "Асрок B650M Про RS"
+      ]
+    },
+    {
+      "productId": 31,
+      "catalogName": "ASUS PRIME B550M-A",
+      "category": "Материнские платы",
+      "aliases": [
+        "Асус Прайм B550M-A"
+      ]
+    },
+    {
+      "productId": 32,
+      "catalogName": "Kingston Fury Beast 16GB (2x8) DDR4-3200",
+      "category": "Оперативная память",
+      "aliases": [
+        "Кингстон Фьюри Бист 16ГБ 2x8 DDR4-3200"
+      ]
+    },
+    {
+      "productId": 33,
+      "catalogName": "Kingston Fury Beast 32GB (2x16) DDR4-3600",
+      "category": "Оперативная память",
+      "aliases": [
+        "Кингстон Фьюри Бист 32ГБ 2x16 DDR4-3600"
+      ]
+    },
+    {
+      "productId": 34,
+      "catalogName": "G.Skill Trident Z5 RGB 32GB (2x16) DDR5-6000",
+      "category": "Оперативная память",
+      "aliases": [
+        "Джи Скилл Трайдент Z5 RGB 32ГБ 2x16 DDR5-6000"
+      ]
+    },
+    {
+      "productId": 35,
+      "catalogName": "Corsair Vengeance 32GB (2x16) DDR5-5600",
+      "category": "Оперативная память",
+      "aliases": [
+        "Корсар Вендженс 32ГБ 2x16 DDR5-5600"
+      ]
+    },
+    {
+      "productId": 36,
+      "catalogName": "Patriot Viper Steel 16GB (2x8) DDR4-3600",
+      "category": "Оперативная память",
+      "aliases": [
+        "Патриот Вайпер Стил 16ГБ 2x8 DDR4-3600"
+      ]
+    },
+    {
+      "productId": 37,
+      "catalogName": "Seagate BarraCuda 1TB 7200rpm",
+      "category": "Жёсткие диски",
+      "aliases": [
+        "Сигейт Барракуда 1ТБ 7200rpm"
+      ]
+    },
+    {
+      "productId": 38,
+      "catalogName": "Seagate BarraCuda 2TB 7200rpm",
+      "category": "Жёсткие диски",
+      "aliases": [
+        "Сигейт Барракуда 2ТБ 7200rpm"
+      ]
+    },
+    {
+      "productId": 39,
+      "catalogName": "WD Blue 4TB 5400rpm",
+      "category": "Жёсткие диски",
+      "aliases": [
+        "ВД Блю 4ТБ 5400rpm"
+      ]
+    },
+    {
+      "productId": 40,
+      "catalogName": "Samsung 990 PRO 1TB NVMe",
+      "category": "SSD-накопители",
+      "aliases": [
+        "Самсунг 990 ПРО 1ТБ NVMe",
+        "Самсунг990про1тб"
+      ]
+    },
+    {
+      "productId": 41,
+      "catalogName": "Samsung 990 PRO 2TB NVMe",
+      "category": "SSD-накопители",
+      "aliases": [
+        "Самсунг 990 ПРО 2ТБ NVMe",
+        "Самсунг990про2тб"
+      ]
+    },
+    {
+      "productId": 42,
+      "catalogName": "Kingston NV2 1TB NVMe",
+      "category": "SSD-накопители",
+      "aliases": [
+        "Кингстон NV2 1ТБ NVMe"
+      ]
+    },
+    {
+      "productId": 43,
+      "catalogName": "Crucial MX500 1TB SATA",
+      "category": "SSD-накопители",
+      "aliases": [
+        "Крушиал MX500 1ТБ SATA",
+        "Круциал MX500 1ТБ SATA"
+      ]
+    },
+    {
+      "productId": 44,
+      "catalogName": "WD Black SN850X 1TB NVMe",
+      "category": "SSD-накопители",
+      "aliases": [
+        "ВД Блэк SN850X 1ТБ NVMe"
+      ]
+    },
+    {
+      "productId": 45,
+      "catalogName": "Corsair RM750e 750W 80+ Gold",
+      "category": "Блоки питания",
+      "aliases": [
+        "Корсар RM750e 750W 80+ Голд"
+      ]
+    },
+    {
+      "productId": 46,
+      "catalogName": "Corsair RM850x 850W 80+ Gold",
+      "category": "Блоки питания",
+      "aliases": [
+        "Корсар RM850x 850W 80+ Голд"
+      ]
+    },
+    {
+      "productId": 47,
+      "catalogName": "be quiet! Straight Power 11 750W",
+      "category": "Блоки питания",
+      "aliases": [
+        "Би Квайт Стрейт Пауэр 11 750W"
+      ]
+    },
+    {
+      "productId": 48,
+      "catalogName": "be quiet! Pure Power 12 M 650W",
+      "category": "Блоки питания",
+      "aliases": [
+        "Би Квайт Пьюр Пауэр 12 M 650W"
+      ]
+    },
+    {
+      "productId": 49,
+      "catalogName": "DeepCool PQ850M 850W 80+ Gold",
+      "category": "Блоки питания",
+      "aliases": [
+        "Дипкул PQ850M 850W 80+ Голд"
+      ]
+    },
+    {
+      "productId": 50,
+      "catalogName": "Seasonic Focus GX-750 750W",
+      "category": "Блоки питания",
+      "aliases": [
+        "Сисоник Фокус GX-750 750W"
+      ]
+    },
+    {
+      "productId": 51,
+      "catalogName": "Cooler Master MWE Gold 650W",
+      "category": "Блоки питания",
+      "aliases": [
+        "Кулер Мастер MWE Голд 650W"
+      ]
+    },
+    {
+      "productId": 52,
+      "catalogName": "ASUS ROG Strix 1000W Gold",
+      "category": "Блоки питания",
+      "aliases": [
+        "Асус Рог Стрикс 1000W Голд"
+      ]
+    },
+    {
+      "productId": 53,
+      "catalogName": "Fractal Design Meshify 2 Black",
+      "category": "Корпуса",
+      "aliases": [
+        "Фрактал Дизайн Мешифай 2 Блэк"
+      ]
+    },
+    {
+      "productId": 54,
+      "catalogName": "Fractal Design Pop Air RGB",
+      "category": "Корпуса",
+      "aliases": [
+        "Фрактал Дизайн Поп Эйр RGB"
+      ]
+    },
+    {
+      "productId": 55,
+      "catalogName": "NZXT H5 Flow",
+      "category": "Корпуса",
+      "aliases": [
+        "НЗХТ H5 Флоу",
+        "Энзетиксти H5 Flow"
+      ]
+    },
+    {
+      "productId": 56,
+      "catalogName": "NZXT H7 Flow",
+      "category": "Корпуса",
+      "aliases": [
+        "НЗХТ H7 Флоу",
+        "Энзетиксти H7 Flow"
+      ]
+    },
+    {
+      "productId": 57,
+      "catalogName": "Corsair 4000D Airflow",
+      "category": "Корпуса",
+      "aliases": [
+        "Корсар 4000D Эйрфлоу",
+        "Корсар4000Д"
+      ]
+    },
+    {
+      "productId": 58,
+      "catalogName": "Corsair 5000D Airflow",
+      "category": "Корпуса",
+      "aliases": [
+        "Корсар 5000D Эйрфлоу",
+        "Корсар5000Д"
+      ]
+    },
+    {
+      "productId": 59,
+      "catalogName": "be quiet! Pure Base 500DX",
+      "category": "Корпуса",
+      "aliases": [
+        "Би Квайт Пьюр Бейс 500DX"
+      ]
+    },
+    {
+      "productId": 60,
+      "catalogName": "be quiet! Silent Base 802",
+      "category": "Корпуса",
+      "aliases": [
+        "Би Квайт Сайлент Бейс 802"
+      ]
+    },
+    {
+      "productId": 61,
+      "catalogName": "Lian Li LANCOOL 215",
+      "category": "Корпуса",
+      "aliases": [
+        "Лиан Ли Ланкул 215"
+      ]
+    },
+    {
+      "productId": 62,
+      "catalogName": "Lian Li O11 Dynamic",
+      "category": "Корпуса",
+      "aliases": [
+        "Лиан Ли O11 Динамик"
+      ]
+    },
+    {
+      "productId": 63,
+      "catalogName": "DeepCool CH510 Mesh Digital",
+      "category": "Корпуса",
+      "aliases": [
+        "Дипкул CH510 Меш Диджитал"
+      ]
+    },
+    {
+      "productId": 64,
+      "catalogName": "Phanteks Eclipse G360A",
+      "category": "Корпуса",
+      "aliases": [
+        "Фантекс Эклипс G360A"
+      ]
+    },
+    {
+      "productId": 65,
+      "catalogName": "Phanteks Enthoo Pro 2",
+      "category": "Корпуса",
+      "aliases": [
+        "Фантекс Энту Про 2"
+      ]
+    },
+    {
+      "productId": 66,
+      "catalogName": "Cooler Master MasterBox NR600",
+      "category": "Корпуса",
+      "aliases": [
+        "Кулер Мастер Мастербокс NR600"
+      ]
+    },
+    {
+      "productId": 68,
+      "catalogName": "Noctua NH-D15",
+      "category": "Охлаждение",
+      "aliases": [
+        "Ноктуа NH-D15",
+        "Ноктуа НХ-Д15"
+      ]
+    },
+    {
+      "productId": 69,
+      "catalogName": "be quiet! Dark Rock Pro 4",
+      "category": "Охлаждение",
+      "aliases": [
+        "Би Квайт Дарк Рок Про 4"
+      ]
+    },
+    {
+      "productId": 70,
+      "catalogName": "DeepCool AK620",
+      "category": "Охлаждение",
+      "aliases": [
+        "Дипкул AK620",
+        "Дипкул АК620"
+      ]
+    },
+    {
+      "productId": 71,
+      "catalogName": "NZXT Kraken 360 RGB",
+      "category": "Охлаждение",
+      "aliases": [
+        "НЗХТ Кракен 360 RGB"
+      ]
+    },
+    {
+      "productId": 72,
+      "catalogName": "Corsair iCUE H150i Elite Capellix",
+      "category": "Охлаждение",
+      "aliases": [
+        "Корсар айкью H150i Элит Капелликс"
+      ]
+    },
+    {
+      "productId": 73,
+      "catalogName": "AOC 24G2 24\" IPS 144Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "АОК 24G2 24 IPS 144Гц"
+      ]
+    },
+    {
+      "productId": 74,
+      "catalogName": "AOC 27G2U 27\" IPS 144Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "АОК 27G2U 27 IPS 144Гц"
+      ]
+    },
+    {
+      "productId": 75,
+      "catalogName": "LG 27GP850-B 27\" QHD 165Hz Nano IPS",
+      "category": "Мониторы",
+      "aliases": [
+        "Элджи 27GP850-B 27 QHD 165Гц Нано IPS"
+      ]
+    },
+    {
+      "productId": 76,
+      "catalogName": "LG 27GN800-B 27\" QHD 144Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "Элджи 27GN800-B 27 QHD 144Гц"
+      ]
+    },
+    {
+      "productId": 77,
+      "catalogName": "Samsung Odyssey G5 32\" QHD 144Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "Самсунг Одиссей G5 32 QHD 144Гц"
+      ]
+    },
+    {
+      "productId": 78,
+      "catalogName": "Samsung Odyssey G7 27\" QHD 240Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "Самсунг Одиссей G7 27 QHD 240Гц"
+      ]
+    },
+    {
+      "productId": 79,
+      "catalogName": "Dell UltraSharp U2722D 27\" QHD",
+      "category": "Мониторы",
+      "aliases": [
+        "Делл Ультрашарп U2722D 27 QHD"
+      ]
+    },
+    {
+      "productId": 80,
+      "catalogName": "ASUS TUF Gaming VG259QM 24.5\" 280Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "Асус Таф Гейминг VG259QM 24.5 280Гц"
+      ]
+    },
+    {
+      "productId": 81,
+      "catalogName": "ASUS ProArt PA278QV 27\" QHD",
+      "category": "Мониторы",
+      "aliases": [
+        "Асус Проарт PA278QV 27 QHD"
+      ]
+    },
+    {
+      "productId": 82,
+      "catalogName": "Gigabyte M28U 28\" 4K 144Hz",
+      "category": "Мониторы",
+      "aliases": [
+        "Гигабайт M28U 28 4К 144Гц"
+      ]
+    },
+    {
+      "productId": 83,
+      "catalogName": "Logitech G Pro X TKL",
+      "category": "Клавиатуры",
+      "aliases": [
+        "Лоджитек Джи Про Икс TKL"
+      ]
+    },
+    {
+      "productId": 84,
+      "catalogName": "Logitech G213 Prodigy",
+      "category": "Клавиатуры",
+      "aliases": [
+        "Лоджитек G213 Продиджи"
+      ]
+    },
+    {
+      "productId": 85,
+      "catalogName": "SteelSeries Apex Pro",
+      "category": "Клавиатуры",
+      "aliases": [
+        "Стилсериес Апекс Про"
+      ]
+    },
+    {
+      "productId": 86,
+      "catalogName": "HyperX Alloy Origins",
+      "category": "Клавиатуры",
+      "aliases": [
+        "Хайперикс Аллой Ориджинс"
+      ]
+    },
+    {
+      "productId": 87,
+      "catalogName": "Razer BlackWidow V3",
+      "category": "Клавиатуры",
+      "aliases": [
+        "Рейзер Блэквидоу V3"
+      ]
+    },
+    {
+      "productId": 88,
+      "catalogName": "Logitech G Pro X Superlight",
+      "category": "Мыши",
+      "aliases": [
+        "Лоджитек Джи Про Икс Суперлайт"
+      ]
+    },
+    {
+      "productId": 89,
+      "catalogName": "Razer DeathAdder V3",
+      "category": "Мыши",
+      "aliases": [
+        "Рейзер Дезаддер V3"
+      ]
+    },
+    {
+      "productId": 90,
+      "catalogName": "SteelSeries Rival 5",
+      "category": "Мыши",
+      "aliases": [
+        "Стилсериес Райвал 5"
+      ]
+    },
+    {
+      "productId": 91,
+      "catalogName": "DeepCool RGB LED Strip Kit",
+      "category": "Аксессуары",
+      "aliases": [
+        "Дипкул RGB LED Стрип Кит"
+      ]
+    }
+  ]
+}

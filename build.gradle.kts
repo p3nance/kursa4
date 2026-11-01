@@ -58,13 +58,15 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 tasks.named<JavaCompile>("compileTestJava") {
-    options.compilerArgs.addAll(listOf("--add-modules", "jdk.httpserver,java.desktop",
-        "--add-reads", "com.example.authapp=jdk.httpserver", "--add-reads", "com.example.authapp=java.desktop"))
+    options.compilerArgs.addAll(listOf("--add-modules", "jdk.httpserver,java.desktop,java.management",
+        "--add-reads", "com.example.authapp=jdk.httpserver", "--add-reads", "com.example.authapp=java.desktop",
+        "--add-reads", "com.example.authapp=java.management"))
 }
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     // Tests use fake APIs and never need local or production credentials.
     systemProperty("techstore.supabase.key", "sb_publishable_test")
+    systemProperty("techstore.chat.engine", "rules")
     systemProperty("glass.platform", "Monocle")
     systemProperty("monocle.platform", "Headless")
     systemProperty("headless.geometry", "1920x1200")
@@ -79,7 +81,10 @@ tasks.withType<JavaExec>().configureEach {
     jvmArgs("-Dconsole.encoding=UTF-8")
 }
 
-tasks.test { useJUnitPlatform { excludeTags("ui") } }
+tasks.test {
+    useJUnitPlatform { excludeTags("ui") }
+    jvmArgs("--add-reads=com.example.authapp=jdk.httpserver")
+}
 val uiTest by tasks.registering(Test::class) {
     description = "Loads every JavaFX screen against a local fake API and renders snapshots."
     group = "verification"
@@ -122,5 +127,57 @@ val profileRecommendations by tasks.registering(JavaExec::class) {
     mainClass.set("com.example.authapp.domain.RecommendationProfile")
     workingDir(layout.buildDirectory.dir("recommendation-profile"))
     args(layout.buildDirectory.file("reports/recommendation-profile.json").get().asFile.absolutePath)
+    doFirst { workingDir.mkdirs() }
+}
+
+val localModelSmoke by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Opt-in check of installed Qwen3 14B through the loopback Ollama API."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.services.LocalModelSmoke")
+    workingDir(layout.buildDirectory.dir("local-model-smoke"))
+    args(layout.buildDirectory.file("reports/local-model-smoke.json").get().asFile.absolutePath)
+    doFirst { workingDir.mkdirs() }
+}
+
+val chatQuality by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Opt-in paired rules/Qwen evaluation on authored conversation scenarios."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.services.ChatQualityProbe")
+    workingDir(layout.buildDirectory.dir("chat-quality"))
+    val suite = providers.gradleProperty("chatSuite").getOrElse("core")
+    args(layout.buildDirectory.file(if (suite == "core") "reports/chat-quality.json" else "reports/chat-quality-$suite.json").get().asFile.absolutePath)
+    args(providers.gradleProperty("chatCases").getOrElse(""))
+    args(when (suite) { "budget" -> "/knowledge/chat-budget-cases.json"; "context" -> "/knowledge/chat-context-cases.json"; "group" -> "/knowledge/chat-group-cases.json"; "filter" -> "/knowledge/chat-filter-cases.json"; "acceptance" -> "/knowledge/chat-acceptance-cases.json"; "benchmark" -> "/knowledge/chat-benchmark-cases.json"; "order" -> "/knowledge/chat-order-cases.json"; "edit" -> "/knowledge/chat-edit-cases.json"; "language" -> "/knowledge/chat-language-cases.json"; else -> "/knowledge/chat-quality-cases.json" })
+    doFirst { workingDir.mkdirs() }
+}
+
+val nativeChatReview by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Opt-in native Windows JavaFX chat review at a per-process UI scale."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.services.NativeChatReview")
+    val scale = providers.gradleProperty("chatScale").getOrElse("1.25")
+    systemProperty("glass.win.uiScale", scale)
+    systemProperty("techstore.chat.engine", "hybrid")
+    jvmArgs("--add-modules=java.desktop")
+    workingDir(layout.buildDirectory.dir("native-chat-review"))
+    args(layout.buildDirectory.dir("reports/native-chat-$scale").get().asFile.absolutePath)
+    doFirst { workingDir.mkdirs() }
+}
+
+val chatRuntimeProbe by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Opt-in real Ollama unavailable/missing/cold/queue checks."
+    dependsOn(tasks.jar, tasks.testClasses)
+    classpath = files(tasks.jar.flatMap { it.archiveFile }, sourceSets["test"].output)
+    mainClass.set("com.example.authapp.services.ChatRuntimeProbe")
+    val mode = providers.gradleProperty("chatRuntimeMode").getOrElse("missing")
+    workingDir(layout.buildDirectory.dir("chat-runtime-probe"))
+    args(layout.buildDirectory.file("reports/chat-runtime-$mode.json").get().asFile.absolutePath, mode)
     doFirst { workingDir.mkdirs() }
 }

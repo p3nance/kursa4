@@ -30,6 +30,12 @@ public final class ComponentSpecs {
     public static final Attribute<String> COOLER_KIND = text("cooler_kind");
     /** Radiator mounting class, e.g. 360; not an air-cooler height or physical radiator dimension. */
     public static final Attribute<Integer> RADIATOR_NOMINAL_MM = number("radiator_nominal_mm");
+    public static final Attribute<Integer> RADIATOR_LENGTH_MM = number("radiator_length_mm");
+    public static final Attribute<Integer> RADIATOR_WIDTH_MM = number("radiator_width_mm");
+    public static final Attribute<Integer> RADIATOR_THICKNESS_MM = number("radiator_thickness_mm");
+    /** One stock fan layer; does not describe a push-pull or replacement-fan configuration. */
+    public static final Attribute<Integer> RADIATOR_FAN_THICKNESS_MM = number("radiator_fan_thickness_mm");
+    public static final Attribute<RadiatorMountMatrix> RADIATOR_MOUNTS = new Attribute<>("radiator_mounts",RadiatorMountMatrix.class);
     public static final Attribute<Integer> HEIGHT_MM = number("height_mm");
     public static final Attribute<Integer> MAX_COOLER_HEIGHT_MM = number("max_cooler_height_mm");
     public static final Attribute<Integer> COOLING_WATTS = number("cooling_watts");

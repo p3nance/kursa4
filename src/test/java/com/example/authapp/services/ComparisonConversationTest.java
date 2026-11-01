@@ -31,6 +31,47 @@ class ComparisonConversationTest {
     private static ChatBotService.SpecificationsContent specs(ChatBotService.Reply reply) {
         return assertInstanceOf(ChatBotService.SpecificationsContent.class,reply.content().getFirst(),reply.text());
     }
+    @Test void reversingThePairChangesThePercentageBaseButPreservesTheScenarioAndBuildBudget() {
+        var bot=bot();bot.reply("Собери ПК до 100000 рублей для игр");
+        bot.reply("Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p");
+        var before=bot.dialogueContext(List.of());
+        assertEquals(new java.math.BigDecimal("100000"),before.request().budget());
+        var reversed=benchmarks(bot.reply("Поменяй местами")).comparisons().getFirst();
+        assertEquals("31.6",reversed.left().value().toPlainString());assertEquals("36.9",reversed.right().value().toPlainString());
+        assertEquals("-14.36",reversed.differencePercent().toPlainString());
+        var after=bot.dialogueContext(List.of());
+        assertEquals(List.of(before.comparisonModels().getLast(),before.comparisonModels().getFirst()),after.comparisonModels());
+        assertEquals(before.comparisonPurpose(),after.comparisonPurpose());assertEquals(before.comparisonDetails(),after.comparisonDetails());
+        assertEquals(before.request(),after.request());
+        var original=benchmarks(bot.reply("Сравни наоборот")).comparisons().getFirst();
+        assertEquals("16.77",original.differencePercent().toPlainString());
+    }
+    @Test void reversingPreservesSpecificationModeAndDoesNotInventTheMissingCpuMeasurement() {
+        var bot=bot();bot.reply("Сравни характеристики RTX4060 и RX7600");
+        var reversed=specs(bot.reply("Переставь их местами"));assertEquals(17,reversed.left().id());assertEquals(12,reversed.right().id());
+        var measured=benchmarks(bot.reply("Сравнить по бенчмаркам"));assertEquals(2,measured.comparisons().size());
+        bot.reply("Сравни 12400F и 14100F");
+        var unknown=bot.reply("Наоборот");var facts=specs(unknown);assertEquals(11,facts.left().id());assertEquals(5,facts.right().id());
+        assertFalse(unknown.text().contains("%"));assertTrue(unknown.lead().contains("нет проверенных измерений"));
+    }
+    @Test void orderChangeIsDraftedAtomicallyAndExplicitNegationKeepsTheSelectedVersion() {
+        var bot=bot();bot.reply("Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p");
+        var before=bot.dialogueContext(List.of());var draft=bot.fork();draft.reply("Поменяй местами");
+        assertEquals(before,bot.dialogueContext(List.of()));bot.commitConversation(draft);
+        var reversed=bot.dialogueContext(List.of());assertNotEquals(before.comparisonModels(),reversed.comparisonModels());
+        var unchanged=benchmarks(bot.reply("Не меняй местами")).comparisons().getFirst();
+        assertEquals("39.31",unchanged.differencePercent().toPlainString());assertEquals("25",unchanged.left().context().version());
+        assertEquals(reversed,bot.dialogueContext(List.of()));
+    }
+    @Test void missingOrPendingComparisonDoesNotCancelTheBuildOrApplyAPendingReplacement() {
+        var bot=bot();bot.reply("Собери ПК для игр");var build=bot.dialogueContext(List.of());assertTrue(build.buildActive());
+        assertTrue(bot.reply("Поменяй местами").content().isEmpty());assertEquals(build,bot.dialogueContext(List.of()));
+        bot.reset();bot.reply("Сравни RTX4060");assertTrue(bot.reply("Поменяй местами").text().contains("две"));
+        benchmarks(bot.reply("RX7600"));bot.reply("Вместо него RTX4070");var pending=bot.dialogueContext(List.of());
+        assertTrue(bot.reply("Поменяй местами").content().isEmpty());assertEquals(pending,bot.dialogueContext(List.of()));
+        bot.reply("первый");assertTrue(bot.dialogueContext(List.of()).comparisonModels().getFirst().contains("RTX 4070"));
+        bot.reset();assertTrue(bot.reply("Наоборот").content().isEmpty());
+    }
     @Test void screenshotPhraseResolvesBothModelsAndShowsTheirPublishedPlatformComparison() {
         var reply=bot().reply("сравни i9-14900k и ryzen 7 7800x3d");var card=benchmarks(reply);
         assertEquals(1,card.comparisons().size());var compared=card.comparisons().getFirst();
@@ -55,7 +96,7 @@ class ComparisonConversationTest {
         assertTrue(card.comparisons().stream().allMatch(c->c.left().modelId().endsWith("4070 SUPER") && c.right().modelId().endsWith("4070")));
     }
     @Test void missingMeasurementsAndDifferentPlatformsHaveDistinctUsefulAnswers() {
-        var missing=bot().reply("4060 Ti 16GB vs 4070");specs(missing);assertTrue(missing.lead().contains("нет проверенных измерений"));
+        var missing=bot().reply("12400F vs 14100F");specs(missing);assertTrue(missing.lead().contains("нет проверенных измерений"));
         var otherPlatform=bot().reply("14600K vs Ryzen7600X");specs(otherPlatform);
         assertTrue(otherPlatform.lead().contains("есть измерения"));assertTrue(otherPlatform.lead().contains("нет общего теста"));
         assertFalse(otherPlatform.text().contains("%"));

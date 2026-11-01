@@ -1,0 +1,304 @@
+{
+  "description": "20 authored mixed-dialogue acceptance cases; preserve first run before tuning",
+  "cases": [
+    {
+      "id": "01",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч",
+        "А второй?"
+      ],
+      "message": "Добавь 10 тысяч",
+      "expect": {
+        "budget": 110000,
+        "usage": "GAMING",
+        "content": "BuildContent"
+      }
+    },
+    {
+      "id": "02",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч"
+      ],
+      "message": "Теперь вместо игр буду монтировать видео",
+      "expect": {
+        "budget": 100000,
+        "usage": "WORKSTATION",
+        "buildOrReason": true
+      }
+    },
+    {
+      "id": "03",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч",
+        "Добавь 10 тысяч"
+      ],
+      "message": "Сколько стоит процессор из этой сборки?",
+      "expect": {
+        "budget": 110000,
+        "setupBuildCategory": "Процессоры"
+      }
+    },
+    {
+      "id": "04",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч",
+        "А второй?"
+      ],
+      "message": "А первый?",
+      "expect": {
+        "productIds": [
+          6
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "05",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч"
+      ],
+      "message": "Эта RTX 9999 сколько стоит?",
+      "expect": {
+        "content": "none",
+        "contains": "не найден",
+        "budget": 100000
+      }
+    },
+    {
+      "id": "06",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "У меня 20 тысяч на процессор",
+      "expect": {
+        "content": "none",
+        "unchanged": true,
+        "contains": "цен"
+      }
+    },
+    {
+      "id": "07",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "На SSD могу потратить 15 тысяч",
+      "expect": {
+        "content": "none",
+        "unchanged": true,
+        "contains": "цен"
+      }
+    },
+    {
+      "id": "08",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Процессор хочу за 25 тысяч",
+      "expect": {
+        "content": "none",
+        "unchanged": true,
+        "contains": "цен"
+      }
+    },
+    {
+      "id": "09",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Цена этой сборки не выше 150 тысяч?",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "contains": "К покупке"
+      }
+    },
+    {
+      "id": "10",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч"
+      ],
+      "message": "Теперь бюджет для всего ПК 150 тысяч",
+      "expect": {
+        "budget": 150000,
+        "usage": "GAMING",
+        "content": "BuildContent"
+      }
+    },
+    {
+      "id": "11",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen до 25 тысяч, не меняя бюджет ПК",
+      "expect": {
+        "productIds": [
+          6
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "12",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Найди Ryzen до 30 тысяч, пожалуйста",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "13",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Подбери Ryzen до 30 тысяч",
+      "expect": {
+        "productIds": [
+          6,
+          7
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "14",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Нужен SSD до 15 тысяч",
+      "expect": {
+        "productIds": [
+          40,
+          42,
+          43,
+          44
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "15",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч",
+        "А второй?",
+        "Какая у него цена?",
+        "Найди Ryzen",
+        "Кто из них дешевле?"
+      ],
+      "message": "Добавь 1 тысячу",
+      "expect": {
+        "budget": 101000,
+        "usage": "GAMING"
+      }
+    },
+    {
+      "id": "16",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Сравни RTX 4070 SUPER и RTX 4070",
+        "Найди Ryzen",
+        "Оставь из них до 30 тысяч"
+      ],
+      "message": "А для монтажа кто из них лучше?",
+      "expect": {
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "17",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen",
+        "Найди RTX 9999"
+      ],
+      "message": "Сколько он стоит?",
+      "expect": {
+        "content": "none",
+        "contains": "карточк",
+        "budget": 100000
+      }
+    },
+    {
+      "id": "18",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen до 300 долларов"
+      ],
+      "message": "Добавь 10 тысяч",
+      "expect": {
+        "budget": 110000,
+        "usage": "GAMING"
+      }
+    },
+    {
+      "id": "19",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen от 60 тысяч до 30 тысяч"
+      ],
+      "message": "Найди Ryzen",
+      "expect": {
+        "productIds": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "20",
+      "group": "mixed-dialogue-acceptance",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Новый диалог",
+        "Найди Ryzen до 30 тысяч"
+      ],
+      "message": "Добавь 10 тысяч",
+      "expect": {
+        "content": "none",
+        "budget": null
+      }
+    }
+  ]
+}

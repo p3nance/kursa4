@@ -33,6 +33,7 @@ public final class ModelResolver {
         catalog.stream().sorted(Comparator.comparingInt(CatalogComponent::productId)).forEach(component->{
             var names=new LinkedHashSet<String>();
             names.add(normalize(component.name()));
+            CatalogNameAliases.forComponent(component).forEach(name->names.add(normalize(name)));
             component.specs().fact(ComponentSpecs.MODEL_ID).filter(ComponentSpecs.Fact::verified)
                     .ifPresent(f->names.add(normalize(f.value())));
             if(component.category()==ComponentCategory.CPU) cpuAliases(component.name(),names);
@@ -105,6 +106,11 @@ public final class ModelResolver {
     public static String normalize(String value) {
         if(value==null) return "";
         String s=Normalizer.normalize(value,Normalizer.Form.NFKC).toLowerCase(Locale.ROOT).replace('ё','е');
+        s=CatalogNameAliases.translateBrands(s);
+        s=s.replaceAll("(?U)(?<![\\p{L}])(?:ртх|рткс|эртикс|эр ти икс)(?![\\p{L}])","rtx")
+                .replaceAll("(?U)(?<![\\p{L}])(?:рх|эр икс)(?![\\p{L}])","rx")
+                .replaceAll("(?U)\\bай\\s*([3579])(?=\\b|\\d{4,5})","i$1")
+                .replaceAll("(?U)\\bкор(?:е)?(?=\\s+i[3579]\\b)","core");
         s=s.replaceAll("райзен", "ryzen").replaceAll("интел", "intel")
                 .replaceAll("нвидиа", "nvidia").replaceAll("джифорс|гефорс", "geforce")
                 .replaceAll("радеон", "radeon").replaceAll("супер", "super")
@@ -114,9 +120,13 @@ public final class ModelResolver {
                 .replaceAll("\\b(i[3579])(?=\\d{4,5})", "$1 ")
                 .replaceAll("(?<=\\d)(?=ti\\b|super\\b|xtx\\b|xt\\b)", " ")
                 .replaceAll("\\bti(?=super\\b)", "ti ")
-                .replaceAll("(?U)\\b(\\d+)\\s*(?:гб|gb)\\b", "$1gb")
-                .replaceAll("(?U)\\b(\\d+)\\s*(?:тб|tb)\\b", "$1tb")
+                .replaceAll("(?U)(?<!\\d)(\\d+)\\s*(?:гб|gb)\\b", "$1gb")
+                .replaceAll("(?U)(?<!\\d)(\\d+)\\s*(?:тб|tb)\\b", "$1tb")
                 .replaceAll("\\b(\\d{4,5})\\s+(x3d|ks|kf|ge|k|f|x|g|t)\\b", "$1$2");
+        s=Pattern.compile("(?U)\\b(\\d{3,5})\\s*(икс3д|х3д|икс|кс|кф|к|ф|хтх|хт|х|ти)(?:(?![\\p{L}])|(?=super))").matcher(s).replaceAll(m->m.group(1)+switch(m.group(2)){
+            case "икс3д","х3д"->"x3d";case "икс","х"->"x";case "кс"->"ks";case "кф"->"kf";case "к"->"k";case "ф"->"f";case "хтх"->" xtx";case "хт"->" xt";case "ти"->" ti";default->throw new IllegalStateException();
+        });
+        s=s.replaceAll("\\bti(?=super)","ti ").replaceAll("\\b(ti|super|xtx|xt)(?=\\d+gb\\b)","$1 ");
         return s.replaceAll("(?U)\\s+", " ").strip();
     }
 
@@ -125,13 +135,13 @@ public final class ModelResolver {
         Matcher intel=INTEL.matcher(normalized);
         if(intel.find()) {
             String tier=intel.group(1),number=intel.group(2);
-            aliases.add(number);aliases.add(tier+" "+number);aliases.add("intel "+tier+" "+number);
+            aliases.add(number);aliases.add("intel "+number);aliases.add(tier+" "+number);aliases.add("intel "+tier+" "+number);
             aliases.add("core "+tier+" "+number);aliases.add("intel core "+tier+" "+number);
         }
         Matcher ryzen=RYZEN.matcher(normalized);
         if(ryzen.find()) {
             String tier=ryzen.group(1),number=ryzen.group(2);
-            aliases.add(number);aliases.add("ryzen "+number);aliases.add("amd ryzen "+number);
+            aliases.add(number);aliases.add("amd "+number);aliases.add("ryzen "+number);aliases.add("amd ryzen "+number);
             if(tier!=null) {aliases.add("ryzen "+tier+" "+number);aliases.add("amd ryzen "+tier+" "+number);}
         }
     }
@@ -142,6 +152,7 @@ public final class ModelResolver {
         if(matcher.group(3)!=null) model+=" "+matcher.group(3);
         if(matcher.group(4)!=null) model+=" "+matcher.group(4);
         var bases=new LinkedHashSet<String>();bases.add(model);bases.add(prefix+" "+model);
+        bases.add((prefix.equals("rx")?"amd ":"nvidia ")+model);
         if(prefix.equals("rx")) {bases.add("radeon "+prefix+" "+model);bases.add("amd radeon "+prefix+" "+model);}
         else {bases.add("geforce "+prefix+" "+model);bases.add("nvidia "+prefix+" "+model);bases.add("nvidia geforce "+prefix+" "+model);}
         aliases.addAll(bases);

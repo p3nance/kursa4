@@ -50,6 +50,7 @@ final class OwnedBuildConversation {
         index=other.index;mode=other.mode;expected=other.expected;confirmEach=other.confirmEach;inputProblem=other.inputProblem;
     }
     Map<ComponentCategory,CatalogComponent> components(){return Map.copyOf(owned);}
+    void forget(ComponentCategory category){owned.remove(category);}
     boolean pending(){return mode!=Mode.NONE;}
     void clear(){owned.clear();invalidated.clear();cancelPending();}
     void cancelPending(){staged.clear();queries=List.of();options=List.of();index=0;mode=Mode.NONE;expected=null;confirmEach=false;inputProblem="";}

@@ -10,7 +10,7 @@ import java.util.regex.*;
 
 /** Rule-based Russian chat bot. It does not call a language model or any external API. */
 public final class ChatBotService {
-    public sealed interface Content permits TermContent, ProductsContent, BuildContent, BenchmarksContent, SpecificationsContent {}
+    public sealed interface Content permits TermContent, ProductsContent, BuildContent, BenchmarksContent, SpecificationsContent, PriceComparisonContent {}
     public record ProductInfo(int id, String name, String description, BigDecimal price, int stock,
                               String imageUrl, String category, String manufacturer) {
         public static ProductInfo from(Product p) {
@@ -31,6 +31,9 @@ public final class ChatBotService {
     public record TermContent(GlossaryService.Term term) implements Content {}
     public record ProductsContent(List<ProductInfo> items, int total) implements Content {
         public ProductsContent { items = List.copyOf(items); }
+    }
+    public record PriceComparisonContent(ProductInfo left,ProductInfo right) implements Content {
+        public BigDecimal difference(){return left.price().subtract(right.price()).abs();}
     }
     public record BuildContent(List<ProductInfo> parts, BigDecimal total, BigDecimal budget,
                                BuildRecommendationService.Usage usage, boolean verified,
@@ -71,7 +74,7 @@ public final class ChatBotService {
     }
     private static final Locale RU = Locale.forLanguageTag("ru-RU");
     private static final String AMOUNT = "(\\d(?:[\\d ]*\\d)?(?:[.,]\\d+)?)";
-    private static final String MONEY_UNIT = "(тыс(?:яч[аиу]?)?\\.?|[кk](?![\\p{L}])|руб(?:лей|ля|ль)?|₽)";
+    private static final String MONEY_UNIT = "((?:тыс(?:яч[аиу]?)?\\.?|[кk])(?:\\s*руб(?:лей|ля|ль)?)?|руб(?:лей|ля|ль)?|₽)";
     private static final Pattern BUDGET = Pattern.compile("(?iu)(?:бюджет(?:ом)?(?:\\s*[:=—])?|до|за)\\s*" + AMOUNT + "\\s*" + MONEY_UNIT + "?(?![\\p{L}\\p{N}])(?!\\s*(?:доллар|usd|eur|евро))");
     private static final Pattern MONEY_BUDGET = Pattern.compile("(?iu)(?:на)\\s*" + AMOUNT + "\\s*" + MONEY_UNIT + "(?![\\p{L}\\p{N}])");
     private static final Pattern SHORT_BUDGET = Pattern.compile("(?iu)^\\s*" + AMOUNT + "\\s*" + MONEY_UNIT + "?\\s*[.!]?$");
@@ -82,7 +85,9 @@ public final class ChatBotService {
     private final ChatIntentParser intents = new ChatIntentParser();
     private ComparisonConversation comparison;
     private OwnedBuildConversation owned;
+    private ChatBuildEditor buildEditor;
     private LocalKnowledgeRepository.Snapshot knowledge;
+    private Object catalogVersion;
     private BigDecimal budget;
     private BuildRecommendationService.Usage usage;
     private boolean waitingForBuild;
@@ -94,29 +99,131 @@ public final class ChatBotService {
         glossary=new GlossaryService();updateCatalog(products);
     }
     private ChatBotService(ChatBotService source) {
-        glossary=source.glossary;products=source.products;knowledge=source.knowledge;
-        budget=source.budget;usage=source.usage;waitingForBuild=source.waitingForBuild;comparison=source.comparison.copy();preferences=source.preferences;owned=source.owned.copy();variantCount=source.variantCount;
+        glossary=source.glossary;products=source.products;knowledge=source.knowledge;catalogVersion=source.catalogVersion;
+        budget=source.budget;usage=source.usage;waitingForBuild=source.waitingForBuild;comparison=source.comparison.copy();preferences=source.preferences;owned=source.owned.copy();variantCount=source.variantCount;buildEditor=source.buildEditor.copy();
     }
     public synchronized ChatBotService fork() { return new ChatBotService(this); }
     private record ConversationState(BigDecimal budget,BuildRecommendationService.Usage usage,
-                                     boolean waitingForBuild,ComparisonConversation comparison,BuildRequestParser.Preferences preferences,OwnedBuildConversation owned,int variantCount) {}
+                                     boolean waitingForBuild,ComparisonConversation comparison,BuildRequestParser.Preferences preferences,OwnedBuildConversation owned,int variantCount,ChatBuildEditor buildEditor,Object catalogVersion) {}
     private synchronized ConversationState checkpoint() {
-        return new ConversationState(budget,usage,waitingForBuild,comparison.copy(),preferences,owned.copy(),variantCount);
+        return new ConversationState(budget,usage,waitingForBuild,comparison.copy(),preferences,owned.copy(),variantCount,buildEditor.copy(),catalogVersion);
     }
     /** The UI commits a completed draft only after its request-generation check. Catalog data stays current. */
     public void commitConversation(ChatBotService draft) {
         var state=draft.checkpoint();
         synchronized(this) {
             budget=state.budget();usage=state.usage();waitingForBuild=state.waitingForBuild();comparison.commit(state.comparison());preferences=state.preferences();owned.commit(state.owned());variantCount=state.variantCount();
+            if(state.catalogVersion()==catalogVersion)buildEditor=state.buildEditor();
         }
     }
-    public synchronized void reset() { budget=null;usage=null;waitingForBuild=false;comparison.clear();preferences=BuildRequestParser.Preferences.defaults();owned.clear();variantCount=1; }
+    public synchronized void reset() { budget=null;usage=null;waitingForBuild=false;comparison.clear();preferences=BuildRequestParser.Preferences.defaults();owned.clear();variantCount=1;buildEditor.clear(); }
     public synchronized RequestSummary summary() { return new RequestSummary(budget,usage,preferences.minRamGb(),preferences.minStorageGb(),preferences.requireVerified(),ownedProducts()); }
+    enum Routing { NATIVE, LANGUAGE }
+    synchronized boolean hasPendingSelection() {return owned.pending() || comparison.awaitingChoice() || buildEditor.pending();}
+    synchronized boolean buildEditRequest(String text){
+        return buildEditor.pending() || ChatBuildEditor.isCommand(text) && (comparison.selectedModels().isEmpty()
+                || Pattern.compile("(?U)\\b(?:сборк\\p{L}*|вариант\\p{L}*)\\b").matcher(ModelResolver.normalize(text)).find());
+    }
+    synchronized void rememberBuilds(Reply reply){buildEditor.observe(reply);}
+    synchronized Optional<Reply> unsupportedAction(String raw) {
+        if(raw==null)return Optional.empty();String text=ModelResolver.normalize(raw);
+        boolean cart=text.matches(".*(?:добав\\p{L}*|полож\\p{L}*|клади|убер\\p{L}*|удал\\p{L}*|оформ\\p{L}*|закаж\\p{L}*).*(?:корзин\\p{L}*|заказ\\p{L}*).*" );
+        boolean price=text.matches(".*(?:измени|изменить|поменяй|снизь|понизь|установи|верни|сделай).{0,40}цену.*");
+        if(!cart && !price)return Optional.empty();
+        String message=price?"В чате можно проверить цену из каталога или уточнить бюджет подбора. Изменение цены самого товара здесь недоступно.":
+                "Откройте карточку товара, конфигуратор или раздел корзины, чтобы выполнить это действие. Здесь могу помочь найти товар или подобрать состав.";
+        return Optional.of(new Reply(message,message,List.of(),List.of(),summary(),List.of("Найди Ryzen","Собери ПК")));
+    }
+    synchronized boolean hasExplicitModelMention(String raw) {
+        return raw!=null && (!new ModelResolver(knowledge.components()).mentions(raw).isEmpty()
+                || Pattern.compile("(?iuU)\\b(?:ryzen|rtx|gtx|radeon|core|rx)\\b.{0,24}\\d{3,5}").matcher(raw).find());
+    }
+    synchronized boolean catalogPriceQuery(String raw) {
+        if(raw==null || !ChatCatalogFilter.hasPriceSyntax(raw)
+                || Pattern.compile("(?iuU)\\b(?:пк|компьютер\\p{L}*|системн\\p{L}*|сборк\\p{L}*|собери\\p{L}*|собрать)\\b").matcher(raw).find())return false;
+        return hasExplicitModelMention(raw) || Pattern.compile("(?iuU)\\b(?:ryzen|rtx|gtx|radeon|core|samsung|kingston|corsair|seagate|crucial|процессор\\p{L}*|видеокарт\\p{L}*|озу|ram|ssd|ссд|накопител\\p{L}*|кулер\\p{L}*|корпус\\p{L}*|плат[ауы])\\b").matcher(raw).find();
+    }
+    synchronized Optional<Reply> namedProductReference(String raw) {
+        var parsed=intents.parse(raw);
+        if(parsed.intent()==ChatIntentParser.Intent.COMPARE)return Optional.empty();
+        var named=new ModelResolver(knowledge.components()).mentions(raw);
+        return named.size()==1?Optional.of(search(named.getFirst().name(),ChatCatalogFilter.parse(raw)).withRequest(summary())):Optional.empty();
+    }
+    synchronized Reply productReferenceContext(Reply previous) {
+        if(previous==null || previous.content().stream().noneMatch(BenchmarksContent.class::isInstance)
+                || previous.content().stream().anyMatch(c->c instanceof ProductsContent || c instanceof SpecificationsContent))return previous;
+        var selected=comparison.selectedModels();if(selected.size()!=2)return previous;
+        var refs=new ArrayList<ProductInfo>();
+        for(String name:selected) {
+            var found=products.stream().filter(p->ModelResolver.normalize(p.getName()).equals(ModelResolver.normalize(name))).findFirst();
+            if(found.isEmpty())return previous;refs.add(ProductInfo.from(found.get()));
+        }
+        var content=new ArrayList<>(previous.content());content.add(new ProductsContent(refs,refs.size()));
+        return new Reply(previous.text(),previous.lead(),previous.build(),content,previous.request(),previous.suggestions());
+    }
+    synchronized Routing routing(String raw) {
+        if(raw==null || raw.isBlank() || raw.length()>2000)return Routing.NATIVE;
+        if(invalidNegativeBudget(raw))return Routing.NATIVE;
+        var parsed=intents.parse(raw);
+        if(buildEditRequest(raw) || owned.pending() || OwnedBuildConversation.isCommand(raw))return Routing.NATIVE;
+        if(parsed.intent()==ChatIntentParser.Intent.BUILD && catalogPriceQuery(raw)
+                && Pattern.compile("(?iuU)^(?:подбери|подберите|подобрать)\\s+").matcher(raw.strip()).find())return Routing.NATIVE;
+        if((parsed.intent()==ChatIntentParser.Intent.OTHER || parsed.intent()==ChatIntentParser.Intent.BUILD) && catalogPriceQuery(raw))return Routing.LANGUAGE;
+        if(LocalChatPlan.relativeMoneyRequest(raw))return Routing.LANGUAGE;
+        if(parsed.intent()==ChatIntentParser.Intent.BUILD) {
+            if(Pattern.compile("(?iuU)(?:не\\s+(?:для\\s+)?(?:игр\\p{L}*|гейм\\p{L}*|офис\\p{L}*|монтаж\\p{L}*)|вместо\\s+(?:игр|офиса|монтажа)|перехожу\\s+с)").matcher(raw).find())return Routing.LANGUAGE;
+            if(budgetFrom(raw).isEmpty() && Pattern.compile("(?iuU)\\d[\\d .,]*\\s*(?:тыс\\p{L}*|руб\\p{L}*|₽|[кk](?![\\p{L}]))").matcher(raw).find())return Routing.LANGUAGE;
+        }
+        if(parsed.intent()==ChatIntentParser.Intent.DEFINE && glossary.search(parsed.body(),1).isEmpty())return Routing.LANGUAGE;
+        if(parsed.intent()==ChatIntentParser.Intent.COMPARE && parsed.pair().size()<2 && !comparison.selectedModels().isEmpty())return Routing.LANGUAGE;
+        if(parsed.intent()!=ChatIntentParser.Intent.OTHER)return Routing.NATIVE;
+        String text=ModelResolver.normalize(raw);
+        if(comparison.awaitingChoice() || text.matches("(?:да|нет|отмена|не надо|первый|второй|третий|[123])"))return Routing.NATIVE;
+        var constraints=buildRequests.parse(raw);
+        if(constraints.ram()!=null || constraints.storage()!=null || constraints.verified()!=null || constraints.reset())return Routing.NATIVE;
+        if(!constraints.problems().isEmpty() && Pattern.compile("(?iuU)\\b(?:озу|ram|ssd|ссд|оператив[нк]\\p{L}*|накопител\\p{L}*)\\b").matcher(raw).find())return Routing.NATIVE;
+        if(budgetFrom(raw).isPresent() && text.matches("(?iu)^(?:до |бюджет(?:ом)?[:= ]*|на )?[0-9][0-9 .,]*(?:тыс.*|[кk]|руб.*|₽)?[.!?]*$"))return Routing.NATIVE;
+        if(BuildRequestParser.explicitUsageChoice(raw).isPresent())return Routing.NATIVE;
+        // Everything else needs semantic interpretation, even if the old waiting-state would swallow it.
+        return Routing.LANGUAGE;
+    }
+    synchronized ChatDialogueContext dialogueContext(List<String> history) {
+        return new ChatDialogueContext(summary(),waitingForBuild,comparison.selectedModels(),comparison.purpose(),comparison.details(),history);
+    }
+    synchronized Reply applyLanguagePlan(String raw,LocalChatPlan plan) {
+        var before=checkpoint();
+        try {
+            Reply answer;
+            if(plan.action().equals("BUILD"))answer=replyTo(raw,plan);
+            else if(plan.action().equals("CONTEXT"))answer=comparison.applyLanguagePurpose(plan.usage(),raw);
+            else if(plan.action().equals("SEARCH")) {
+                owned.cancelPending();comparison.clear();waitingForBuild=false;
+                answer=search(ChatCatalogFilter.parse(plan.queries().getFirst()).query(),ChatCatalogFilter.parse(raw));
+            }
+            else answer=replyTo(plan.command(raw));
+            if(Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException("Запрос отменён");
+            rememberBuilds(answer);return answer.withRequest(summary());
+        } catch(RuntimeException ex) {
+            budget=before.budget();usage=before.usage();waitingForBuild=before.waitingForBuild();comparison=before.comparison();preferences=before.preferences();owned=before.owned();variantCount=before.variantCount();buildEditor=before.buildEditor();throw ex;
+        }
+    }
+    /** A model may extract a catalog identity only if the resolver also finds that exact identity in the original message. */
+    synchronized boolean preservesModelIdentity(String raw,List<String> queries) {
+        var resolver=new ModelResolver(knowledge.components());
+        var mentioned=resolver.mentions(raw).stream().map(CatalogComponent::productId).collect(java.util.stream.Collectors.toSet());
+        for(String query:queries) {
+            var result=resolver.resolve(query);
+            if(result.status()==ModelResolver.Status.EXACT && result.candidates().stream().anyMatch(c->!mentioned.contains(c.productId())))return false;
+        }
+        return true;
+    }
     public synchronized void updateCatalog(Collection<Product> products) {
+        catalogVersion=new Object();
         this.products = snapshotProducts(products);
         knowledge = new LocalKnowledgeRepository().load(this.products);
         comparison=comparison==null?new ComparisonConversation(knowledge,this.products):comparison.refreshed(knowledge,this.products);
         owned=owned==null?new OwnedBuildConversation(knowledge.components()):owned.refreshed(knowledge.components());
+        buildEditor=new ChatBuildEditor(knowledge.components(),this.products);
     }
 
     public synchronized Reply reply(String raw) {
@@ -125,23 +232,47 @@ public final class ChatBotService {
         try {
             Reply answer=replyTo(raw);
             if(Thread.currentThread().isInterrupted())throw new java.util.concurrent.CancellationException("Запрос отменён");
-            return answer.withRequest(summary());
+            rememberBuilds(answer);return answer.withRequest(summary());
         } catch(RuntimeException ex) {
-            budget=before.budget();usage=before.usage();waitingForBuild=before.waitingForBuild();comparison=before.comparison();preferences=before.preferences();owned=before.owned();variantCount=before.variantCount();throw ex;
+            budget=before.budget();usage=before.usage();waitingForBuild=before.waitingForBuild();comparison=before.comparison();preferences=before.preferences();owned=before.owned();variantCount=before.variantCount();buildEditor=before.buildEditor();throw ex;
         }
     }
     private Reply replyTo(String raw) {
+        return replyTo(raw,null);
+    }
+    private Reply replyTo(String raw,LocalChatPlan language) {
         if(raw==null || raw.isBlank())return new Reply(HELP);
         if(raw.length()>2000)return new Reply("Сократите сообщение до 2000 символов.");
         raw=raw.replace('\u202f',' ').replace('\u00a0',' ').replace('\n',' ').replace('\r',' ');
+        var unsupported=unsupportedAction(raw);if(unsupported.isPresent())return unsupported.get();
+        var itemMoney=ChatItemMoney.problem(raw);if(itemMoney.isPresent())return new Reply(itemMoney.get());
+        var budgetProblem=ChatBudgetInput.problem(raw);if(budgetProblem.isPresent())return new Reply(budgetProblem.get());
+        if(invalidNegativeBudget(raw))return new Reply("Бюджет должен быть больше нуля. Укажите положительную сумму в рублях.");
+        if(language==null && LocalChatPlan.relativeMoneyRequest(raw))return new Reply("Назовите итоговый бюджет в рублях. Относительные изменения доступны с локальной моделью.");
         String text=raw.toLowerCase(RU).replace('ё','е').trim();
         var parsed=intents.parse(raw);
+        if(language!=null)parsed=new ChatIntentParser.Parsed(ChatIntentParser.Intent.BUILD,raw,List.of());
         if(parsed.intent()==ChatIntentParser.Intent.RESET) {reset();return new Reply("Начнём заново. "+HELP);}
+        if(parsed.intent()==ChatIntentParser.Intent.COMPARE_ORDER)return comparison.respond(raw,parsed).orElseThrow();
+        var edited=buildEditRequest(raw)?buildEditor.respond(raw,summary()):Optional.<Reply>empty();
+        if(edited.isPresent()) {
+            owned.cancelPending();comparison.clear();waitingForBuild=false;
+            edited.get().content().stream().filter(BuildContent.class::isInstance).map(BuildContent.class::cast).findFirst().ifPresent(card->{
+                for(var part:List.copyOf(owned.components().values()))if(!card.ownedProductIds().contains(part.productId()))owned.forget(part.category());
+            });
+            return edited.get();
+        }
         if(parsed.intent()==ChatIntentParser.Intent.GREETING) {owned.cancelPending();comparison.clear();waitingForBuild=false;return new Reply(HELP);}
         if(parsed.intent()==ChatIntentParser.Intent.THANKS)return new Reply("Пожалуйста! Можно продолжить сравнение, найти товар или уточнить задачу.");
         if(parsed.intent()==ChatIntentParser.Intent.SEARCH) {owned.cancelPending();comparison.clear();waitingForBuild=false;return search(parsed.body());}
+        if(parsed.intent()==ChatIntentParser.Intent.BUILD && catalogPriceQuery(raw)) {
+            var prefix=Pattern.compile("(?iuU)^(?:подбери|подберите|подобрать)\\s+").matcher(raw.strip());
+            if(prefix.find()){owned.cancelPending();comparison.clear();waitingForBuild=false;return search(raw.strip().substring(prefix.end()));}
+            return new Reply("Предел цены товара не меняет бюджет ПК. Напишите «Найди» и название товара с пределом цены в рублях.");
+        }
         if(parsed.intent()==ChatIntentParser.Intent.DEFINE) {owned.cancelPending();comparison.clear();waitingForBuild=false;return definition(parsed.body());}
-        boolean comparing=parsed.intent()==ChatIntentParser.Intent.COMPARE || parsed.intent()==ChatIntentParser.Intent.COMPARE_HELP;
+        boolean comparing=parsed.intent()==ChatIntentParser.Intent.COMPARE || parsed.intent()==ChatIntentParser.Intent.COMPARE_HELP
+                || parsed.intent()==ChatIntentParser.Intent.COMPARE_VIEW;
         if(comparing)owned.cancelPending();
         var ownership=comparing?OwnedBuildConversation.Outcome.none(raw):owned.respond(raw);
         String buildRaw=ownership.handled()?ownership.remaining():raw;
@@ -158,23 +289,31 @@ public final class ChatBotService {
         if(!terms.isEmpty() && parsed.intent()!=ChatIntentParser.Intent.BUILD && !containsBuildIntent(text) && !waitingForBuild && !refine) {
             comparison.clear();return definition(raw);
         }
-        if (parsed.intent()==ChatIntentParser.Intent.BUILD || containsBuildIntent(text) || waitingForBuild || refine || SHORT_BUDGET.matcher(text).matches()) {
-            waitingForBuild = true;
+        if (language!=null || parsed.intent()==ChatIntentParser.Intent.BUILD || containsBuildIntent(text) || waitingForBuild || refine || SHORT_BUDGET.matcher(text).matches()) {
+            Optional<BigDecimal> parsedBudget = language!=null && language.budget()!=null?Optional.of(language.effectiveBudget(budget)):budgetFrom(buildRaw);
+            if(parsedBudget.isPresent() && (parsedBudget.get().signum()<=0 || parsedBudget.get().compareTo(new BigDecimal("100000000"))>0))
+                return new Reply("Укажите бюджет больше нуля и не более 100 млн рублей.");
+            if (buildText.matches(".*(?:доллар|usd|eur|евро|[$€]).*")) return new Reply("Пока подбираю по ценам каталога в рублях. Укажите бюджет в рублях.");
             if(!constraints.problems().isEmpty()) return new Reply(String.join("\n",constraints.problems()));
+            waitingForBuild = true;
             preferences=constraints.apply(preferences);
             if(!buildText.isBlank() && (parsed.intent()==ChatIntentParser.Intent.BUILD || alternativeCount(buildText)>1))variantCount=alternativeCount(buildText);
-            if (buildText.matches(".*(?:доллар|usd|eur|евро|[$€]).*")) return new Reply("Пока подбираю по ценам каталога в рублях. Укажите бюджет в рублях.");
-            Optional<BigDecimal> parsedBudget = budgetFrom(buildRaw);
             if (parsedBudget.isPresent()) budget = parsedBudget.get();
-            if (buildText.matches(".*(?:игр|гейм).*")) usage = BuildRecommendationService.Usage.GAMING;
-            else if (buildText.matches(".*(?:офис|учеб|учеб|документ|браузер).*")) usage = BuildRecommendationService.Usage.OFFICE;
-            else if (buildText.matches(".*(?:монтаж|рендер|рабоч|программ|разработ|3d).*")) usage = BuildRecommendationService.Usage.WORKSTATION;
+            if(language!=null) {
+                if(!language.usage().equals("KEEP") && LocalChatPlan.hasTaskInformation(buildRaw))usage=BuildRecommendationService.Usage.valueOf(language.usage());
+            } else {
+                var choice=BuildRequestParser.explicitUsageChoice(buildRaw);
+                if(choice.isPresent())usage=choice.get();
+                else if (buildText.matches(".*(?:игр|гейм).*")) usage = BuildRecommendationService.Usage.GAMING;
+                else if (buildText.matches(".*(?:офис|учеб|учеб|документ|браузер).*")) usage = BuildRecommendationService.Usage.OFFICE;
+                else if (buildText.matches(".*(?:монтаж|рендер|рабоч|работ|программ|разработ|3d).*")) usage = BuildRecommendationService.Usage.WORKSTATION;
+            }
             if(ownership.response()!=null)return ownership.response();
             var ownedProblem=owned.problem();if(ownedProblem!=null)return ownedProblem;
             if (budget == null) return new Reply("Какой бюджет покупки в рублях? Имеющиеся детали в него не входят. Например: «до 100 000 рублей». Монитор и периферия считаются отдельно.").withSuggestions("До 60 000 рублей", "До 100 000 рублей", "До 150 000 рублей");
             if (budget.signum() <= 0 || budget.compareTo(new BigDecimal("100000000")) > 0)
                 return new Reply("Укажите бюджет больше нуля и не более 100 млн рублей.");
-            if (usage == null) return new Reply("Для каких задач нужен ПК: игры, офис/учёба или монтаж/рабочие приложения?").withSuggestions("Для игр", "Для учёбы и офиса", "Для монтажа и рабочих задач");
+            if (usage == null) return new Reply("Для каких задач нужен ПК: игры, офис/учёба или монтаж/рабочие приложения?").withSuggestions(BuildRequestParser.usageChoices().toArray(String[]::new));
             return recommend(variantCount);
         }
         if (text.matches(".*(?:совместим|подойдет|подходит).*")) return new Reply("Откройте конфигуратор и выберите компоненты: он проверит сокет, память, питание, габариты и другие доступные характеристики. Если данных недостаточно, это будет указано отдельно.");
@@ -191,12 +330,20 @@ public final class ChatBotService {
         try {
             BigDecimal value = new BigDecimal(matcher.group(1).replaceAll("[\\s\\u00a0]", "").replace(',', '.'));
             String suffix = matcher.group(2);
-            if (suffix != null && suffix.toLowerCase(RU).matches("(?:тыс.*|[кk])")) value = value.multiply(BigDecimal.valueOf(1000));
+            if (suffix != null && suffix.toLowerCase(RU).matches("(?:тыс.*|[кk](?:\\s*руб.*)?)")) value = value.multiply(BigDecimal.valueOf(1000));
             return Optional.of(value);
         } catch (NumberFormatException ex) { return Optional.empty(); }
     }
+    static boolean invalidNegativeBudget(String raw) {
+        return Pattern.compile("(?iuU)(?:\\bминус\\s*|(?:бюджет(?:ом)?[:= ]*|до\\s*)[-−]\\s*|^\\s*[-−]\\s*)\\d[\\d .,]*").matcher(raw).find();
+    }
     private static boolean containsBuildIntent(String text) { return text.matches(".*(?:собери|собрать|сборк|подбери|подобрать|нужен пк|компьютер|бюджет).*?"); }
     private Reply search(String query) {
+        var filter=ChatCatalogFilter.parse(query);
+        return search(filter.query(),filter);
+    }
+    private Reply search(String query,ChatCatalogFilter filter) {
+        if(filter.problem()!=null)return new Reply(filter.problem());
         String normalized=ModelResolver.normalize(query);
         ComponentCategory category=switch(normalized) {
             case "cpu","процессор","процессоры","процессора" -> ComponentCategory.CPU;
@@ -213,10 +360,13 @@ public final class ChatBotService {
         String q=ModelResolver.normalize(modelQuery);
         if(q.isBlank())return new Reply("Укажите название или категорию товара.");
         var resolution=new ModelResolver(knowledge.components()).resolve(modelQuery);
-        Set<Integer> ids=resolution.status()==ModelResolver.Status.EXACT || resolution.status()==ModelResolver.Status.AMBIGUOUS
-                ?resolution.candidates().stream().map(CatalogComponent::productId).collect(java.util.stream.Collectors.toSet()):Set.of();
-        var matches=products.stream().filter(p->ids.contains(p.getId()) || category!=null && ComponentCategory.fromDisplayName(p.getCategory()).orElse(null)==category
-                || ModelResolver.normalize(p.getName()+" "+p.getCategory()+" "+p.getManufacturer()).contains(q)).toList();
+        Set<Integer> ids=new HashSet<>(CatalogNameAliases.exactProductIds(products,modelQuery));
+        if(resolution.status()==ModelResolver.Status.EXACT || resolution.status()==ModelResolver.Status.AMBIGUOUS)
+            resolution.candidates().stream().map(CatalogComponent::productId).forEach(ids::add);
+        var matches=products.stream().filter(p->!ids.isEmpty()?ids.contains(p.getId()):
+                category!=null?ComponentCategory.fromDisplayName(p.getCategory()).orElse(null)==category:
+                ModelResolver.normalize(p.getName()+" "+p.getCategory()+" "+p.getManufacturer()).contains(q))
+                .filter(p->filter.accepts(ProductInfo.from(p))).toList();
         if(matches.isEmpty() && resolution.status()==ModelResolver.Status.SUGGESTED) {
             var candidates=resolution.candidates().stream().limit(3).map(c->"Найди "+c.name()).toList();
             return new Reply("Точное название не найдено. Возможно, вы имели в виду один из этих товаров? Подтвердите выбор.",

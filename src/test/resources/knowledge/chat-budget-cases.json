@@ -1,0 +1,288 @@
+{
+  "description": "20 additional authored budget scenarios, first run after R32A freeze",
+  "cases": [
+    {
+      "id": "01",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет на 10 тысяч",
+      "expect": {
+        "budget": 110000,
+        "usage": "GAMING",
+        "content": "BuildContent"
+      }
+    },
+    {
+      "id": "02",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Уменьши бюджет на 20 тысяч",
+      "expect": {
+        "budget": 80000,
+        "usage": "GAMING",
+        "buildOrReason": true
+      }
+    },
+    {
+      "id": "03",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь к бюджету 500,25 рублей",
+      "expect": {
+        "budget": 100500.25,
+        "usage": "GAMING"
+      }
+    },
+    {
+      "id": "04",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет до 150 тысяч",
+      "expect": {
+        "budget": 150000,
+        "usage": "GAMING",
+        "content": "BuildContent"
+      }
+    },
+    {
+      "id": "05",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Снизь бюджет до 90 тысяч",
+      "expect": {
+        "budget": 90000,
+        "usage": "GAMING",
+        "buildOrReason": true
+      }
+    },
+    {
+      "id": "06",
+      "group": "budget-operation",
+      "setup": [],
+      "message": "Увеличь бюджет на 10 тысяч",
+      "expect": {
+        "budget": null,
+        "content": "none",
+        "contains": "итог"
+      }
+    },
+    {
+      "id": "07",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Уменьши бюджет на 110 тысяч",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "08",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь 100000000 рублей к бюджету",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "09",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Не увеличивай бюджет на 10 тысяч",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "10",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет на 10 тысяч и уменьши на 5 тысяч",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "11",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет 10 тысяч",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "12",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь минус 10 тысяч к бюджету",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "13",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет на 10 долларов",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "14",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет на 10%",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "15",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь 10 к бюджету",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "16",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Увеличь бюджет на 20 тысяч, оперативки 32 гига",
+      "expect": {
+        "budget": 120000,
+        "ram": 32,
+        "usage": "GAMING"
+      }
+    },
+    {
+      "id": "17",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "ОЗУ 32 ГБ, SSD 2 ТБ"
+      ],
+      "message": "Добавь 10 тысяч к бюджету",
+      "expect": {
+        "budget": 110000,
+        "ram": 32,
+        "storage": 2000
+      }
+    },
+    {
+      "id": "18",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Могу выделить ещё 10 тысяч",
+      "expect": {
+        "budget": 110000,
+        "usage": "GAMING"
+      }
+    },
+    {
+      "id": "19",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Начать заново"
+      ],
+      "message": "Прибавь 10 тысяч к прежней сумме",
+      "expect": {
+        "budget": null,
+        "content": "none"
+      }
+    },
+    {
+      "id": "20",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь 0,001 рубля к бюджету",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "21",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Для офиса"
+      ],
+      "message": "Добавь 10 тысяч к бюджету",
+      "expect": {
+        "budget": 110000,
+        "usage": "OFFICE"
+      }
+    },
+    {
+      "id": "22",
+      "group": "budget-operation",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Добавь 10 тысяч и ещё 5 тысяч",
+      "expect": {
+        "budget": 100000,
+        "content": "none",
+        "unchanged": true
+      }
+    }
+  ]
+}

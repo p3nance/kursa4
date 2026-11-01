@@ -1,0 +1,588 @@
+{
+  "description": "32 authored regressions:16 R36 +8 R37 +8 R40 authored before data import; not held-out or production data",
+  "cases": [
+    {
+      "id": "01",
+      "group": "published-gaming-context",
+      "setup": [],
+      "message": "Сравни RTX 4060 и RX 7600 для игр в Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "02",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "03",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Блэк Миф: Вуконг 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "04",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600",
+        "Для игр в Starfield 1440p"
+      ],
+      "message": "А в Black Myth: Wukong 1440p?",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "05",
+      "group": "published-gaming-context",
+      "setup": [],
+      "message": "Сравни RX 7600 и RTX 4060 для игр в Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "31.6",
+          "right": "36.9",
+          "difference": "-14.36"
+        }
+      }
+    },
+    {
+      "id": "06",
+      "group": "published-gaming-context",
+      "setup": [],
+      "message": "Сравни RTX 4070 и RX 7800 XT для игр в Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "59.3",
+          "right": "55.6",
+          "difference": "6.65"
+        }
+      }
+    },
+    {
+      "id": "07",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 4K",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "08",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "09",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 2K",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "10",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Starfield и Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "11",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 1440p с RTX 5090",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "12",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 1440p Ultra",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "13",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth: Wukong 1440p DLSS",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "14",
+      "group": "published-gaming-context",
+      "setup": [
+        "Сравни RTX 4060 и RX 7600",
+        "Для игр в Black Myth: Wukong 1440p"
+      ],
+      "message": "Для работы",
+      "expect": {
+        "unchanged": true,
+        "content": "SpecificationsContent",
+        "contains": "нет общих проверенных измерений рабочих задач",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "15",
+      "group": "published-gaming-context",
+      "setup": [],
+      "message": "Сравни RTX 4060 Ti 16GB и RTX 4070 для игр в Black Myth: Wukong 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого общего игрового результата",
+        "notContains": [
+          "%",
+          "1831",
+          "2481"
+        ]
+      }
+    },
+    {
+      "id": "16",
+      "group": "published-gaming-context",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Сравни RTX 4060 и RX 7600"
+      ],
+      "message": "Для игр в Black Myth 1440p",
+      "expect": {
+        "unchanged": true,
+        "budget": 100000,
+        "content": "BenchmarksContent",
+        "containsAll": [
+          "Black Myth",
+          "не совпадает"
+        ],
+        "benchmark": {
+          "suite": "Black Myth: Wukong",
+          "left": "36.9",
+          "right": "31.6",
+          "difference": "16.77"
+        }
+      }
+    },
+    {
+      "id": "17",
+      "group": "f1-explicit-version",
+      "setup": [],
+      "message": "Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "F1 25",
+        "benchmark": {
+          "suite": "F1",
+          "version": "25",
+          "left": "217.0",
+          "right": "302.3",
+          "difference": "-28.22"
+        }
+      }
+    },
+    {
+      "id": "18",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen7 7800X3D и Ryzen5 7600"
+      ],
+      "message": "Для игр в F1 25 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "F1 25",
+        "benchmark": {
+          "suite": "F1",
+          "version": "25",
+          "left": "302.3",
+          "right": "217.0",
+          "difference": "39.31"
+        }
+      }
+    },
+    {
+      "id": "19",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D"
+      ],
+      "message": "Для игр в F1 24 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "20",
+      "group": "f1-explicit-version",
+      "setup": [],
+      "message": "Сравни Ryzen9 7950X и Ryzen7 7800X3D для игр в F1 25 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "F1 25",
+        "benchmark": {
+          "suite": "F1",
+          "version": "25",
+          "left": "253.8",
+          "right": "302.3",
+          "difference": "-16.04"
+        }
+      }
+    },
+    {
+      "id": "21",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen9 7950X и Ryzen7 7800X3D",
+        "Для игр в F1 25 1080p"
+      ],
+      "message": "Для игр в F1 24 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "F1 24",
+        "benchmark": {
+          "suite": "F1",
+          "version": "24",
+          "left": "363.4",
+          "right": "438.3",
+          "difference": "-17.09"
+        }
+      }
+    },
+    {
+      "id": "22",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen9 7950X и Ryzen7 7800X3D",
+        "Для игр в F1 25 1080p"
+      ],
+      "message": "Для игр в F1 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "23",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen9 7950X и Ryzen7 7800X3D"
+      ],
+      "message": "Для игр в F1 24 и F1 25 1080p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "24",
+      "group": "f1-explicit-version",
+      "setup": [
+        "Сравни Ryzen5 7600 и Ryzen7 7800X3D"
+      ],
+      "message": "Для игр в F1 25 1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "нет подтверждённого",
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "25",
+      "group": "r40-published-rendering",
+      "setup": [],
+      "message": "Сравни Intel Core i3-14100F и AMD Ryzen 5 7600X",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "двух тестовых платформ",
+        "benchmark": {
+          "suite": "Cinebench",
+          "left": "486",
+          "right": "781",
+          "difference": "-37.77",
+          "version": "2024"
+        }
+      }
+    },
+    {
+      "id": "26",
+      "group": "r40-published-rendering",
+      "setup": [
+        "Сравни Intel Core i3-14100F и AMD Ryzen 5 7600X"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "Cinebench",
+          "left": "781",
+          "right": "486",
+          "difference": "60.70",
+          "version": "2024"
+        }
+      }
+    },
+    {
+      "id": "27",
+      "group": "r40-published-rendering",
+      "setup": [],
+      "message": "Сравни NVIDIA GeForce RTX 4060 Ti 16GB и NVIDIA GeForce RTX 4070 12GB",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "contains": "Образцы одного обзора",
+        "benchmark": {
+          "suite": "V-Ray Benchmark",
+          "left": "1831",
+          "right": "2481",
+          "difference": "-26.20",
+          "version": "Not reported"
+        }
+      }
+    },
+    {
+      "id": "28",
+      "group": "r40-published-rendering",
+      "setup": [
+        "Сравни NVIDIA GeForce RTX 4060 Ti 16GB и NVIDIA GeForce RTX 4070 12GB"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "V-Ray Benchmark",
+          "left": "2481",
+          "right": "1831",
+          "difference": "35.50",
+          "version": "Not reported"
+        }
+      }
+    },
+    {
+      "id": "29",
+      "group": "r40-published-rendering",
+      "setup": [],
+      "message": "Сравни RTX4060 Ti 16GB и RTX4060 8GB для рендеринга",
+      "expect": {
+        "unchanged": true,
+        "content": "BenchmarksContent",
+        "benchmark": {
+          "suite": "V-Ray Benchmark",
+          "left": "1831",
+          "right": "1682",
+          "difference": "8.86",
+          "version": "Not reported"
+        }
+      }
+    },
+    {
+      "id": "30",
+      "group": "r40-published-rendering",
+      "setup": [
+        "Сравни NVIDIA GeForce RTX 4060 Ti 16GB и NVIDIA GeForce RTX 4070 12GB"
+      ],
+      "message": "Для игр в Starfield1440p",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "notContains": [
+          "%",
+          "1831",
+          "2481"
+        ]
+      }
+    },
+    {
+      "id": "31",
+      "group": "r40-published-rendering",
+      "setup": [],
+      "message": "Сравни Intel Core i5-12400F и Intel Core i3-14100F",
+      "expect": {
+        "unchanged": true,
+        "content": "SpecificationsContent",
+        "specificationIds": [
+          5,
+          11
+        ],
+        "notContains": [
+          "%"
+        ]
+      }
+    },
+    {
+      "id": "32",
+      "group": "r40-published-rendering",
+      "setup": [
+        "Сравни NVIDIA GeForce RTX 4060 Ti 16GB и NVIDIA GeForce RTX 4070 12GB",
+        "Сравнить характеристики"
+      ],
+      "message": "Поменяй местами",
+      "expect": {
+        "unchanged": true,
+        "content": "SpecificationsContent",
+        "specificationIds": [
+          13,
+          20
+        ],
+        "notContains": [
+          "%"
+        ]
+      }
+    }
+  ]
+}

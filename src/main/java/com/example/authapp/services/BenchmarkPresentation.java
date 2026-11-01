@@ -18,6 +18,10 @@ public final class BenchmarkPresentation {
 
     /** Visible alongside the values; source platform differences must not hide in collapsed methodology. */
     public static String scopeNote(BenchmarkService.Context context) {
+        if("PUBLISHED_GPU_SAMPLES".equals(context.conditions().get("comparison_kind")))
+            return "Образцы одного обзора. Исполнение магазина и одинаковые драйверы не подтверждены; это не оценка влияния объёма VRAM.";
+        if("SOURCE_PLATFORM_CONFLICT".equals(context.conditions().get("comparison_kind")))
+            return "Стенд статьи не совпадает с подписью диаграммы; фактическая конфигурация не установлена. Это не прогноз для других игр или вашей сборки.";
         return "PUBLISHED_PLATFORM_COMPARISON".equals(context.conditions().get("comparison_kind"))
                 ? "Сравнение двух тестовых платформ. Платы, прошивки и распределение памяти по CPU раскрыты не полностью; различия платформ входят в результат. Это не изолированная разница процессоров и не прогноз FPS готовой сборки."
                 : "";
@@ -31,6 +35,7 @@ public final class BenchmarkPresentation {
         return switch(context.workload().toLowerCase(Locale.ROOT)) {
             case "gpu gaming benchmark (4k/high/no upscaling)" -> "Игровой тест видеокарты · 4K · средняя частота кадров";
             case "gpu gaming benchmark (1440p/high/no upscaling)" -> "Игровой тест видеокарты · 1440p · средняя частота кадров";
+            case "gpu gaming benchmark (1440p/high)" -> "Игровой тест видеокарты · 1440p · высокие настройки · средняя частота кадров";
             case "cpu gaming benchmark (1080p/high)" -> "Игровой тест процессора · 1080p · средняя частота кадров";
             case "cpu multi core" -> "Рендеринг на процессоре · все ядра";
             case "cpu single core" -> "Рендеринг на процессоре · одно ядро";
@@ -165,6 +170,7 @@ public final class BenchmarkPresentation {
             Map.entry("PUBLISHED_PLATFORM_COMPARISON", "Опубликованное сравнение разных тестовых платформ")
     );
     private static String conditionValue(String key, String value) {
+        if(key.equals("comparison_kind") && value.equals("SOURCE_PLATFORM_CONFLICT"))return "Одна опубликованная диаграмма с противоречивым описанием стенда";
         String platformNote=CPU_PLATFORM_NOTES.get(value);
         if(platformNote!=null)return platformNote;
         String gamingNote=GAMING_NOTES.get(value);

@@ -31,7 +31,9 @@ public final class LocalKnowledgeRepository {
                 var loader=new ComponentSpecsLoader();ComponentSpecsLoader.Dataset data;
                 if(Files.exists(specs))data=loader.loadDataset(specs);
                 else try(var reader=bundled("component-specs.json")){data=loader.loadDataset(reader);}
-                var applied=loader.applyValidated(components,data);
+                Map<Integer,String> descriptions=new HashMap<>();
+                for(var product:products)descriptions.put(product.getId(),Objects.toString(product.getDescription(),""));
+                var applied=loader.applyValidated(components,data,descriptions);
                 components=applied.components();warnings.addAll(applied.warnings());
             }
             catch (IOException ex) { warnings.add("Локальные характеристики не загружены: проверьте формат component-specs.json. Совместимость не подтверждена."); }

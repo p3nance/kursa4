@@ -2,6 +2,7 @@ package controllers;
 
 import com.example.authapp.models.Product;
 import com.example.authapp.services.ChatBotService;
+import com.example.authapp.services.ChatEngine;
 import com.example.authapp.services.BuildRecommendationService;
 import com.example.authapp.ui.ChatCardView;
 import com.example.authapp.ui.Ui;
@@ -31,7 +32,7 @@ public final class ChatController {
     @FXML private VBox contextPane;
     @FXML private HBox contentRow;
     private MainController host;
-    private ChatBotService bot;
+    private ChatEngine bot;
     private List<Product> catalog = List.of();
     private ChatBotService.RequestSummary summary = new ChatBotService.RequestSummary(null, null);
     private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> {
@@ -77,7 +78,7 @@ public final class ChatController {
     public void configure(MainController host, List<Product> catalog) {
         this.host = host;
         if (bot == null) {
-            this.catalog = snapshot(catalog); bot = new ChatBotService(this.catalog);
+            this.catalog = snapshot(catalog); bot = ChatEngine.create(this.catalog);
             catalogValue.setText(catalog.isEmpty() ? "Каталог пока пуст" : "Товаров в каталоге: " + catalog.size());
         } else updateCatalog(catalog);
     }
@@ -86,8 +87,8 @@ public final class ChatController {
     public void updateCatalog(List<Product> products) {
         catalog = snapshot(products);
         if (disposed) return;
-        if (bot == null) { bot = new ChatBotService(catalog); return; }
-        ChatBotService current = bot;
+        if (bot == null) { bot = ChatEngine.create(catalog); return; }
+        ChatEngine current = bot;
         List<Product> latest = catalog;
         worker.submit(() -> {
             current.updateCatalog(latest);
@@ -122,16 +123,16 @@ public final class ChatController {
         lastRequest = text;
         scrollToBottom();
         long request = ++generation;
-        ChatBotService current = bot;
+        ChatEngine current = bot;
         setBusy(true); setRetry(false);
         pending = worker.submit(() -> {
             try {
-                ChatBotService draft = current.fork();
+                ChatEngine draft = current.fork();
                 ChatBotService.Reply reply = draft.reply(text);
                 Platform.runLater(() -> {
                     if (disposed || generation != request || bot != current) return;
                     current.commitConversation(draft);
-                    addReply(reply); updateSummary(reply.request()); setBusy(false);
+                    addReply(reply); updateSummary(reply.request()); setBusy(false); status.setText(current.status());
                 });
             } catch (CancellationException ignored) {
                 // cancel() owns the visible state and invalidates this request.
@@ -151,7 +152,7 @@ public final class ChatController {
         setBusy(false); status.setText("Запрос отменён."); setRetry(lastRequest != null);
     }
     @FXML private void clear() {
-        cancel(); bot = new ChatBotService(catalog); summary = bot.summary();
+        cancel(); bot = ChatEngine.create(catalog); summary = bot.summary();
         messages.getChildren().clear(); welcome(); updateSummary(summary); lastRequest = null;
         setRetry(false); status.setText("Помощник готов"); scrollToBottom();
     }

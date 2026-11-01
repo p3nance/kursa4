@@ -57,9 +57,11 @@ public final class ComparisonService {
         } else if(gamingRequested && !details.isBlank()) {
             return unavailableGamingScenario(left,right,status,gaming);
         }
-        boolean platformComparison=comparisons.stream().anyMatch(c->!BenchmarkPresentation.scopeNote(c.left().context()).isEmpty());
+        boolean platformComparison=comparisons.stream().anyMatch(c->"PUBLISHED_PLATFORM_COMPARISON".equals(c.left().context().conditions().get("comparison_kind")));
+        boolean platformConflict=comparisons.stream().anyMatch(c->"SOURCE_PLATFORM_CONFLICT".equals(c.left().context().conditions().get("comparison_kind")));
         String lead="Сравниваю «"+left.name()+"» и «"+right.name()+"»: нашёл общие тесты. Вывод относится только к их условиям."
-                +(platformComparison?" Это опубликованное сравнение двух тестовых платформ.":"");
+                +(platformComparison?" Это опубликованное сравнение двух тестовых платформ.":"")
+                +(platformConflict?" Описание стенда в статье не совпадает с подписью диаграммы; фактическая конфигурация не установлена.":"");
         StringJoiner text=new StringJoiner("\n\n");text.add(lead);
         comparisons.stream().limit(5).forEach(c -> {
             var context=c.left().context();
@@ -109,21 +111,26 @@ public final class ComparisonService {
         return split.length==2?split[1].strip():"";
     }
     /** Deliberately narrow: a named supported game and an optional chart resolution, no inferred PC settings. */
+    private static final Pattern BLACK_MYTH=Pattern.compile("(?U)\\b(?:black\\s+myth(?:\\s+wukong)?|бл[эе]к\\s+миф(?:\\s+вуконг)?|вуконг)\\b");
+    private static final Pattern F1_GAME=Pattern.compile("\\bf\\s*1\\s*(24|25)\\b");
     private static List<BenchmarkService.Comparison> gamingScenario(List<BenchmarkService.Comparison> gaming,String raw) {
-        String details=ModelResolver.normalize(raw);
-        String game;
-        if(Pattern.compile("\\bstarfield\\b").matcher(details).find())game="Starfield";
-        else if(Pattern.compile("\\bf\\s*1\\s*24\\b").matcher(details).find())game="F1";
-        else return List.of();
+        String details=ModelResolver.normalize(raw).replaceAll("(?iu)(?<=[\\p{L}])(?=(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9]))"," ");
+        Set<String> games=new LinkedHashSet<>();
+        if(Pattern.compile("\\bstarfield\\b").matcher(details).find())games.add("Starfield");
+        var f1=F1_GAME.matcher(details);while(f1.find())games.add("F1/"+f1.group(1));
+        if(BLACK_MYTH.matcher(details).find())games.add("Black Myth: Wukong");
+        if(games.size()!=1)return List.of();
+        String selected=games.iterator().next(),game=selected.startsWith("F1/")?"F1":selected;
+        String version=game.equals("F1")?selected.substring(3):"";
         var resolution=Pattern.compile("(?<![a-z0-9])(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9])").matcher(details);
         Set<String> requested=new LinkedHashSet<>();while(resolution.find())requested.add(resolution.group());
         if(requested.size()>1)return List.of();
-        String remaining=details.replaceAll("\\bstarfield\\b|\\bf\\s*1\\s*24\\b","")
+        String remaining=BLACK_MYTH.matcher(details).replaceAll("").replaceAll("\\bstarfield\\b|\\bf\\s*1\\s*(?:24|25)\\b","")
                 .replaceAll("(?<![a-z0-9])(?:720p|1080p|1440p|2160p|2k|4k)(?![a-z0-9])","")
                 .replaceAll("(?U)\\b(?:а|в|на|для|игра|игры|играю|при|разрешение|разрешении)\\b","").strip();
         if(!remaining.isBlank())return List.of();
         return gaming.stream().filter(c->c.left().context().suite().equalsIgnoreCase(game))
-                .filter(c->game.equals("Starfield") || c.left().context().version().equals("24"))
+                .filter(c->!game.equals("F1") || c.left().context().version().equals(version))
                 .filter(c->requested.isEmpty() || Pattern.compile("(?<![a-z0-9])"+Pattern.quote(requested.iterator().next())+"(?![a-z0-9])")
                         .matcher(c.left().context().conditions().getOrDefault("resolution","").toLowerCase(Locale.ROOT)).find()).toList();
     }
@@ -259,8 +266,9 @@ public final class ComparisonService {
             case RAM -> List.of(MEMORY_TYPE,CAPACITY_GB,MODULE_COUNT);
             case STORAGE -> List.of(STORAGE_INTERFACE,CAPACITY_GB,FORM_FACTOR);
             case PSU -> List.of(PSU_WATTS,PSU_FORM_FACTOR,POWER_CONNECTORS);
-            case CASE -> List.of(SUPPORTED_FORM_FACTORS,SUPPORTED_PSU_FORM_FACTORS,MAX_GPU_LENGTH_MM,MAX_COOLER_HEIGHT_MM);
-            case COOLER -> List.of(COOLER_KIND,RADIATOR_NOMINAL_MM,HEIGHT_MM,SUPPORTED_SOCKETS,COOLING_WATTS);
+            case CASE -> List.of(SUPPORTED_FORM_FACTORS,SUPPORTED_PSU_FORM_FACTORS,MAX_GPU_LENGTH_MM,MAX_COOLER_HEIGHT_MM,RADIATOR_MOUNTS);
+            case COOLER -> List.of(COOLER_KIND,RADIATOR_NOMINAL_MM,RADIATOR_LENGTH_MM,RADIATOR_WIDTH_MM,
+                    RADIATOR_THICKNESS_MM,RADIATOR_FAN_THICKNESS_MM,HEIGHT_MM,SUPPORTED_SOCKETS,COOLING_WATTS);
         };
     }
     private static String label(Attribute<?> attribute) {
@@ -287,6 +295,11 @@ public final class ComparisonService {
             case "max_cooler_height_mm" -> "Максимальная высота кулера";
             case "cooler_kind" -> "Тип охлаждения";
             case "radiator_nominal_mm" -> "Номинальный класс радиатора";
+            case "radiator_length_mm" -> "Фактическая длина радиатора";
+            case "radiator_width_mm" -> "Фактическая ширина радиатора";
+            case "radiator_thickness_mm" -> "Толщина радиатора без вентиляторов";
+            case "radiator_fan_thickness_mm" -> "Толщина штатного слоя вентиляторов";
+            case "radiator_mounts" -> "Крепления радиаторов";
             case "height_mm" -> "Высота воздушного кулера";
             case "supported_sockets" -> "Крепления для сокетов";
             case "cooling_watts" -> "Подтверждённая мощность охлаждения";
@@ -297,11 +310,13 @@ public final class ComparisonService {
         if(part.category()==ComponentCategory.COOLER) {
             String kind=part.specs().fact(COOLER_KIND).filter(Fact::verified).map(Fact::value).orElse("");
             if(attribute.equals(HEIGHT_MM) && kind.equals("AIO"))return "Не применяется к СЖО";
-            if(attribute.equals(RADIATOR_NOMINAL_MM) && kind.equals("AIR"))return "Не применяется";
+            if((attribute.equals(RADIATOR_NOMINAL_MM)||attribute.equals(RADIATOR_LENGTH_MM)||attribute.equals(RADIATOR_WIDTH_MM)
+                    ||attribute.equals(RADIATOR_THICKNESS_MM)||attribute.equals(RADIATOR_FAN_THICKNESS_MM)) && kind.equals("AIR"))return "Не применяется";
         }
         var fact=part.specs().fact(attribute).filter(Fact::verified);
         if(fact.isEmpty())return UNKNOWN;
         Object value=fact.get().value();
+        if(value instanceof com.example.authapp.domain.RadiatorMountMatrix matrix)return matrix.summary();
         String text=value instanceof Set<?> values ? values.stream().map(Object::toString).sorted().reduce((a,b)->a+", "+b).orElse("Нет") : value.toString();
         String name=attribute.name();
         if(attribute.equals(COOLER_KIND))return switch(text) {case "AIR" -> "Воздушное";case "AIO" -> "Жидкостное (AIO)";default -> UNKNOWN;};

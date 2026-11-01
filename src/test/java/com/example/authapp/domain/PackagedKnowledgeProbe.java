@@ -23,6 +23,9 @@ public final class PackagedKnowledgeProbe {
                 }
             }
         }
+        var language=new ChatBotService(products).reply("Найди Лоджитек Джи Про Икс TKL");
+        if(language.content().stream().filter(ChatBotService.ProductsContent.class::isInstance).map(ChatBotService.ProductsContent.class::cast)
+                .flatMap(c->c.items().stream()).noneMatch(p->p.id()==83))throw new AssertionError("Bundled Russian catalog aliases unavailable");
         var data=new LocalKnowledgeRepository().load(products);
         if(!data.warnings().isEmpty()||data.components().size()!=67)throw new AssertionError("Bundled specs not applied: "+data.warnings());
         long verified=data.components().stream().filter(c->c.specs().fact(ComponentSpecs.MODEL_ID).filter(ComponentSpecs.Fact::verified).isPresent()).count();
@@ -44,6 +47,23 @@ public final class PackagedKnowledgeProbe {
                         && c.left().context().conditions().getOrDefault("review_cohort","")
                             .equals("gn-7600xt-2024-03-07-starfield-1440p-high-gpu")))
             throw new AssertionError("Bundled verified1440p GPU results unavailable");
+        var blackMyth=new ChatBotService(products).reply("Сравни RTX4060 и RX7600 для игр в Black Myth: Wukong1440p");
+        if(!blackMyth.lead().contains("не совпадает") || blackMyth.content().stream()
+                .filter(ChatBotService.BenchmarksContent.class::isInstance).map(ChatBotService.BenchmarksContent.class::cast)
+                .flatMap(c->c.comparisons().stream()).noneMatch(c->c.left().value().compareTo(new java.math.BigDecimal("36.9"))==0
+                        &&c.right().value().compareTo(new java.math.BigDecimal("31.6"))==0))
+            throw new AssertionError("Bundled Black Myth data or visible platform-description conflict unavailable");
+        var f1Bot=new ChatBotService(products);
+        var f1New=f1Bot.reply("Сравни Ryzen5 7600 и Ryzen7 7800X3D для игр в F1 25 1080p");
+        if(f1New.content().stream().filter(ChatBotService.BenchmarksContent.class::isInstance).map(ChatBotService.BenchmarksContent.class::cast)
+                .flatMap(c->c.comparisons().stream()).noneMatch(c->c.left().context().version().equals("25")
+                        &&c.left().value().compareTo(new java.math.BigDecimal("217.0"))==0&&c.right().value().compareTo(new java.math.BigDecimal("302.3"))==0))
+            throw new AssertionError("Bundled exact7600non-X F1 25 comparison unavailable");
+        var reversed=f1Bot.reply("Поменяй местами");
+        if(reversed.content().stream().filter(ChatBotService.BenchmarksContent.class::isInstance).map(ChatBotService.BenchmarksContent.class::cast)
+                .flatMap(c->c.comparisons().stream()).noneMatch(c->c.left().value().compareTo(new java.math.BigDecimal("302.3"))==0
+                        &&c.right().value().compareTo(new java.math.BigDecimal("217.0"))==0&&c.differencePercent().compareTo(new java.math.BigDecimal("39.31"))==0))
+            throw new AssertionError("Bundled comparison order or reciprocal percentage base unavailable");
         var cpuPlatforms=new ChatBotService(products).reply("сравни i9-14900k и ryzen 7 7800x3d");
         if(!cpuPlatforms.lead().contains("двух тестовых платформ") || !cpuPlatforms.text().contains("распределение памяти по CPU")
                 || cpuPlatforms.content().stream().filter(ChatBotService.BenchmarksContent.class::isInstance)
@@ -53,6 +73,12 @@ public final class PackagedKnowledgeProbe {
                         && c.differencePercent().compareTo(new java.math.BigDecimal("-12.27"))==0
                         && "PUBLISHED_PLATFORM_COMPARISON".equals(c.left().context().conditions().get("comparison_kind"))))
             throw new AssertionError("Bundled CPU platform comparison or its visible scope unavailable");
+        var popAir=data.components().stream().filter(c->c.productId()==54).findFirst().orElseThrow();
+        var kraken=data.components().stream().filter(c->c.productId()==71).findFirst().orElseThrow();
+        if(popAir.specs().fact(ComponentSpecs.RADIATOR_MOUNTS).filter(ComponentSpecs.Fact::verified).isEmpty()
+                ||new CompatibilityService().assess(java.util.List.of(popAir,kraken),false).findings().stream()
+                .noneMatch(f->f.code().equals("radiator_fit")&&f.status()==CompatibilityService.Status.INCOMPATIBLE))
+            throw new AssertionError("Bundled radiator matrix or verified Pop Air/360 conflict unavailable");
         System.setProperty("techstore.knowledge.dir","explicit-empty-override");
         var empty=new LocalKnowledgeRepository().load(products);
         if(empty.components().stream().anyMatch(c->c.specs().fact(ComponentSpecs.MODEL_ID).filter(ComponentSpecs.Fact::verified).isPresent()))

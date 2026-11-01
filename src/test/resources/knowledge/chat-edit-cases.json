@@ -1,0 +1,145 @@
+{
+  "description": "10 authored regressions from the replacement bug; not held-out user quality",
+  "cases": [
+    {
+      "id": "01",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "замени видеокарту на 4080",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "4080 SUPER"
+      }
+    },
+    {
+      "id": "02",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "замени видеокарту на 4080"
+      ],
+      "message": "Да",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 15,
+        "contains": "Бюджет превышен",
+        "overBudgetDraft": true
+      }
+    },
+    {
+      "id": "03",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "Замени видеокарту на RTX4070",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 13,
+        "preserveSetupExceptCategory": "Видеокарты"
+      }
+    },
+    {
+      "id": "04",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр",
+        "Замени видеокарту на RTX4070"
+      ],
+      "message": "Замени корпус на Fractal Design Pop Air RGB",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 54,
+        "retainedProductId": 13,
+        "preserveSetupExceptCategory": "Корпуса"
+      }
+    },
+    {
+      "id": "05",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "замени видеокарту на 4080"
+      ],
+      "message": "Отмена",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "без изменений"
+      }
+    },
+    {
+      "id": "06",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр, два варианта"
+      ],
+      "message": "Замени видеокарту на RTX4070 в варианте 2",
+      "expect": {
+        "unchanged": true,
+        "content": "BuildContent",
+        "replacementProductId": 13,
+        "preserveSetupExceptCategory": "Видеокарты",
+        "setupBuildIndex": 2
+      }
+    },
+    {
+      "id": "07",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "Не меняй видеокарту",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "без изменений"
+      }
+    },
+    {
+      "id": "08",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 200000 рублей для игр"
+      ],
+      "message": "Замени видеокарту на RTX9990",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "не найдена"
+      }
+    },
+    {
+      "id": "09",
+      "group": "proposed-build-edit",
+      "setup": [],
+      "message": "Замени видеокарту на RTX4070",
+      "expect": {
+        "unchanged": true,
+        "content": "none",
+        "contains": "Сначала"
+      }
+    },
+    {
+      "id": "10",
+      "group": "proposed-build-edit",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "замени видеокарту на 4080"
+      ],
+      "message": "Новый диалог",
+      "expect": {
+        "budget": null,
+        "usage": null,
+        "content": "none",
+        "contains": "Начнём заново"
+      }
+    }
+  ]
+}

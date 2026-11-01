@@ -1,0 +1,261 @@
+{
+  "description": "20 additional authored references to typed catalog cards",
+  "cases": [
+    {
+      "id": "01",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Сколько стоит этот процессор?",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "02",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Он в наличии?",
+      "expect": {
+        "productIds": [
+          6
+        ]
+      }
+    },
+    {
+      "id": "03",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "А второй?",
+      "expect": {
+        "productIds": [
+          7
+        ]
+      }
+    },
+    {
+      "id": "04",
+      "group": "card-reference",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр",
+        "Найди Ryzen"
+      ],
+      "message": "2",
+      "expect": {
+        "productIds": [
+          7
+        ],
+        "budget": 100000
+      }
+    },
+    {
+      "id": "05",
+      "group": "card-reference",
+      "setup": [],
+      "message": "Сколько стоит эта модель?",
+      "expect": {
+        "content": "none",
+        "budget": null,
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "06",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600",
+        "Начать заново"
+      ],
+      "message": "Сколько он стоит?",
+      "expect": {
+        "content": "none",
+        "budget": null
+      }
+    },
+    {
+      "id": "07",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Эта Ryzen 5 7600X сколько стоит?",
+      "expect": {
+        "productIds": [
+          7
+        ]
+      }
+    },
+    {
+      "id": "08",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Эта RTX 9999 какая цена?",
+      "expect": {
+        "content": "none",
+        "contains": "не найден"
+      }
+    },
+    {
+      "id": "09",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Сколько это стоит?",
+      "expect": {
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "10",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Десятый",
+      "expect": {
+        "content": "none",
+        "unchanged": true,
+        "contains": "номера"
+      }
+    },
+    {
+      "id": "11",
+      "group": "card-reference",
+      "setup": [
+        "Сравни RTX 4070 SUPER и RTX 4070"
+      ],
+      "message": "Сколько стоит второй?",
+      "expect": {
+        "productIds": [
+          13
+        ]
+      }
+    },
+    {
+      "id": "12",
+      "group": "card-reference",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Сколько стоит процессор из этой сборки?",
+      "expect": {
+        "setupBuildCategory": "Процессоры",
+        "budget": 100000
+      }
+    },
+    {
+      "id": "13",
+      "group": "card-reference",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "Сколько стоит эта сборка?",
+      "expect": {
+        "content": "none",
+        "contains": "К покупке",
+        "budget": 100000
+      }
+    },
+    {
+      "id": "14",
+      "group": "card-reference",
+      "setup": [
+        "Собери ПК до 100000 рублей для игр"
+      ],
+      "message": "2",
+      "expect": {
+        "content": "none",
+        "budget": 100000,
+        "contains": "нет такого варианта"
+      }
+    },
+    {
+      "id": "15",
+      "group": "card-reference",
+      "setup": [
+        "Покажи 2 варианта сборки до 150000 рублей для игр"
+      ],
+      "message": "Второй вариант",
+      "expect": {
+        "setupVariant": 2,
+        "budget": 150000
+      }
+    },
+    {
+      "id": "16",
+      "group": "card-reference",
+      "setup": [
+        "Найди Samsung 990 PRO 1TB"
+      ],
+      "message": "Какая цена у него?",
+      "expect": {
+        "productIds": [
+          40
+        ]
+      }
+    },
+    {
+      "id": "17",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen",
+        "Найди RTX 9999"
+      ],
+      "message": "Сколько он стоит?",
+      "expect": {
+        "content": "none",
+        "contains": "карточк"
+      }
+    },
+    {
+      "id": "18",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen 5 7600"
+      ],
+      "message": "Измени цену этого процессора на 1 рубль",
+      "expect": {
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "19",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen"
+      ],
+      "message": "Положи второй в корзину",
+      "expect": {
+        "content": "none",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "20",
+      "group": "card-reference",
+      "setup": [
+        "Найди Ryzen",
+        "А второй?"
+      ],
+      "message": "А первый?",
+      "expect": {
+        "productIds": [
+          6
+        ],
+        "budget": null
+      }
+    }
+  ]
+}

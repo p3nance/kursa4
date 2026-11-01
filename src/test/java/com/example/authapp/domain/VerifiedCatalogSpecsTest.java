@@ -77,6 +77,46 @@ class VerifiedCatalogSpecsTest {
     }
 
     @Test
+    void mx500FactsAreBoundToTheTwoPointFiveInchCatalogDescription() {
+        var drive=components.get(43);
+        assertEquals("Crucial MX500 CT1000MX500SSD1",drive.specs().fact(MODEL_ID).filter(Fact::verified).orElseThrow().value());
+        assertEquals(1000,drive.specs().fact(CAPACITY_GB).filter(Fact::verified).orElseThrow().value());
+        assertEquals("SATA",drive.specs().fact(STORAGE_INTERFACE).filter(Fact::verified).orElseThrow().value());
+        assertEquals("2.5-inch",drive.specs().fact(FORM_FACTOR).filter(Fact::verified).orElseThrow().value());
+        var changed=products.values().stream().map(p->p.getId()==43?new Product(43,p.getName(),"M.2 Type 2280 SATA SSD 1TB",p.getPrice(),p.getStock(),p.getImageUrl(),p.getCategory(),p.getManufacturer()):p).toList();
+        var loaded=new LocalKnowledgeRepository().load(changed);
+        var other=loaded.components().stream().filter(c->c.productId()==43).findFirst().orElseThrow();
+        assertFalse(other.specs().fact(FORM_FACTOR).filter(Fact::verified).isPresent());
+        assertTrue(loaded.warnings().stream().anyMatch(w->w.contains("43")));
+    }
+    @Test
+    void lancool215KeepsBodyBoundsSeparateFromUnknownAssemblyClearance() {
+        var matrix=part(61).specs().fact(RADIATOR_MOUNTS).filter(Fact::verified).orElseThrow().value();
+        assertEquals(RadiatorMountMatrix.Coverage.COMPLETE,matrix.coverage());assertEquals(4,matrix.rules().size());
+        var top=matrix.rules().stream().filter(r->r.position()==RadiatorMountMatrix.Position.TOP&&r.nominalSizesMm().contains(280)).findFirst().orElseThrow();
+        var front=matrix.rules().stream().filter(r->r.position()==RadiatorMountMatrix.Position.FRONT&&r.nominalSizesMm().contains(360)).findFirst().orElseThrow();
+        assertEquals(55,top.radiatorThicknessUpperBoundMm());assertEquals(70,front.radiatorThicknessUpperBoundMm());
+        assertTrue(matrix.rules().stream().allMatch(r->r.maxAssemblyThicknessMm()==null&&r.maxLengthMm()==null&&r.maxWidthMm()==null));
+        assertTrue(matrix.rules().stream().filter(r->r.nominalSizesMm().contains(120)).allMatch(r->r.radiatorThicknessUpperBoundMm()==null));
+        var result=compatibility.assess(List.of(part(61),part(71)),false);
+        assertFinding(result,"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        assertTrue(result.findings().stream().anyMatch(f->f.code().equals("radiator_fit")&&f.message().toLowerCase(java.util.Locale.ROOT).contains("корзин")));
+    }
+    @Test
+    void lancool215RejectsOnlyConfirmedBodyOrNominalExcesses() {
+        var specs=builder();DomainFixtures.set(specs,COOLER_KIND,"AIO");DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,280);
+        DomainFixtures.set(specs,RADIATOR_THICKNESS_MM,71);
+        var over=DomainFixtures.part(9001,ComponentCategory.COOLER,specs.build());
+        assertFinding(compatibility.assess(List.of(part(61),over),false),"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+        DomainFixtures.set(specs,RADIATOR_THICKNESS_MM,50);DomainFixtures.set(specs,RADIATOR_FAN_THICKNESS_MM,50);
+        var ambiguousStack=DomainFixtures.part(9001,ComponentCategory.COOLER,specs.build());
+        assertFinding(compatibility.assess(List.of(part(61),ambiguousStack),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,120);DomainFixtures.set(specs,RADIATOR_THICKNESS_MM,100);
+        assertFinding(compatibility.assess(List.of(part(61),DomainFixtures.part(9001,ComponentCategory.COOLER,specs.build())),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,420);
+        assertFinding(compatibility.assess(List.of(part(61),DomainFixtures.part(9001,ComponentCategory.COOLER,specs.build())),false),"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+    }
+    @Test
     void verifiedFactsRetainHttpsSourcesAndIsoCheckDates() throws IOException {
         var records = readJson(KNOWLEDGE.resolve("component-specs.json")).getAsJsonArray("products");
         assertEquals(67, records.size());
@@ -96,7 +136,7 @@ class VerifiedCatalogSpecsTest {
                 assertDoesNotThrow(() -> LocalDate.parse(fact.get("checkedAt").getAsString()), context);
             }
         }
-        assertEquals(207,verifiedFacts,"Only three newly researched cooler type/class facts are added");
+        assertEquals(232,verifiedFacts,"R39 adds eight scoped case mount matrices without inferring full physical fit");
     }
 
     @Test
@@ -158,14 +198,139 @@ class VerifiedCatalogSpecsTest {
     }
 
     @Test
-    void aLegacyCoolerHeightDoesNotSilentlyEstablishAnAirCoolerType() {
-        assertNotVerified(part(69),COOLER_KIND);
-        assertTrue(part(69).specs().fact(HEIGHT_MM).filter(Fact::verified).isPresent());
-        var result=compatibility.assess(List.of(part(62),part(69)),false);
-        assertFinding(result,"cooler_kind",CompatibilityService.Status.INSUFFICIENT_DATA);
-        assertTrue(result.findings().stream().noneMatch(f->f.code().equals("cooler_height")),
-                "Unknown type must be checked before interpreting a legacy height fact");
+    void originalCapellixHasDedicatedRadiatorDimensionsButNoInventedFanStack() {
+        var aio=part(72);
+        assertEquals(397,aio.specs().fact(RADIATOR_LENGTH_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(120,aio.specs().fact(RADIATOR_WIDTH_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(27,aio.specs().fact(RADIATOR_THICKNESS_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(360,aio.specs().fact(RADIATOR_NOMINAL_MM).filter(Fact::verified).orElseThrow().value());
+        assertNotVerified(aio,RADIATOR_FAN_THICKNESS_MM);
+        assertNotVerified(aio,HEIGHT_MM);
+        assertNotVerified(aio,SUPPORTED_SOCKETS);
+        assertNotVerified(aio,COOLING_WATTS);
+        assertFinding(compatibility.assess(List.of(part(61),aio),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        assertFinding(compatibility.assess(List.of(part(54),aio),false),"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+    }
+
+    @Test
+    void capellixUses397MillimeterBodyAndStillNeedsAFanStackAtTheBoundary() {
+        for(int limit:List.of(396,397)) {
+            var chassis=builder();
+            DomainFixtures.set(chassis,RADIATOR_MOUNTS,new RadiatorMountMatrix(RadiatorMountMatrix.Coverage.COMPLETE,
+                    List.of(new RadiatorMountMatrix.Rule(RadiatorMountMatrix.Position.FRONT,Set.of(360),limit,120,60,List.of()))));
+            var result=compatibility.assess(List.of(DomainFixtures.part(9002,ComponentCategory.CASE,chassis.build()),part(72)),false);
+            assertFinding(result,"radiator_fit",limit==396?CompatibilityService.Status.INCOMPATIBLE:CompatibilityService.Status.INSUFFICIENT_DATA);
+        }
+        var reply=new ComparisonService(snapshot,products.values()).compare(part(71),part(72),true,"").reply();
+        var card=assertInstanceOf(ChatBotService.SpecificationsContent.class,reply.content().getFirst());
+        assertEquals("397 мм",card.rows().stream().filter(r->r.label().equals("Фактическая длина радиатора")).findFirst().orElseThrow().right());
+    }
+
+    @Test
+    void officiallyVerifiedAirTypesExposeRealHeightConflictsWithoutVerifyingMountingKits() {
+        for(int coolerId:List.of(69,70)) {
+            assertEquals("AIR",part(coolerId).specs().fact(COOLER_KIND).filter(Fact::verified).orElseThrow().value());
+            assertTrue(part(coolerId).specs().fact(HEIGHT_MM).filter(Fact::verified).isPresent());
+            assertNotVerified(part(coolerId),SUPPORTED_SOCKETS);
+            assertNotVerified(part(coolerId),COOLING_WATTS);
+            var result=compatibility.assess(List.of(part(62),part(coolerId)),false);
+            assertFinding(result,"cooler_height",CompatibilityService.Status.INCOMPATIBLE);
+            assertTrue(result.hasConflict(),"160/163mm air coolers exceed the O11 Dynamic's verified155mm limit");
+            assertTrue(result.findings().stream().noneMatch(f->f.code().equals("cooler_kind")));
+        }
+    }
+
+    @Test
+    void krakenRgb2023IsAioButStillNeedsRadiatorMountingVerification() {
+        assertEquals("AIO",part(71).specs().fact(COOLER_KIND).filter(Fact::verified).orElseThrow().value());
+        assertNotVerified(part(71),HEIGHT_MM);
+        assertEquals(360,part(71).specs().fact(RADIATOR_NOMINAL_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(394,part(71).specs().fact(RADIATOR_LENGTH_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(121,part(71).specs().fact(RADIATOR_WIDTH_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(30,part(71).specs().fact(RADIATOR_THICKNESS_MM).filter(Fact::verified).orElseThrow().value());
+        assertEquals(26,part(71).specs().fact(RADIATOR_FAN_THICKNESS_MM).filter(Fact::verified).orElseThrow().value());
+        assertNotVerified(part(71),COOLING_WATTS);
+        var result=compatibility.assess(List.of(part(62),part(71)),false);
+        assertFinding(result,"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        assertTrue(result.findings().stream().noneMatch(f->f.code().equals("cooler_height")));
         assertFalse(result.hasConflict());
+    }
+
+    @Test
+    void popAirRejects360AtEveryStockLocationButDoesNotPretendToKnowFullClearances() {
+        var matrix=part(54).specs().fact(RADIATOR_MOUNTS).filter(Fact::verified).orElseThrow().value();
+        assertEquals(RadiatorMountMatrix.Coverage.COMPLETE,matrix.coverage());
+        assertTrue(matrix.rules().stream().allMatch(r->r.maxLengthMm()==null && r.maxAssemblyThicknessMm()==null));
+        assertTrue(matrix.rules().stream().allMatch(r->!r.nominalSizesMm().contains(360)));
+        for(int coolerId:List.of(71,72)) {
+            var result=compatibility.assess(List.of(part(54),part(coolerId)),false);
+            assertFinding(result,"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+            assertTrue(result.findings().stream().noneMatch(f->f.code().equals("cooler_height")));
+        }
+        var changedKind=builder();changedKind.set(COOLER_KIND,"AIO","https://example.test/fixture",Verification.VERIFIED);
+        changedKind.set(RADIATOR_NOMINAL_MM,240,"https://example.test/fixture",Verification.VERIFIED);
+        var synthetic=DomainFixtures.part(999,ComponentCategory.COOLER,changedKind.build());
+        assertFinding(compatibility.assess(List.of(part(54),synthetic),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+    }
+
+    @Test
+    void radiatorComparisonSeparatesActualGeometryFromNominalAndAirHeight() {
+        var reply=new ComparisonService(snapshot,products.values()).compare(part(69),part(71),true,"").reply();
+        var card=assertInstanceOf(ChatBotService.SpecificationsContent.class,reply.content().getFirst());
+        var length=card.rows().stream().filter(r->r.label().equals("Фактическая длина радиатора")).findFirst().orElseThrow();
+        assertEquals("Не применяется",length.left());assertEquals("394 мм",length.right());
+        var nominal=card.rows().stream().filter(r->r.label().equals("Номинальный класс радиатора")).findFirst().orElseThrow();
+        assertEquals("360 мм",nominal.right());
+        var height=card.rows().stream().filter(r->r.label().equals("Высота воздушного кулера")).findFirst().orElseThrow();
+        assertEquals("Не применяется к СЖО",height.right());
+        var cases=new ComparisonService(snapshot,products.values()).compare(part(54),part(62),true,"").reply();
+        var mounts=assertInstanceOf(ChatBotService.SpecificationsContent.class,cases.content().getFirst()).rows().stream()
+                .filter(r->r.label().equals("Крепления радиаторов")).findFirst().orElseThrow();
+        assertTrue(mounts.left().contains("Спереди: 120/140/240/280 мм"));
+        assertTrue(mounts.left().contains("зазоры проверяются отдельно"));
+        assertTrue(mounts.right().contains("Сверху: 280/360 мм"));assertTrue(mounts.right().contains("Перечень позиций частичный"));
+    }
+
+    @Test
+    void reviewedCasesSeparateCompletePositionListsFromPartialAndUnknownVariants() {
+        for(int id:List.of(53,59,60,63))assertEquals(RadiatorMountMatrix.Coverage.COMPLETE,
+                part(id).specs().fact(RADIATOR_MOUNTS).filter(Fact::verified).orElseThrow().value().coverage());
+        for(int id:List.of(57,58,62,64))assertEquals(RadiatorMountMatrix.Coverage.PARTIAL,
+                part(id).specs().fact(RADIATOR_MOUNTS).filter(Fact::verified).orElseThrow().value().coverage());
+        for(int id:List.of(55,56,65,66))assertNotVerified(part(id),RADIATOR_MOUNTS);
+        for(int id:List.of(53,57,58,59,60,62,63,64))assertTrue(part(id).specs().value(RADIATOR_MOUNTS).orElseThrow().rules().stream()
+                .allMatch(r->r.maxAssemblyThicknessMm()==null&&r.radiatorThicknessUpperBoundMm()==null),
+                "RAM36/42mm and unqualified case clearances must not become radiator thickness limits");
+    }
+
+    @Test
+    void meshifyWidthBoundIsScopedToTheTop140SeriesAndDoesNotCertifyA143MillimeterFit() {
+        var matrix=part(53).specs().value(RADIATOR_MOUNTS).orElseThrow();
+        var wide=matrix.rules().stream().filter(r->r.nominalSizesMm().contains(420)).findFirst().orElseThrow();
+        assertEquals(143,wide.maxWidthMm());assertTrue(wide.unresolvedConditions().stream().anyMatch(c->c.contains("Open Layout")));
+        assertTrue(matrix.rules().stream().filter(r->r.nominalSizesMm().contains(360)).allMatch(r->r.maxWidthMm()==null));
+        var specs=builder();DomainFixtures.set(specs,COOLER_KIND,"AIO");DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,420);
+        DomainFixtures.set(specs,RADIATOR_WIDTH_MM,143);
+        assertFinding(compatibility.assess(List.of(part(53),DomainFixtures.part(9003,ComponentCategory.COOLER,specs.build())),false),
+                "radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        DomainFixtures.set(specs,RADIATOR_WIDTH_MM,144);
+        assertFinding(compatibility.assess(List.of(part(53),DomainFixtures.part(9003,ComponentCategory.COOLER,specs.build())),false),
+                "radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+    }
+
+    @Test
+    void completeCaseListsRejectUnsupportedClassesWhilePartialListsAndReal360PairsStayConservative() {
+        var specs=builder();DomainFixtures.set(specs,COOLER_KIND,"AIO");DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,420);
+        var aio=DomainFixtures.part(9004,ComponentCategory.COOLER,specs.build());
+        for(int id:List.of(59,63))assertFinding(compatibility.assess(List.of(part(id),aio),false),"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+        assertFinding(compatibility.assess(List.of(part(60),aio),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,480);
+        assertFinding(compatibility.assess(List.of(part(60),DomainFixtures.part(9004,ComponentCategory.COOLER,specs.build())),false),"radiator_fit",CompatibilityService.Status.INCOMPATIBLE);
+        DomainFixtures.set(specs,RADIATOR_NOMINAL_MM,240);
+        for(int id:List.of(62,64))assertFinding(compatibility.assess(List.of(part(id),DomainFixtures.part(9004,ComponentCategory.COOLER,specs.build())),false),
+                "radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
+        for(int id:List.of(53,57,58,59,60,62,63,64,65,66))for(int cooler:List.of(71,72))
+            assertFinding(compatibility.assess(List.of(part(id),part(cooler)),false),"radiator_fit",CompatibilityService.Status.INSUFFICIENT_DATA);
     }
 
     @Test
